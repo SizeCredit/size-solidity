@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
-
 import {UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
 import {DataView, UserView} from "@src/market/SizeViewData.sol";
 import {CreditPosition, DebtPosition, LoanStatus} from "@src/market/libraries/LoanLibrary.sol";
@@ -65,7 +63,7 @@ interface ISizeView is ISizeViewV1_7 {
     /// @notice Get the user vault for a given user
     /// @param user The address of the user
     /// @return The user vault
-    function getUserVault(address user) external view returns (IERC4626);
+    function vaultOf(address user) external view returns (address);
 
     /// @notice Check if a given ID is a debt position ID
     /// @param debtPositionId The ID to check

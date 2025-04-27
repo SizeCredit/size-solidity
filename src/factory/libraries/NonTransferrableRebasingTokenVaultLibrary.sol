@@ -7,21 +7,21 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 
-import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
-library NonTransferrableTokenVaultLibrary {
-    function createNonTransferrableTokenVault(
+library NonTransferrableRebasingTokenVaultLibrary {
+    function createNonTransferrableRebasingTokenVault(
         address implementation,
         address owner,
         IPool variablePool,
         IERC20Metadata underlyingBorrowToken
-    ) external returns (NonTransferrableTokenVault token) {
-        token = NonTransferrableTokenVault(
+    ) external returns (NonTransferrableRebasingTokenVault token) {
+        token = NonTransferrableRebasingTokenVault(
             address(
                 new ERC1967Proxy(
                     address(implementation),
                     abi.encodeCall(
-                        NonTransferrableTokenVault.initialize,
+                        NonTransferrableRebasingTokenVault.initialize,
                         (
                             ISizeFactory(address(this)),
                             variablePool,

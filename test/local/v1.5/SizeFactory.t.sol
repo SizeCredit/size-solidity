@@ -221,14 +221,14 @@ contract SizeFactoryTest is BaseTest {
         assertEq(SizeMock(address(sizeFactory.getMarket(1))).v(), 2);
     }
 
-    function test_SizeFactory_setNonTransferrableTokenVaultImplementation() public {
+    function test_SizeFactory_setNonTransferrableRebasingTokenVaultImplementation() public {
         vm.prank(owner);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        sizeFactory.setNonTransferrableTokenVaultImplementation(address(0));
+        sizeFactory.setNonTransferrableRebasingTokenVaultImplementation(address(0));
 
         address newImplementation = makeAddr("newImplementation");
         vm.prank(owner);
-        sizeFactory.setNonTransferrableTokenVaultImplementation(newImplementation);
+        sizeFactory.setNonTransferrableRebasingTokenVaultImplementation(newImplementation);
         assertEq(sizeFactory.nonTransferrableTokenVaultImplementation(), newImplementation);
     }
 

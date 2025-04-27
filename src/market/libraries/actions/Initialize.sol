@@ -18,8 +18,8 @@ import {PERCENT} from "@src/market/libraries/Math.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {NonTransferrableToken} from "@src/market/token/NonTransferrableToken.sol";
-import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
 
 import {State} from "@src/market/SizeStorage.sol";
 
@@ -269,7 +269,7 @@ library Initialize {
             IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );
         state.data.sizeFactory = ISizeFactory(d.sizeFactory);
-        state.data.borrowTokenVault = NonTransferrableTokenVault(d.borrowTokenVault);
+        state.data.borrowTokenVault = NonTransferrableRebasingTokenVault(d.borrowTokenVault);
     }
 
     /// @notice Executes the initialization of the protocol

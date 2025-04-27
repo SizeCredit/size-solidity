@@ -6,7 +6,7 @@ import {Test} from "forge-std/Test.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 
-import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {UNISWAP_V3_FACTORY_BYTECODE} from "@test/mocks/UniswapV3FactoryBytecode.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
@@ -488,10 +488,15 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         PoolMock(address(variablePool)).setLiquidityIndex(token, index);
     }
 
-    function _setVaultWhitelisted(IERC4626 vault, bool whitelisted) internal {
-        NonTransferrableTokenVault borrowTokenVault = NonTransferrableTokenVault(address(size.data().borrowTokenVault));
+    function _setVaultWhitelisted(IERC4626 v, bool whitelisted) internal {
+        return _setVaultWhitelisted(address(v), whitelisted);
+    }
+
+    function _setVaultWhitelisted(address v, bool whitelisted) internal {
+        NonTransferrableRebasingTokenVault borrowTokenVault =
+            NonTransferrableRebasingTokenVault(address(size.data().borrowTokenVault));
         vm.prank(address(this));
-        borrowTokenVault.setVaultWhitelisted(vault, whitelisted);
+        borrowTokenVault.setVaultWhitelisted(v, whitelisted);
     }
 
     function _setLiquidityIndex(uint256 index) internal {

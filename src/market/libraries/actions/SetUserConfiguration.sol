@@ -101,7 +101,7 @@ library SetUserConfiguration {
             );
         }
 
-        state.data.borrowTokenVault.setVault(onBehalfOf, IERC4626(params.vault));
+        state.data.borrowTokenVault.setVault(onBehalfOf, params.vault);
 
         emit Events.SetUserConfiguration(
             msg.sender,

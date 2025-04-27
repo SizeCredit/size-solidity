@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
 import {PERCENT} from "@src/market/libraries/Math.sol";
-import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {BaseTest, Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
@@ -317,7 +317,7 @@ contract VaultsTest is BaseTest {
         _deposit(bob, usdc, 600e6);
         _deposit(candy, usdc, 900e6);
 
-        NonTransferrableTokenVault borrowTokenVault = size.data().borrowTokenVault;
+        NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
 
         _mint(address(usdc), candy, 1200e6);
         _approve(candy, address(usdc), address(size), 1200e6);
@@ -382,7 +382,7 @@ contract VaultsTest is BaseTest {
         tenor = bound(tenor, 1 days, 365 days);
         percent = bound(percent, 1e18, 2e18);
 
-        NonTransferrableTokenVault borrowTokenVault = size.data().borrowTokenVault;
+        NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
 
         _deposit(alice, usdc, cash);
         _deposit(bob, weth, 10e18);
@@ -471,7 +471,7 @@ contract VaultsTest is BaseTest {
     }
 
     function _isDustShares(address[4] memory users) internal view returns (bool) {
-        NonTransferrableTokenVault borrowTokenVault = size.data().borrowTokenVault;
+        NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
         for (uint256 i = 0; i < users.length; i++) {
             uint256 sharesOf = borrowTokenVault.sharesOf(users[i]);
             uint256 scaledBalanceOf = borrowTokenVault.scaledBalanceOf(users[i]);

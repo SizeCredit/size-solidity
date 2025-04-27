@@ -180,7 +180,7 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall, ISizeV1_7 {
     ///      Users who want to disable the sale of all or specific credit positions can do so by calling this function.
     ///      By default, all users CR to open a position is crOpening. Users who want to increase their CR opening limit can do so by calling this function.
     ///      Note: this function was updated in v1.8 to accept a `vault` parameter.
-    ///        Although this function is market-specific, it will change a NonTransferrableTokenVault state that will be reflected on all markets.
+    ///        Although this function is market-specific, it will change a NonTransferrableRebasingTokenVault state that will be reflected on all markets.
     /// @param params SetUserConfigurationParams struct containing the following fields:
     ///     - address vault: The address of the user vault
     ///     - uint256 openingLimitBorrowCR: The opening limit borrow collateral ratio, which indicates the maximum CR the borrower is willing to accept after their offer is picked by a lender

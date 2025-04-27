@@ -6,9 +6,9 @@ pragma solidity 0.8.23;
 /// @author Size (https://size.credit/)
 abstract contract SizeFactoryEvents {
     event SizeImplementationSet(address indexed oldSizeImplementation, address indexed newSizeImplementation);
-    event NonTransferrableTokenVaultImplementationSet(
-        address indexed oldNonTransferrableTokenVaultImplementation,
-        address indexed newNonTransferrableTokenVaultImplementation
+    event NonTransferrableRebasingTokenVaultImplementationSet(
+        address indexed oldNonTransferrableRebasingTokenVaultImplementation,
+        address indexed newNonTransferrableRebasingTokenVaultImplementation
     ); // v1.8
 
     event CreateMarket(address indexed market);

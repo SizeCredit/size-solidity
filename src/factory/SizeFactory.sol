@@ -26,9 +26,10 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {MarketFactoryLibrary} from "@src/factory/libraries/MarketFactoryLibrary.sol";
 
-import {NonTransferrableTokenVaultLibrary} from "@src/factory/libraries/NonTransferrableTokenVaultLibrary.sol";
+import {NonTransferrableRebasingTokenVaultLibrary} from
+    "@src/factory/libraries/NonTransferrableRebasingTokenVaultLibrary.sol";
 import {PriceFeedFactoryLibrary} from "@src/factory/libraries/PriceFeedFactoryLibrary.sol";
-import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
 import {IPriceFeedV1_5_2} from "@src/oracle/v1.5.2/IPriceFeedV1_5_2.sol";
 
@@ -88,14 +89,14 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactory
-    function setNonTransferrableTokenVaultImplementation(address _nonTransferrableTokenVaultImplementation)
+    function setNonTransferrableRebasingTokenVaultImplementation(address _nonTransferrableTokenVaultImplementation)
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         if (_nonTransferrableTokenVaultImplementation == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-        emit NonTransferrableTokenVaultImplementationSet(
+        emit NonTransferrableRebasingTokenVaultImplementationSet(
             nonTransferrableTokenVaultImplementation, _nonTransferrableTokenVaultImplementation
         );
         nonTransferrableTokenVaultImplementation = _nonTransferrableTokenVaultImplementation;
@@ -121,10 +122,10 @@ contract SizeFactory is
     function createBorrowTokenVault(IPool variablePool, IERC20Metadata underlyingBorrowToken)
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
-        returns (NonTransferrableTokenVault borrowTokenVault)
+        returns (NonTransferrableRebasingTokenVault borrowTokenVault)
     {
         address admin = msg.sender;
-        borrowTokenVault = NonTransferrableTokenVaultLibrary.createNonTransferrableTokenVault(
+        borrowTokenVault = NonTransferrableRebasingTokenVaultLibrary.createNonTransferrableRebasingTokenVault(
             nonTransferrableTokenVaultImplementation, admin, variablePool, underlyingBorrowToken
         );
         emit CreateBorrowTokenVault(address(borrowTokenVault));

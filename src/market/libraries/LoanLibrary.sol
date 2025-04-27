@@ -21,7 +21,7 @@ struct DebtPosition {
     // The due date of the loan
     // Updated on debt reduction
     uint256 dueDate;
-    // The liquidity index of the Variable Pool (NonTransferrableTokenVault.DEFAULT_VAULT) at the repayment
+    // The liquidity index of the Variable Pool (NonTransferrableRebasingTokenVault.DEFAULT_VAULT) at the repayment
     // This is used to calculate the additional yield held by the protocol after a `repay`/`liquidate`,
     //   to be credited to the lenders after a `claim`
     // Set on full repayment

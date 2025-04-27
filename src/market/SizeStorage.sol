@@ -10,8 +10,8 @@ import {CopyLimitOrder, LimitOrder} from "@src/market/libraries/OfferLibrary.sol
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {NonTransferrableToken} from "@src/market/token/NonTransferrableToken.sol";
-import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
 
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 
@@ -104,7 +104,7 @@ struct Data {
     // Multicall lock to check if multicall is in progress (deprecated in v1.8)
     bool ___deprecated_isMulticall;
     // Size deposit underlying borrow token (upgraded in v1.8)
-    NonTransferrableTokenVault borrowTokenVault;
+    NonTransferrableRebasingTokenVault borrowTokenVault;
     // mapping of copy limit orders (added in v1.6.1)
     mapping(address => UserCopyLimitOrders) usersCopyLimitOrders;
     // Size Factory (added in v1.7)

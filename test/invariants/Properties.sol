@@ -11,7 +11,7 @@ import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {DataView} from "@src/market/SizeViewData.sol";
-import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
 import {UserView} from "@src/market/SizeView.sol";
 import {console} from "forge-std/console.sol";
@@ -146,7 +146,7 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
 
     function property_VAULTS() public returns (bool) {
         DataView memory data = size.data();
-        NonTransferrableTokenVault borrowTokenVault = data.borrowTokenVault;
+        NonTransferrableRebasingTokenVault borrowTokenVault = data.borrowTokenVault;
         IERC20Metadata underlyingBorrowToken = data.underlyingBorrowToken;
         address feeRecipient = size.feeConfig().feeRecipient;
         address[5] memory users = [USER1, USER2, USER3, address(size), address(feeRecipient)];

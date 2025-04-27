@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
 import {Deploy} from "@script/Deploy.sol";
 
@@ -58,7 +58,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         SELL_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.MISMATCHED_CURVES.selector);
         SELL_CREDIT_MARKET_ERRORS.push(SafeCast.SafeCastOverflowedIntToUint.selector);
-        SELL_CREDIT_MARKET_ERRORS.push(NonTransferrableTokenVault.InsufficientTotalAssets.selector);
+        SELL_CREDIT_MARKET_ERRORS.push(NonTransferrableRebasingTokenVault.InsufficientTotalAssets.selector);
 
         // SELL_CREDIT_LIMIT_ERRORS
         SELL_CREDIT_LIMIT_ERRORS.push(Errors.PAST_MAX_DUE_DATE.selector);
@@ -80,7 +80,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         BUY_CREDIT_MARKET_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.MISMATCHED_CURVES.selector);
         BUY_CREDIT_MARKET_ERRORS.push(SafeCast.SafeCastOverflowedIntToUint.selector);
-        BUY_CREDIT_MARKET_ERRORS.push(NonTransferrableTokenVault.InsufficientTotalAssets.selector);
+        BUY_CREDIT_MARKET_ERRORS.push(NonTransferrableRebasingTokenVault.InsufficientTotalAssets.selector);
 
         // BUY_CREDIT_LIMIT_ERRORS
         BUY_CREDIT_LIMIT_ERRORS.push(Errors.PAST_MAX_DUE_DATE.selector);
@@ -116,7 +116,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.MISMATCHED_CURVES.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(SafeCast.SafeCastOverflowedIntToUint.selector);
-        LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(NonTransferrableTokenVault.InsufficientTotalAssets.selector);
+        LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(NonTransferrableRebasingTokenVault.InsufficientTotalAssets.selector);
 
         // COMPENSATE_ERRORS
         COMPENSATE_ERRORS.push(Errors.LOAN_ALREADY_REPAID.selector);

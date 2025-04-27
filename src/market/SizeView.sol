@@ -119,7 +119,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     /// @inheritdoc ISizeView
-    function getUserVault(address user) external view returns (IERC4626) {
+    function vaultOf(address user) external view returns (address) {
         return state.data.borrowTokenVault.vaultOf(user);
     }
 

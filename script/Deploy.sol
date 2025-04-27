@@ -40,7 +40,7 @@ import {WETH} from "@test/mocks/WETH.sol";
 
 import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
-import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
@@ -105,15 +105,15 @@ abstract contract Deploy {
             );
         }
 
-        address borrowTokenVaultImplementation = address(new NonTransferrableTokenVault());
+        address borrowTokenVaultImplementation = address(new NonTransferrableRebasingTokenVault());
 
         _deployVaults();
 
         hevm.prank(owner);
-        sizeFactory.setNonTransferrableTokenVaultImplementation(borrowTokenVaultImplementation);
+        sizeFactory.setNonTransferrableRebasingTokenVaultImplementation(borrowTokenVaultImplementation);
 
         hevm.prank(owner);
-        NonTransferrableTokenVault borrowTokenVault = sizeFactory.createBorrowTokenVault(variablePool, usdc);
+        NonTransferrableRebasingTokenVault borrowTokenVault = sizeFactory.createBorrowTokenVault(variablePool, usdc);
 
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
@@ -184,15 +184,16 @@ abstract contract Deploy {
             );
         }
 
-        address borrowTokenVaultImplementation = address(new NonTransferrableTokenVault());
+        address borrowTokenVaultImplementation = address(new NonTransferrableRebasingTokenVault());
 
         vault = IERC4626(address(new MockERC4626(address(borrowToken), "Vault", "VAULT", true, 0)));
 
         hevm.prank(owner);
-        sizeFactory.setNonTransferrableTokenVaultImplementation(borrowTokenVaultImplementation);
+        sizeFactory.setNonTransferrableRebasingTokenVaultImplementation(borrowTokenVaultImplementation);
 
         hevm.prank(owner);
-        NonTransferrableTokenVault borrowTokenVault = sizeFactory.createBorrowTokenVault(variablePool, borrowToken);
+        NonTransferrableRebasingTokenVault borrowTokenVault =
+            sizeFactory.createBorrowTokenVault(variablePool, borrowToken);
 
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
