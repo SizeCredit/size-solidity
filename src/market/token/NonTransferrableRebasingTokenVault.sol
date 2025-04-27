@@ -198,9 +198,18 @@ contract NonTransferrableRebasingTokenVault is
     }
 
     /// @inheritdoc IERC20
-    /// @notice Reverts with NOT_SUPPORTED because it is not possible to calculate the total number of assets in all vaults in O(1)
+    /// @dev This method has O(n) complexity, where n is the number of whitelisted vaults, and should not be used onchain
     function totalSupply() public view returns (uint256) {
-        revert Errors.NOT_SUPPORTED();
+        uint256 assets = 0;
+        for (uint256 i = 0; i < whitelistedVaults.length(); i++) {
+            address vault = whitelistedVaults.at(i);
+            if (vault == DEFAULT_VAULT) {
+                assets += _unscale(scaledTotalSupply);
+            } else {
+                assets += IERC4626(vault).maxWithdraw(address(this));
+            }
+        }
+        return assets;
     }
 
     /*//////////////////////////////////////////////////////////////

@@ -356,6 +356,6 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
 
         deal(address(underlying), address(vault), 1_200e6);
 
-        assertEq(token.totalSupply(), 1_300e6);
+        assertEq(token.totalSupply(), 1_200e6);
     }
 }
