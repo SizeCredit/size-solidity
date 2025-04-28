@@ -3,21 +3,28 @@ pragma solidity 0.8.23;
 
 import {Contract, Networks} from "@script/Networks.sol";
 import {ForkTest} from "@test/fork/ForkTest.sol";
+import {console} from "forge-std/console.sol";
 
 import {SizeMock} from "@test/mocks/SizeMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
 
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IERC4626Morpho} from "@test/fork/v1.8/interfaces/IERC4626Morpho.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 
+import {ProposeSafeTxUpgradeToV1_8Script} from "@script/ProposeSafeTxUpgradeToV1_8.s.sol";
+
+import {SizeFactory} from "@src/factory/SizeFactory.sol";
+import {Size} from "@src/market/Size.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
 contract ForkVaultsTest is ForkTest, Networks {
     IERC4626 public eUSDC22 = IERC4626(0xe0a80d35bB6618CBA260120b279d357978c42BCE);
-    IERC4626 public morphoUSUALUSDCplus = IERC4626(0xd63070114470f685b75B74D60EEc7c1113d33a3D);
+    IERC4626Morpho public morphoUSUALUSDCplus = IERC4626Morpho(0xd63070114470f685b75B74D60EEc7c1113d33a3D);
     IERC20Metadata public liquidUSD = IERC20Metadata(0x08c6F91e2B681FaF5e17227F2a44C307b3C1364C);
 
     function setUp() public override(ForkTest) {
@@ -32,7 +39,21 @@ contract ForkVaultsTest is ForkTest, Networks {
         variablePool = size.data().variablePool;
         owner = Networks.contracts[block.chainid][Contract.SIZE_GOVERNANCE];
 
+        _upgradeToV1_8();
+
         _labels();
+    }
+
+    function _upgradeToV1_8() internal {
+        ProposeSafeTxUpgradeToV1_8Script script = new ProposeSafeTxUpgradeToV1_8Script();
+
+        (address[] memory targets, bytes[] memory datas) = script.getTargetsAndDatas(sizeFactory);
+
+        for (uint256 i = 0; i < targets.length; i++) {
+            vm.prank(owner);
+            (bool success,) = targets[i].call(datas[i]);
+            assertTrue(success);
+        }
     }
 
     function testFork_ForkVaults_eUSDC22() public {
@@ -49,14 +70,18 @@ contract ForkVaultsTest is ForkTest, Networks {
 
         uint256 usdcBalanceAfter = usdc.balanceOf(address(eUSDC22));
         assertEq(usdcBalanceAfter, usdcBalanceBefore + 100e6);
-        assertEq(borrowTokenVault.balanceOf(alice), 100e6);
+        assertEq(borrowTokenVault.balanceOf(alice), 100e6 - 1);
+
+        _withdraw(alice, usdc, type(uint256).max);
+
+        assertEq(usdc.balanceOf(alice), 100e6 - 1);
     }
 
     function testFork_ForkVaults_morphoUSUALUSDCplus() public {
         NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
 
-        uint256 usdcBalanceBefore = usdc.balanceOf(address(morphoUSUALUSDCplus));
-
+        uint256 usdcBalanceBefore = usdc.balanceOf(morphoUSUALUSDCplus.MORPHO());
+        console.log("usdcBalanceBefore", usdcBalanceBefore);
         vm.prank(owner);
         borrowTokenVault.setVaultWhitelisted(address(morphoUSUALUSDCplus), true);
 
@@ -64,9 +89,14 @@ contract ForkVaultsTest is ForkTest, Networks {
 
         _deposit(alice, usdc, 100e6);
 
-        uint256 usdcBalanceAfter = usdc.balanceOf(address(morphoUSUALUSDCplus));
+        uint256 usdcBalanceAfter = usdc.balanceOf(morphoUSUALUSDCplus.MORPHO());
+        console.log("usdcBalanceAfter ", usdcBalanceAfter);
         assertEq(usdcBalanceAfter, usdcBalanceBefore + 100e6);
-        assertEq(borrowTokenVault.balanceOf(alice), 100e6);
+        assertEq(borrowTokenVault.balanceOf(alice), 100e6 - 1);
+
+        _withdraw(alice, usdc, type(uint256).max);
+
+        assertEq(usdc.balanceOf(alice), 100e6 - 1);
     }
 
     function testFork_ForkVaults_liquidUSD() public {

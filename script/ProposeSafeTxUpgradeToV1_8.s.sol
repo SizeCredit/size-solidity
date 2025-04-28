@@ -5,6 +5,7 @@ import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Mu
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {console} from "forge-std/console.sol";
 
+import {NonTransferrableScaledTokenV1_5} from "@deprecated/token/NonTransferrableScaledTokenV1_5.sol";
 import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {Size} from "@src/market/Size.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
@@ -44,49 +45,58 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         _;
     }
 
-    function run() external parseEnv {
-        // TODO untested
-        vm.startBroadcast();
+    function getTargetsAndDatas(ISizeFactory _sizeFactory)
+        public
+        returns (address[] memory targets, bytes[] memory datas)
+    {
+        Size sizeV1_8Implementation = new Size();
+        SizeFactory sizeFactoryV1_8Implementation = new SizeFactory();
+        NonTransferrableRebasingTokenVault borrowTokenVaultV1_8Implementation = new NonTransferrableRebasingTokenVault();
 
-        Size sizeV1_8 = new Size();
-        SizeFactory sizeFactoryV1_8 = new SizeFactory();
-        NonTransferrableRebasingTokenVault borrowTokenVaultV1_8 = new NonTransferrableRebasingTokenVault();
+        ISize[] memory markets = _sizeFactory.getMarkets();
+        NonTransferrableScaledTokenV1_5 v1_5 =
+            NonTransferrableScaledTokenV1_5(address(markets[0].data().borrowTokenVault));
 
-        vm.stopBroadcast();
-
-        ISize[] memory markets = sizeFactory.getMarkets();
-
-        address[] memory targets = new address[](markets.length + 2);
-        bytes[] memory datas = new bytes[](markets.length + 2);
+        targets = new address[](markets.length + 2);
+        datas = new bytes[](markets.length + 2);
 
         // Size.upgradeToAndCall(v1_8, 0x) for all markets
         for (uint256 i = 0; i < markets.length; i++) {
             targets[i] = address(markets[i]);
-            datas[i] = abi.encodeCall(UUPSUpgradeable.upgradeToAndCall, (address(sizeV1_8), bytes("")));
+            datas[i] = abi.encodeCall(UUPSUpgradeable.upgradeToAndCall, (address(sizeV1_8Implementation), bytes("")));
         }
 
         // NonTransferrableScaledTokenV1_5.upgradeToAndCall(v1_8, reinitialize(name, symbol))
-        targets[markets.length] = address(borrowTokenVaultV1_8);
+        targets[markets.length] = address(v1_5);
         datas[markets.length] = abi.encodeCall(
             UUPSUpgradeable.upgradeToAndCall,
             (
-                address(borrowTokenVaultV1_8),
+                address(borrowTokenVaultV1_8Implementation),
                 abi.encodeCall(NonTransferrableRebasingTokenVault.reinitialize, ("Size USD Coin Vault", "svUSDC"))
             )
         );
 
         // SizeFactory.upgradeToAndCall(v1_8, multicall[setSizeImplementation,setNonTransferrableRebasingTokenVaultImplementation])
         bytes[] memory multicallDatas = new bytes[](2);
-        multicallDatas[0] = abi.encodeCall(SizeFactory.setSizeImplementation, (address(sizeV1_8)));
+        multicallDatas[0] = abi.encodeCall(SizeFactory.setSizeImplementation, (address(sizeV1_8Implementation)));
         multicallDatas[1] = abi.encodeCall(
-            SizeFactory.setNonTransferrableRebasingTokenVaultImplementation, (address(borrowTokenVaultV1_8))
+            SizeFactory.setNonTransferrableRebasingTokenVaultImplementation,
+            (address(borrowTokenVaultV1_8Implementation))
         );
 
         targets[markets.length + 1] = address(sizeFactory);
         datas[markets.length + 1] = abi.encodeCall(
             UUPSUpgradeable.upgradeToAndCall,
-            (address(sizeFactoryV1_8), abi.encodeCall(MulticallUpgradeable.multicall, (multicallDatas)))
+            (address(sizeFactoryV1_8Implementation), abi.encodeCall(MulticallUpgradeable.multicall, (multicallDatas)))
         );
+    }
+
+    function run() external parseEnv {
+        vm.startBroadcast();
+
+        (address[] memory targets, bytes[] memory datas) = getTargetsAndDatas(sizeFactory);
+
+        vm.stopBroadcast();
 
         safe.proposeTransactions(targets, datas, signer, derivationPath);
 

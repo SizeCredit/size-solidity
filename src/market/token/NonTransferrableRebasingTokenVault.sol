@@ -497,13 +497,27 @@ contract NonTransferrableRebasingTokenVault is
         bool previousWhitelisted = whitelistedVaults.contains(vault);
         emit VaultWhitelisted(vault, previousWhitelisted, whitelisted);
         if (whitelisted) {
-            if (vault != DEFAULT_VAULT && IERC4626(vault).asset() != address(underlyingToken)) {
+            if (_getAsset(vault) != address(underlyingToken)) {
                 revert Errors.INVALID_VAULT(address(vault));
             }
 
             whitelistedVaults.add(address(vault));
         } else {
             whitelistedVaults.remove(address(vault));
+        }
+    }
+
+    /// @notice Returns the asset address of a vault
+    function _getAsset(address vault) private view returns (address) {
+        if (vault == DEFAULT_VAULT) {
+            return address(underlyingToken);
+        } else {
+            (bool success, bytes memory data) =
+                address(vault).staticcall(abi.encodeWithSelector(IERC4626.asset.selector));
+            if (!success) {
+                revert Errors.INVALID_VAULT(address(vault));
+            }
+            return abi.decode(data, (address));
         }
     }
 }
