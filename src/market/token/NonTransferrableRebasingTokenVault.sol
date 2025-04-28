@@ -198,6 +198,7 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @inheritdoc IERC20
     /// @dev This method has O(n) complexity, where n is the number of whitelisted vaults, and should not be used onchain
+    // slither-disable-next-line calls-loop
     function totalSupply() public view returns (uint256) {
         uint256 assets = 0;
         for (uint256 i = 0; i < whitelistedVaults.length(); i++) {
@@ -319,6 +320,7 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @notice Withdraws underlying tokens from an ERC4626 vault or the Aave pool
     function _withdraw(address from, address to, uint256 amount, address vault) private returns (uint256 assets) {
+        // slither-disable-next-line incorrect-equality
         bool fullWithdraw = amount == balanceOf(from);
         if (vault == DEFAULT_VAULT) {
             assets = _withdrawFromAave(from, to, amount, fullWithdraw);
@@ -487,17 +489,17 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @notice Sets the whitelist status of a vault
     function _setVaultWhitelisted(address vault, bool whitelisted) private {
-        bool previousWhitelisted = whitelistedVaults.contains(vault);
-        emit VaultWhitelisted(vault, previousWhitelisted, whitelisted);
+        bool previousWhitelisted;
         if (whitelisted) {
             if (_getAsset(vault) != address(underlyingToken)) {
                 revert Errors.INVALID_VAULT(address(vault));
             }
 
-            whitelistedVaults.add(address(vault));
+            previousWhitelisted = !whitelistedVaults.add(address(vault));
         } else {
-            whitelistedVaults.remove(address(vault));
+            previousWhitelisted = whitelistedVaults.remove(address(vault));
         }
+        emit VaultWhitelisted(vault, previousWhitelisted, whitelisted);
     }
 
     /// @notice Returns the asset address of a vault
