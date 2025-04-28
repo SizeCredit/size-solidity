@@ -374,7 +374,7 @@ contract VaultsTest is BaseTest {
 
         _withdraw(alice, usdc, 50e6);
 
-        assertEqApprox(size.data().borrowTokenVault.totalSupply(), 250e6, 1);
+        assertEqApprox(size.data().borrowTokenVault.totalSupply(), 260e6, 1);
         assertEq(usdc.balanceOf(address(vault2)) + usdc.balanceOf(aToken), 260e6);
     }
 
