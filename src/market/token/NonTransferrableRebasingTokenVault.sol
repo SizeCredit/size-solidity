@@ -204,7 +204,8 @@ contract NonTransferrableRebasingTokenVault is
         for (uint256 i = 0; i < whitelistedVaults.length(); i++) {
             address vault = whitelistedVaults.at(i);
             if (vault == DEFAULT_VAULT) {
-                assets += _unscale(scaledTotalSupply);
+                IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
+                assets += aToken.balanceOf(address(this));
             } else {
                 assets += IERC4626(vault).maxWithdraw(address(this));
             }
@@ -236,11 +237,7 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @notice Deposit underlying tokens into the variable pool and mint scaled tokens
     /// @dev The actual deposited amount can be lower than the input amount based on the vault deposit and rounding logic
-    function deposit(address from, address to, uint256 amount)
-        external
-        onlyMarket
-        returns (uint256 assets, uint256 shares)
-    {
+    function deposit(address from, address to, uint256 amount) external onlyMarket returns (uint256 assets) {
         if (from == address(0)) {
             revert ERC20InvalidSender(address(0));
         }
@@ -250,7 +247,7 @@ contract NonTransferrableRebasingTokenVault is
 
         underlyingToken.safeTransferFrom(msg.sender, address(this), amount);
 
-        (assets, shares) = _deposit(from, to, amount, vaultOf[to]);
+        assets = _deposit(from, to, amount, vaultOf[to]);
 
         emit Transfer(address(0), to, assets);
     }
@@ -258,18 +255,14 @@ contract NonTransferrableRebasingTokenVault is
     /// @notice Withdraw underlying tokens from the variable pool and burn scaled tokens
     /// @dev The actual withdrawn amount can be lower than the input amount based on the vault withdraw and rounding logic.
     ///      If `amount` is equal to the user's `balanceOf`, a full withdrawal is performed
-    ///        and the user's shares in the vault are reset to 0 to avoid leaving behind dust.
+    ///        and the user's shares in the vault are reset to 0 to avoid leaving dust behind.
     ///        This is important because small residual share amounts (due to rounding) can lead to
     ///        inconsistencies when the user changes vaults. For example, if the user switches to a new
     ///        vault but still holds a dust amount of shares in the previous one, the underlying tokens
     ///        held by the new vault may not accurately reflect the current vault assignment, leading to
     ///        misattribution of assets. The dust is sent to the owner.
     ///        See https://slowmist.medium.com/slowmist-aave-v2-security-audit-checklist-0d9ef442436b#5aed
-    function withdraw(address from, address to, uint256 amount)
-        external
-        onlyMarket
-        returns (uint256 assets, uint256 shares)
-    {
+    function withdraw(address from, address to, uint256 amount) external onlyMarket returns (uint256 assets) {
         if (from == address(0)) {
             revert ERC20InvalidSender(address(0));
         }
@@ -277,7 +270,7 @@ contract NonTransferrableRebasingTokenVault is
             revert ERC20InvalidReceiver(address(0));
         }
 
-        (assets, shares) = _withdraw(from, to, amount, vaultOf[from]);
+        assets = _withdraw(from, to, amount, vaultOf[from]);
 
         emit Transfer(from, address(0), assets);
     }
@@ -317,27 +310,21 @@ contract NonTransferrableRebasingTokenVault is
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Deposits underlying tokens into an ERC4626 vault or the Aave pool
-    function _deposit(address from, address to, uint256 amount, address vault)
-        private
-        returns (uint256 assets, uint256 shares)
-    {
+    function _deposit(address from, address to, uint256 amount, address vault) private returns (uint256 assets) {
         if (vault == DEFAULT_VAULT) {
-            (assets, shares) = _depositToAave(from, to, amount);
+            assets = _depositToAave(from, to, amount);
         } else {
-            (assets, shares) = _depositToERC4626Vault(from, to, amount, IERC4626(vault));
+            assets = _depositToERC4626Vault(from, to, amount, IERC4626(vault));
         }
     }
 
     /// @notice Withdraws underlying tokens from an ERC4626 vault or the Aave pool
-    function _withdraw(address from, address to, uint256 amount, address vault)
-        private
-        returns (uint256 assets, uint256 shares)
-    {
+    function _withdraw(address from, address to, uint256 amount, address vault) private returns (uint256 assets) {
         bool fullWithdraw = amount == balanceOf(from);
         if (vault == DEFAULT_VAULT) {
-            (assets, shares) = _withdrawFromAave(from, to, amount, fullWithdraw);
+            assets = _withdrawFromAave(from, to, amount, fullWithdraw);
         } else {
-            (assets, shares) = _withdrawFromERC4626Vault(from, to, amount, fullWithdraw, IERC4626(vault));
+            assets = _withdrawFromERC4626Vault(from, to, amount, fullWithdraw, IERC4626(vault));
         }
     }
 
@@ -345,22 +332,20 @@ contract NonTransferrableRebasingTokenVault is
     /// @dev If the amount is 0, short circuit, as some ERC4626 vaults revert on 0 deposit/withdraw/transfer
     function _transferFrom(address from, address to, uint256 value, address vaultFrom, address vaultTo)
         private
-        returns (uint256 assets, uint256 shares)
+        returns (uint256 assets)
     {
         // slither-disable-next-line incorrect-equality
-        if (value == 0) return (0, 0);
+        if (value == 0) return 0;
 
         if (vaultFrom == vaultTo) {
             if (vaultFrom == DEFAULT_VAULT) {
-                (assets, shares) = _transferFromAaveSame(from, to, value);
+                assets = _transferFromAaveSame(from, to, value);
             } else {
-                (assets, shares) = _transferFromERC4626VaultSame(from, to, value, IERC4626(vaultFrom));
+                assets = _transferFromERC4626VaultSame(from, to, value, IERC4626(vaultFrom));
             }
         } else {
-            // slither-disable-next-line unused-return
-            (assets,) = _withdraw(from, address(this), value, vaultFrom);
-            // slither-disable-next-line write-after-write
-            (assets, shares) = _deposit(address(this), to, assets, vaultTo);
+            assets = _withdraw(from, address(this), value, vaultFrom);
+            assets = _deposit(address(this), to, assets, vaultTo);
         }
     }
 
@@ -368,7 +353,7 @@ contract NonTransferrableRebasingTokenVault is
     // slither-disable-next-line reentrancy-benign
     function _depositToERC4626Vault(address, address to, uint256 amount, IERC4626 vault)
         private
-        returns (uint256 assets, uint256 shares)
+        returns (uint256 assets)
     {
         underlyingToken.forceApprove(address(vault), amount);
 
@@ -377,7 +362,7 @@ contract NonTransferrableRebasingTokenVault is
         // slither-disable-next-line unused-return
         vault.deposit(amount, address(this));
 
-        shares = vault.balanceOf(address(this)) - sharesBefore;
+        uint256 shares = vault.balanceOf(address(this)) - sharesBefore;
         assets = vault.convertToAssets(shares);
 
         sharesOf[to] += shares;
@@ -385,7 +370,7 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @notice Deposits underlying tokens into the Aave pool
     // slither-disable-next-line reentrancy-benign
-    function _depositToAave(address, address to, uint256 amount) private returns (uint256 assets, uint256 shares) {
+    function _depositToAave(address, address to, uint256 amount) private returns (uint256 assets) {
         IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
 
         uint256 sharesBefore = aToken.scaledBalanceOf(address(this));
@@ -393,7 +378,7 @@ contract NonTransferrableRebasingTokenVault is
         underlyingToken.forceApprove(address(aavePool), amount);
         aavePool.supply(address(underlyingToken), amount, address(this), 0);
 
-        shares = aToken.scaledBalanceOf(address(this)) - sharesBefore;
+        uint256 shares = aToken.scaledBalanceOf(address(this)) - sharesBefore;
         assets = _unscale(shares);
 
         scaledTotalSupply += shares;
@@ -404,7 +389,7 @@ contract NonTransferrableRebasingTokenVault is
     // slither-disable-next-line reentrancy-benign
     function _withdrawFromERC4626Vault(address from, address to, uint256 amount, bool fullWithdraw, IERC4626 vault)
         private
-        returns (uint256 assets, uint256 shares)
+        returns (uint256 assets)
     {
         uint256 sharesBefore = vault.balanceOf(address(this));
         uint256 assetsBefore = underlyingToken.balanceOf(address(this));
@@ -412,7 +397,7 @@ contract NonTransferrableRebasingTokenVault is
         // slither-disable-next-line unused-return
         vault.withdraw(amount, address(this), address(this));
 
-        shares = sharesBefore - vault.balanceOf(address(this));
+        uint256 shares = sharesBefore - vault.balanceOf(address(this));
         assets = underlyingToken.balanceOf(address(this)) - assetsBefore;
 
         underlyingToken.safeTransfer(to, assets);
@@ -430,7 +415,7 @@ contract NonTransferrableRebasingTokenVault is
     // slither-disable-next-line reentrancy-benign
     function _withdrawFromAave(address from, address to, uint256 amount, bool fullWithdraw)
         private
-        returns (uint256 assets, uint256 shares)
+        returns (uint256 assets)
     {
         IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
 
@@ -439,7 +424,7 @@ contract NonTransferrableRebasingTokenVault is
         // slither-disable-next-line unused-return
         aavePool.withdraw(address(underlyingToken), amount, to);
 
-        shares = scaledBalanceBefore - aToken.scaledBalanceOf(address(this));
+        uint256 shares = scaledBalanceBefore - aToken.scaledBalanceOf(address(this));
         assets = _unscale(shares);
 
         if (scaledBalanceOf[from] < shares) {
@@ -461,13 +446,13 @@ contract NonTransferrableRebasingTokenVault is
     ///      The share amount is rounded down
     function _transferFromERC4626VaultSame(address from, address to, uint256 value, IERC4626 vault)
         private
-        returns (uint256 assets, uint256 shares)
+        returns (uint256 assets)
     {
         if (vault.totalAssets() < value) {
             revert InsufficientTotalAssets(address(vault), vault.totalAssets(), value);
         }
 
-        shares = vault.convertToShares(value);
+        uint256 shares = vault.convertToShares(value);
         assets = value;
 
         if (sharesOf[from] < shares) {
@@ -483,16 +468,13 @@ contract NonTransferrableRebasingTokenVault is
     ///      The scaled amount is rounded down
     ///      If the Aave pool has insufficient liquidity, the ERC20InsufficientTotalAssets error is thrown with DEFAULT_VAULT as the vault parameter,
     ///        even though the underlying balance is checked against the Aave pool
-    function _transferFromAaveSame(address from, address to, uint256 value)
-        private
-        returns (uint256 assets, uint256 shares)
-    {
+    function _transferFromAaveSame(address from, address to, uint256 value) private returns (uint256 assets) {
         IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
         if (underlyingToken.balanceOf(address(aToken)) < value) {
             revert InsufficientTotalAssets(address(DEFAULT_VAULT), underlyingToken.balanceOf(address(aToken)), value);
         }
 
-        shares = Math.mulDivDown(value, WadRayMath.RAY, liquidityIndex());
+        uint256 shares = Math.mulDivDown(value, WadRayMath.RAY, liquidityIndex());
         assets = value;
 
         if (scaledBalanceOf[from] < shares) {

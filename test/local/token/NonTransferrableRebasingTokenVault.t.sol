@@ -31,7 +31,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
     IPool public pool;
     IAToken public aToken;
 
-    uint256 public constant INITIAL_VAULT_ASSETS = 1e18;
+    uint256 public constant INITIAL_VAULT_ASSETS = 200e6;
 
     function setUp() public override {
         setupLocal(owner, feeRecipient);
@@ -336,26 +336,58 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         token.setVaultWhitelisted(address(vault), true);
 
         vm.prank(address(size));
-        token.setVault(user, address(vault));
+        token.setVault(bob, address(vault));
 
         deal(address(underlying), address(size), 1_000e6);
         vm.prank(address(size));
         underlying.approve(address(token), 1_000e6);
 
         vm.prank(address(size));
-        token.deposit(user, user, 1_000e6);
-        assertEq(token.balanceOf(user), 1_000e6);
+        token.deposit(bob, bob, 1_000e6);
+        assertEq(token.balanceOf(bob), 1_000e6);
+        assertEq(token.totalSupply(), 1_000e6);
 
         deal(address(underlying), address(size), 300e6);
         vm.prank(address(size));
         underlying.approve(address(token), 300e6);
 
         vm.prank(address(size));
-        token.deposit(bob, bob, 300e6);
-        assertEq(token.balanceOf(bob), 300e6);
+        token.deposit(candy, candy, 300e6);
+        assertEq(token.balanceOf(bob), 1_000e6);
+        assertEq(token.balanceOf(candy), 300e6);
+        assertEq(token.totalSupply(), 1_300e6);
+        assertEq(underlying.balanceOf(address(vault)), 1_000e6 + INITIAL_VAULT_ASSETS);
+        assertEq(underlying.balanceOf(address(aToken)), 300e6);
 
-        deal(address(underlying), address(vault), 1_200e6);
+        deal(address(underlying), address(liquidator), 1_000e6 + INITIAL_VAULT_ASSETS);
+        vm.prank(liquidator);
+        underlying.transfer(address(vault), 1_000e6 + INITIAL_VAULT_ASSETS);
 
-        assertEq(token.totalSupply(), 1_200e6);
+        assertEqApprox(token.balanceOf(bob), 2_000e6, 1);
+        assertEq(token.balanceOf(candy), 300e6);
+        assertEq(underlying.balanceOf(address(vault)), (1_000e6 + INITIAL_VAULT_ASSETS) * 2);
+        assertEq(underlying.balanceOf(address(aToken)), 300e6);
+        assertEqApprox(token.totalSupply(), 2_300e6, 1);
+
+        _deposit(james, address(underlying), 400e6);
+
+        assertEqApprox(token.balanceOf(bob), 2_000e6, 1);
+        assertEq(token.balanceOf(candy), 300e6);
+        assertEq(token.balanceOf(james), 400e6);
+        assertEq(underlying.balanceOf(address(vault)), (1_000e6 + INITIAL_VAULT_ASSETS) * 2);
+        assertEq(underlying.balanceOf(address(aToken)), 700e6);
+        assertEqApprox(token.totalSupply(), 2_700e6, 1);
+
+        deal(address(underlying), address(liquidator), 350e6);
+        vm.prank(liquidator);
+        underlying.transfer(address(aToken), 350e6);
+        _setLiquidityIndex(1.5e27);
+
+        assertEqApprox(token.balanceOf(bob), 2_000e6, 1);
+        assertEq(token.balanceOf(candy), 450e6);
+        assertEq(token.balanceOf(james), 600e6);
+        assertEq(underlying.balanceOf(address(vault)), (1_000e6 + INITIAL_VAULT_ASSETS) * 2);
+        assertEq(underlying.balanceOf(address(aToken)), 1050e6);
+        assertEqApprox(token.totalSupply(), 3_050e6, 1);
     }
 }

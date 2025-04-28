@@ -97,8 +97,7 @@ library Deposit {
         if (params.token == address(state.data.underlyingBorrowToken)) {
             state.data.underlyingBorrowToken.safeTransferFrom(from, address(this), amount);
             state.data.underlyingBorrowToken.forceApprove(address(state.data.borrowTokenVault), amount);
-            // slither-disable-next-line unused-return
-            (amount,) = state.data.borrowTokenVault.deposit(from, params.to, amount);
+            amount = state.data.borrowTokenVault.deposit(from, params.to, amount);
         } else {
             state.data.underlyingCollateralToken.safeTransferFrom(from, address(this), amount);
             state.data.collateralToken.mint(params.to, amount);
