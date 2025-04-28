@@ -220,14 +220,22 @@ contract VaultsTest is BaseTest {
     }
 
     function test_Vaults_vault_with_wrong_underlying() public {
-        _setVaultWhitelisted(vaultInvalidUnderlying, true);
+        NonTransferrableRebasingTokenVault borrowTokenVault =
+            NonTransferrableRebasingTokenVault(address(size.data().borrowTokenVault));
+        vm.prank(address(this));
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vaultInvalidUnderlying)));
+        borrowTokenVault.setVaultWhitelisted(address(vaultInvalidUnderlying), true);
+
         _setUserConfiguration(alice, address(vaultInvalidUnderlying), 1.5e18, false, false, new uint256[](0));
     }
 
     function test_Vaults_non_erc4626_contract() public {
-        _setVaultWhitelisted(vaultNonERC4626, true);
-        vm.expectRevert();
+        NonTransferrableRebasingTokenVault borrowTokenVault =
+            NonTransferrableRebasingTokenVault(address(size.data().borrowTokenVault));
+        vm.prank(address(this));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vaultNonERC4626)));
+        borrowTokenVault.setVaultWhitelisted(address(vaultNonERC4626), true);
+
         _setUserConfiguration(alice, address(vaultNonERC4626), 1.5e18, false, false, new uint256[](0));
     }
 
@@ -355,16 +363,18 @@ contract VaultsTest is BaseTest {
 
         assertEq(size.data().borrowTokenVault.totalSupply(), 300e6);
 
-        deal(address(usdc), address(vault2), 210e6);
+        deal(address(usdc), address(liquidator), 10e6);
+        vm.prank(liquidator);
+        usdc.transfer(address(vault2), 10e6);
 
         address aToken = size.data().variablePool.getReserveData(address(usdc)).aTokenAddress;
 
-        assertEq(size.data().borrowTokenVault.totalSupply(), 300e6);
+        assertEqApprox(size.data().borrowTokenVault.totalSupply(), 310e6, 1);
         assertEq(usdc.balanceOf(address(vault2)) + usdc.balanceOf(aToken), 310e6);
 
         _withdraw(alice, usdc, 50e6);
 
-        assertEq(size.data().borrowTokenVault.totalSupply(), 250e6);
+        assertEqApprox(size.data().borrowTokenVault.totalSupply(), 250e6, 1);
         assertEq(usdc.balanceOf(address(vault2)) + usdc.balanceOf(aToken), 260e6);
     }
 
