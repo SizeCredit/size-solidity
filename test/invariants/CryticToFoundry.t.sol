@@ -614,4 +614,25 @@ contract CryticToFoundry is BaseTest, TargetFunctions, SetupLocal, FoundryAssert
             false
         );
     }
+
+    function test_CryticToFoundry_34() public {
+        deposit(address(0xdeadbeef), 131517674500638319745157882289651720);
+        deposit(address(0x0), 1380643884702402163);
+        sellCreditLimit(3654, 910562266395310398499599316921525701530215632404315429838763005448);
+        buyCreditMarket(address(0x0), 0, 3617, 633258988859755354870327498269440313237497870260514417667042464, false);
+        withdraw(address(0xdeadbeef), 36337511858728064);
+        repay(0);
+    }
+
+    function test_CryticToFoundry_35() public {
+        deposit(address(0xdeadbeef), 1055638851044691326944228290708463161739128);
+        deposit(address(0x0), 107418248651714866);
+        sellCreditLimit(3671, 119503918065355919493572781092901852805326361965670651787522708628874);
+        buyCreditMarket(
+            address(0x0), 0, 3628, 278002298894456598944414134612683733467000526625994539290377528081, false
+        );
+        withdraw(address(0xdeadbeef), 103601660404921818530);
+        setPrice(0);
+        liquidate(0, 0);
+    }
 }

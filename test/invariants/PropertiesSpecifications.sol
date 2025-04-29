@@ -59,7 +59,7 @@ abstract contract PropertiesSpecifications {
     string internal constant SOLVENCY_03 = "SOLVENCY_03: SUM(positions debt) == user total debt, for each user";
     string internal constant SOLVENCY_04 = "SOLVENCY_04: SUM(positions debt) == SUM(debt)";
 
-    string internal constant VAULTS_01 = "VAULTS_01: SUM(balanceOf) <= totalSupply";
+    string internal constant VAULTS_01 = "VAULTS_01: SUM(balanceOf) <= totalSupply()";
     string internal constant VAULTS_02 = "VAULTS_02: Changing a user vault does not leave dust shares";
     string internal constant VAULTS_03 = "VAULTS_03: underlying.balanceOf(borrowTokenVault) == 0";
 

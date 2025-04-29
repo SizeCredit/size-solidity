@@ -198,6 +198,8 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @inheritdoc IERC20
     /// @dev This method has O(n) complexity, where n is the number of whitelisted vaults, and should not be used onchain
+    ///      The invariant SUM(balanceOf) == totalSupply() should not hold true due to rounding errors in scaled amounts/shares accounting.
+    ///        However, we should still have SUM(balanceOf) <= totalSupply() since balanceOf() is rounded down.
     // slither-disable-next-line calls-loop
     function totalSupply() public view returns (uint256) {
         uint256 assets = 0;

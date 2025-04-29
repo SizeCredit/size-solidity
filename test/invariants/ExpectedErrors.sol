@@ -4,9 +4,10 @@ pragma solidity 0.8.23;
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
 import {Deploy} from "@script/Deploy.sol";
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
+import {console} from "forge-std/console.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {Properties} from "@test/invariants/Properties.sol";
@@ -89,6 +90,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         // REPAY_ERRORS
         REPAY_ERRORS.push(Errors.LOAN_ALREADY_REPAID.selector);
         REPAY_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
+        REPAY_ERRORS.push(NonTransferrableRebasingTokenVault.InsufficientTotalAssets.selector);
 
         // CLAIM_ERRORS
         CLAIM_ERRORS.push(Errors.LOAN_NOT_REPAID.selector);
@@ -98,6 +100,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         LIQUIDATE_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         LIQUIDATE_ERRORS.push(Errors.LOAN_NOT_LIQUIDATABLE.selector);
         LIQUIDATE_ERRORS.push(Errors.LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT.selector);
+        LIQUIDATE_ERRORS.push(NonTransferrableRebasingTokenVault.InsufficientTotalAssets.selector);
 
         // SELF_LIQUIDATE_ERRORS
         SELF_LIQUIDATE_ERRORS.push(Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector);
@@ -158,6 +161,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
 
         if (!success) {
             bool expected = false;
+            console.logBytes(returnData);
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(returnData)) {
                     expected = true;
