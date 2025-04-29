@@ -15,6 +15,7 @@ library Errors {
     error INVALID_MSG_VALUE(uint256 value);
     error INVALID_AMOUNT(uint256 amount);
     error INVALID_VAULT(address vault);
+    error INVALID_ADAPTER(uint256 adapter);
     error TENORS_NOT_STRICTLY_INCREASING();
     error ARRAY_LENGTHS_MISMATCH();
     error INVALID_TOKEN(address token);

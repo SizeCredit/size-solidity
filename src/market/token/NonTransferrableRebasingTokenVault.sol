@@ -5,7 +5,7 @@ import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
-import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -21,6 +21,13 @@ import {Math} from "@src/market/libraries/Math.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 
+import {
+    DEFAULT_VAULT,
+    NonTransferrableRebasingTokenVaultBase,
+    Storage
+} from "@src/market/token/NonTransferrableRebasingTokenVaultBase.sol";
+import {Adapter, BaseAdapter} from "@src/market/token/adapters/BaseAdapter.sol";
+
 /// @title NonTransferrableRebasingTokenVault
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
@@ -32,65 +39,15 @@ import {Errors} from "@src/market/libraries/Errors.sol";
 ///      Vaults are whitelisted, and are assumed to be standard ERC4626 tokens.
 ///      Vaults with features such as pause, fee on transfer, and asynchronous share minting/burning are not supported.
 contract NonTransferrableRebasingTokenVault is
+    NonTransferrableRebasingTokenVaultBase,
     IERC20Metadata,
     IERC20Errors,
     Ownable2StepUpgradeable,
     UUPSUpgradeable
 {
     using SafeERC20 for IERC20Metadata;
-    using EnumerableSet for EnumerableSet.AddressSet;
-
-    /*//////////////////////////////////////////////////////////////
-                            CONSTANTS 
-    //////////////////////////////////////////////////////////////*/
-
-    address public constant DEFAULT_VAULT = address(0);
-
-    /*//////////////////////////////////////////////////////////////
-                            STORAGE
-    //////////////////////////////////////////////////////////////*/
-
-    // v1.5
-    ISizeFactory public sizeFactory;
-    IPool public aavePool;
-    IERC20Metadata public underlyingToken;
-
-    string public name;
-    string public symbol;
-    uint8 public decimals;
-
-    uint256 public scaledTotalSupply;
-    mapping(address user => uint256 scaledBalance) public scaledBalanceOf;
-
-    // v1.8
-    mapping(address user => address vault) public vaultOf;
-    mapping(address user => uint256 shares) public sharesOf;
-    EnumerableSet.AddressSet private whitelistedVaults;
-
-    /*//////////////////////////////////////////////////////////////
-                            EVENTS
-    //////////////////////////////////////////////////////////////*/
-
-    event VaultSet(address indexed user, address indexed previousVault, address indexed newVault);
-    event VaultWhitelisted(address indexed vault, bool indexed previousWhitelisted, bool indexed newWhitelisted);
-
-    /*//////////////////////////////////////////////////////////////
-                            ERRORS
-    //////////////////////////////////////////////////////////////*/
-
-    error OnlyMarket();
-    error InsufficientTotalAssets(address vault, uint256 totalAssets, uint256 amount);
-
-    /*//////////////////////////////////////////////////////////////
-                            MODIFIERS
-    //////////////////////////////////////////////////////////////*/
-
-    modifier onlyMarket() {
-        if (!sizeFactory.isMarket(msg.sender)) {
-            revert Errors.UNAUTHORIZED(msg.sender);
-        }
-        _;
-    }
+    using EnumerableMap for EnumerableMap.AddressToUintMap;
+    using BaseAdapter for Storage;
 
     /*//////////////////////////////////////////////////////////////
                             CONSTRUCTOR/INITIALIZER
@@ -121,17 +78,17 @@ contract NonTransferrableRebasingTokenVault is
             revert Errors.NULL_ADDRESS();
         }
 
-        sizeFactory = sizeFactory_;
+        s.sizeFactory = sizeFactory_;
 
-        aavePool = aavePool_;
-        underlyingToken = underlyingToken_;
+        s.aavePool = aavePool_;
+        s.underlyingToken = underlyingToken_;
 
-        name = name_;
-        symbol = symbol_;
-        decimals = decimals_;
+        s.name = name_;
+        s.symbol = symbol_;
+        s.decimals = decimals_;
 
         // v1.8
-        _setVaultWhitelisted(DEFAULT_VAULT, true);
+        _setVaultAdapter(DEFAULT_VAULT, Adapter.Aave);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -139,22 +96,41 @@ contract NonTransferrableRebasingTokenVault is
     //////////////////////////////////////////////////////////////*/
 
     function reinitialize(string memory name_, string memory symbol_) external onlyOwner reinitializer(1_08_00) {
-        name = name_;
-        symbol = symbol_;
+        s.name = name_;
+        s.symbol = symbol_;
 
         // v1.8
-        _setVaultWhitelisted(DEFAULT_VAULT, true);
+        _setVaultAdapter(DEFAULT_VAULT, Adapter.Aave);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    function setVaultWhitelisted(address vault, bool whitelisted) external onlyOwner {
-        _setVaultWhitelisted(vault, whitelisted);
+    function setVaultAdapter(address vault, Adapter adapter) external onlyOwner {
+        _setVaultAdapter(vault, adapter);
+    }
+
+    function removeVault(address vault) external onlyOwner {
+        _removeVault(vault);
     }
 
     /*//////////////////////////////////////////////////////////////
                             ERC20 FUNCTIONS
     //////////////////////////////////////////////////////////////*/
+
+    /// @inheritdoc IERC20Metadata
+    function name() public view override returns (string memory) {
+        return s.name;
+    }
+
+    /// @inheritdoc IERC20Metadata
+    function symbol() public view override returns (string memory) {
+        return s.symbol;
+    }
+
+    /// @inheritdoc IERC20Metadata
+    function decimals() public view override returns (uint8) {
+        return s.decimals;
+    }
 
     /// @inheritdoc IERC20
     function transferFrom(address from, address to, uint256 value) public virtual onlyMarket returns (bool) {
@@ -165,9 +141,12 @@ contract NonTransferrableRebasingTokenVault is
             revert ERC20InvalidReceiver(address(0));
         }
 
-        _transferFrom(from, to, value, vaultOf[from], vaultOf[to]);
+        address vaultFrom = s.vaultOf[from];
+        address vaultTo = s.vaultOf[to];
+        _transferFrom(vaultFrom, vaultTo, from, to, value);
 
         emit Transfer(from, to, value);
+
         return true;
     }
 
@@ -178,7 +157,7 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @inheritdoc IERC20
     function allowance(address, address spender) public view virtual override returns (uint256) {
-        return sizeFactory.isMarket(spender) ? type(uint256).max : 0;
+        return s.sizeFactory.isMarket(spender) ? type(uint256).max : 0;
     }
 
     /// @inheritdoc IERC20
@@ -188,29 +167,19 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @inheritdoc IERC20
     function balanceOf(address account) public view returns (uint256) {
-        address vault = vaultOf[account];
-        if (vault == DEFAULT_VAULT) {
-            return _unscale(scaledBalanceOf[account]);
-        } else {
-            return IERC4626(vault).convertToAssets(sharesOf[account]);
-        }
+        return s.balanceOf(s.vaultOf[account], account);
     }
 
     /// @inheritdoc IERC20
     /// @dev This method has O(n) complexity, where n is the number of whitelisted vaults, and should not be used onchain
-    ///      The invariant SUM(balanceOf) == totalSupply() should not hold true due to rounding errors in scaled amounts/shares accounting.
+    ///      The invariant SUM(balanceOf) == totalSupply() may not hold true due to rounding errors in scaled amounts/shares accounting.
     ///        However, we should still have SUM(balanceOf) <= totalSupply() since balanceOf() rounds down, and also to guarantee the solvency of the protocol.
     // slither-disable-next-line calls-loop
     function totalSupply() public view returns (uint256) {
         uint256 assets = 0;
-        for (uint256 i = 0; i < whitelistedVaults.length(); i++) {
-            address vault = whitelistedVaults.at(i);
-            if (vault == DEFAULT_VAULT) {
-                IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
-                assets += aToken.balanceOf(address(this));
-            } else {
-                assets += IERC4626(vault).maxWithdraw(address(this));
-            }
+        for (uint256 i = 0; i < s.vaultToAdapterMap.length(); i++) {
+            (address vault,) = s.vaultToAdapterMap.at(i);
+            assets += s.totalSupply(vault);
         }
         return assets;
     }
@@ -229,11 +198,11 @@ contract NonTransferrableRebasingTokenVault is
         if (user == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-        if (whitelistedVaults.contains(address(vault)) && vaultOf[user] != vault) {
-            _transferFrom(user, user, balanceOf(user), vaultOf[user], vault);
+        if (s.vaultToAdapterMap.contains(address(vault)) && s.vaultOf[user] != vault) {
+            _transferFrom(s.vaultOf[user], vault, user, user, balanceOf(user));
 
-            emit VaultSet(user, vaultOf[user], vault);
-            vaultOf[user] = vault;
+            emit VaultSet(user, s.vaultOf[user], vault);
+            s.vaultOf[user] = vault;
         }
     }
 
@@ -247,9 +216,9 @@ contract NonTransferrableRebasingTokenVault is
             revert ERC20InvalidReceiver(address(0));
         }
 
-        underlyingToken.safeTransferFrom(msg.sender, address(this), amount);
+        s.underlyingToken.safeTransferFrom(msg.sender, address(this), amount);
 
-        assets = _deposit(from, to, amount, vaultOf[to]);
+        assets = s.deposit(s.vaultOf[to], from, to, amount);
 
         emit Transfer(address(0), to, assets);
     }
@@ -272,249 +241,102 @@ contract NonTransferrableRebasingTokenVault is
             revert ERC20InvalidReceiver(address(0));
         }
 
-        assets = _withdraw(from, to, amount, vaultOf[from]);
+        assets = s.withdraw(s.vaultOf[from], from, to, amount);
 
         emit Transfer(from, address(0), assets);
     }
 
     /*//////////////////////////////////////////////////////////////
-                            HELPER FUNCTIONS
+                            VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
+
+    function vaultOf(address user) public view returns (address) {
+        return s.vaultOf[user];
+    }
+
+    function sharesOf(address user) public view returns (uint256) {
+        return s.sharesOf[user];
+    }
+
+    function scaledBalanceOf(address user) public view returns (uint256) {
+        return s.scaledBalanceOf[user];
+    }
+
+    function scaledTotalSupply() public view returns (uint256) {
+        return s.scaledTotalSupply;
+    }
+
+    function sizeFactory() public view returns (ISizeFactory) {
+        return s.sizeFactory;
+    }
+
+    function aavePool() public view returns (IPool) {
+        return s.aavePool;
+    }
 
     /// @notice Returns the current liquidity index of the variable pool
     /// @return The current liquidity index of the variable pool
     function liquidityIndex() public view returns (uint256) {
-        return aavePool.getReserveNormalizedIncome(address(underlyingToken));
+        return s.pricePerShare(DEFAULT_VAULT);
     }
 
     /// @notice Returns true if the vault is whitelisted
     function isWhitelistedVault(address vault) public view returns (bool) {
-        return whitelistedVaults.contains(vault);
+        return s.vaultToAdapterMap.contains(vault);
     }
 
     /// @notice Returns the number of whitelisted vaults
     function getWhitelistedVaultsCount() public view returns (uint256) {
-        return whitelistedVaults.length();
+        return s.vaultToAdapterMap.length();
     }
 
     /// @notice Returns the whitelisted vault at the given index
-    function getWhitelistedVault(uint256 index) public view returns (address) {
-        return whitelistedVaults.at(index);
+    function getWhitelistedVault(uint256 index) public view returns (address, Adapter) {
+        (address vault, uint256 adapter) = s.vaultToAdapterMap.at(index);
+        return (vault, Adapter(adapter));
     }
 
     /// @notice Returns all whitelisted vaults
-    function getWhitelistedVaults() public view returns (address[] memory) {
-        return whitelistedVaults.values();
+    function getWhitelistedVaults() public view returns (address[] memory vaults, Adapter[] memory adapters) {
+        vaults = new address[](s.vaultToAdapterMap.length());
+        adapters = new Adapter[](s.vaultToAdapterMap.length());
+        for (uint256 i = 0; i < s.vaultToAdapterMap.length(); i++) {
+            (address vault, uint256 adapter) = s.vaultToAdapterMap.at(i);
+            vaults[i] = vault;
+            adapters[i] = Adapter(adapter);
+        }
     }
 
     /*//////////////////////////////////////////////////////////////
                             PRIVATE FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Deposits underlying tokens into an ERC4626 vault or the Aave pool
-    function _deposit(address from, address to, uint256 amount, address vault) private returns (uint256 assets) {
-        if (vault == DEFAULT_VAULT) {
-            assets = _depositToAave(from, to, amount);
-        } else {
-            assets = _depositToERC4626Vault(from, to, amount, IERC4626(vault));
+    /// @notice Sets the adapter for a vault
+    /// @dev Sets the adapter first so that s.getAsset(vault) is available
+    function _setVaultAdapter(address vault, Adapter adapter) private {
+        s.vaultToAdapterMap.set(vault, uint256(adapter));
+        emit VaultAdapterSet(vault, uint256(adapter));
+
+        if (s.getAsset(vault) != address(s.underlyingToken)) {
+            revert Errors.INVALID_VAULT(address(vault));
         }
     }
 
-    /// @notice Withdraws underlying tokens from an ERC4626 vault or the Aave pool
-    function _withdraw(address from, address to, uint256 amount, address vault) private returns (uint256 assets) {
-        // slither-disable-next-line incorrect-equality
-        bool fullWithdraw = amount == balanceOf(from);
-        if (vault == DEFAULT_VAULT) {
-            assets = _withdrawFromAave(from, to, amount, fullWithdraw);
-        } else {
-            assets = _withdrawFromERC4626Vault(from, to, amount, fullWithdraw, IERC4626(vault));
-        }
+    function _removeVault(address vault) private {
+        s.vaultToAdapterMap.remove(vault);
+        emit VaultRemoved(vault);
     }
 
-    /// @notice Transfers underlying tokens between users (ERC4626 vaults or Aave)
-    /// @dev If the amount is 0, short circuit, as some ERC4626 vaults revert on 0 deposit/withdraw/transfer
-    function _transferFrom(address from, address to, uint256 value, address vaultFrom, address vaultTo) private {
-        // slither-disable-next-line incorrect-equality
-        if (value == 0) return;
-
-        if (vaultFrom == vaultTo) {
-            if (vaultFrom == DEFAULT_VAULT) {
-                _transferFromAaveSame(from, to, value);
+    function _transferFrom(address vaultFrom, address vaultTo, address from, address to, uint256 value) private {
+        if (value > 0) {
+            if (vaultFrom == vaultTo) {
+                s.transferFrom(vaultFrom, from, to, value);
             } else {
-                _transferFromERC4626VaultSame(from, to, value, IERC4626(vaultFrom));
+                /* slither-disable unused-return */
+                s.withdraw(vaultFrom, from, address(this), value);
+                s.deposit(vaultTo, address(this), to, value);
+                /* slither-enable unused-return */
             }
-        } else {
-            // slither-disable-next-line incorrect-equality
-            _withdraw(from, address(this), value, vaultFrom);
-            // slither-disable-next-line incorrect-equality
-            _deposit(address(this), to, value, vaultTo);
-        }
-    }
-
-    /// @notice Deposits underlying tokens into an ERC4626 vault
-    // slither-disable-next-line reentrancy-benign
-    function _depositToERC4626Vault(address, address to, uint256 amount, IERC4626 vault)
-        private
-        returns (uint256 assets)
-    {
-        underlyingToken.forceApprove(address(vault), amount);
-
-        uint256 sharesBefore = vault.balanceOf(address(this));
-
-        // slither-disable-next-line unused-return
-        vault.deposit(amount, address(this));
-
-        uint256 shares = vault.balanceOf(address(this)) - sharesBefore;
-        assets = vault.convertToAssets(shares);
-
-        sharesOf[to] += shares;
-    }
-
-    /// @notice Deposits underlying tokens into the Aave pool
-    // slither-disable-next-line reentrancy-benign
-    function _depositToAave(address, address to, uint256 amount) private returns (uint256 assets) {
-        IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
-
-        uint256 sharesBefore = aToken.scaledBalanceOf(address(this));
-
-        underlyingToken.forceApprove(address(aavePool), amount);
-        aavePool.supply(address(underlyingToken), amount, address(this), 0);
-
-        uint256 shares = aToken.scaledBalanceOf(address(this)) - sharesBefore;
-        assets = _unscale(shares);
-
-        scaledTotalSupply += shares;
-        scaledBalanceOf[to] += shares;
-    }
-
-    /// @notice Withdraws underlying tokens from an ERC4626 vault
-    // slither-disable-next-line reentrancy-benign
-    function _withdrawFromERC4626Vault(address from, address to, uint256 amount, bool fullWithdraw, IERC4626 vault)
-        private
-        returns (uint256 assets)
-    {
-        uint256 sharesBefore = vault.balanceOf(address(this));
-        uint256 assetsBefore = underlyingToken.balanceOf(address(this));
-
-        // slither-disable-next-line unused-return
-        vault.withdraw(amount, address(this), address(this));
-
-        uint256 shares = sharesBefore - vault.balanceOf(address(this));
-        assets = underlyingToken.balanceOf(address(this)) - assetsBefore;
-
-        underlyingToken.safeTransfer(to, assets);
-
-        if (fullWithdraw) {
-            uint256 dust = sharesOf[from] - shares;
-            sharesOf[from] = 0;
-            sharesOf[owner()] += dust;
-        } else {
-            sharesOf[from] -= shares;
-        }
-    }
-
-    /// @notice Withdraws underlying tokens from the Aave pool
-    // slither-disable-next-line reentrancy-benign
-    function _withdrawFromAave(address from, address to, uint256 amount, bool fullWithdraw)
-        private
-        returns (uint256 assets)
-    {
-        IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
-
-        uint256 scaledBalanceBefore = aToken.scaledBalanceOf(address(this));
-
-        // slither-disable-next-line unused-return
-        aavePool.withdraw(address(underlyingToken), amount, to);
-
-        uint256 shares = scaledBalanceBefore - aToken.scaledBalanceOf(address(this));
-        assets = _unscale(shares);
-
-        if (scaledBalanceOf[from] < shares) {
-            revert ERC20InsufficientBalance(from, balanceOf(from), amount);
-        }
-
-        if (fullWithdraw) {
-            uint256 dust = scaledBalanceOf[from] - shares;
-            scaledBalanceOf[from] = 0;
-            scaledBalanceOf[owner()] += dust;
-        } else {
-            scaledBalanceOf[from] -= shares;
-        }
-        scaledTotalSupply -= shares;
-    }
-
-    /// @notice Transfers assets between an ERC4626 vault and the same ERC4626 vault
-    /// @dev The assets are converted to shares and then transferred internally
-    ///      The share amount is rounded down
-    function _transferFromERC4626VaultSame(address from, address to, uint256 value, IERC4626 vault) private {
-        if (vault.totalAssets() < value) {
-            revert InsufficientTotalAssets(address(vault), vault.totalAssets(), value);
-        }
-
-        uint256 shares = vault.convertToShares(value);
-
-        if (sharesOf[from] < shares) {
-            revert ERC20InsufficientBalance(from, balanceOf(from), value);
-        }
-
-        sharesOf[from] -= shares;
-        sharesOf[to] += shares;
-    }
-
-    /// @notice Transfers underlying tokens between the users using Aave as their vault choice
-    /// @dev The underlying tokens are converted to scaled tokens and then transferred internally
-    ///      The scaled amount is rounded down
-    ///      If the Aave pool has insufficient liquidity, the ERC20InsufficientTotalAssets error is thrown with DEFAULT_VAULT as the vault parameter,
-    ///        even though the underlying balance is checked against the Aave pool
-    function _transferFromAaveSame(address from, address to, uint256 value) private {
-        IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
-        if (underlyingToken.balanceOf(address(aToken)) < value) {
-            revert InsufficientTotalAssets(address(DEFAULT_VAULT), underlyingToken.balanceOf(address(aToken)), value);
-        }
-
-        uint256 shares = Math.mulDivDown(value, WadRayMath.RAY, liquidityIndex());
-
-        if (scaledBalanceOf[from] < shares) {
-            revert ERC20InsufficientBalance(from, balanceOf(from), value);
-        }
-
-        scaledBalanceOf[from] -= shares;
-        scaledBalanceOf[to] += shares;
-    }
-
-    /// @notice Unscales a scaled amount
-    /// @return The unscaled amount
-    /// @dev The unscaled amount is the scaled amount divided by the current liquidity index
-    function _unscale(uint256 scaledAmount) private view returns (uint256) {
-        return Math.mulDivDown(scaledAmount, liquidityIndex(), WadRayMath.RAY);
-    }
-
-    /// @notice Sets the whitelist status of a vault
-    function _setVaultWhitelisted(address vault, bool whitelisted) private {
-        bool previousWhitelisted;
-        if (whitelisted) {
-            if (_getAsset(vault) != address(underlyingToken)) {
-                revert Errors.INVALID_VAULT(address(vault));
-            }
-
-            previousWhitelisted = !whitelistedVaults.add(address(vault));
-        } else {
-            previousWhitelisted = whitelistedVaults.remove(address(vault));
-        }
-        emit VaultWhitelisted(vault, previousWhitelisted, whitelisted);
-    }
-
-    /// @notice Returns the asset address of a vault
-    function _getAsset(address vault) private view returns (address) {
-        if (vault == DEFAULT_VAULT) {
-            return address(underlyingToken);
-        } else {
-            (bool success, bytes memory data) =
-                address(vault).staticcall(abi.encodeWithSelector(IERC4626.asset.selector));
-            if (!success) {
-                revert Errors.INVALID_VAULT(address(vault));
-            }
-            return abi.decode(data, (address));
         }
     }
 }
