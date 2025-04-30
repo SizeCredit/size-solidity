@@ -29,6 +29,7 @@ library BaseAdapter {
         (bool exists, uint256 adapter) = s.vaultToAdapterMap.tryGet(vault);
 
         if (!exists) {
+            // should never happen
             revert Errors.INVALID_VAULT(vault);
         } else if (adapter == uint256(Adapter.Aave)) {
             functions = VaultAdapterFunctions({
@@ -51,6 +52,7 @@ library BaseAdapter {
                 getAsset: ERC4626Adapter.getAsset
             });
         } else {
+            // should never happen
             revert Errors.INVALID_ADAPTER(uint256(adapter));
         }
     }

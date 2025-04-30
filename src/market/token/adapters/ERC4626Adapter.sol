@@ -17,14 +17,17 @@ import {
 library ERC4626Adapter {
     using SafeERC20 for IERC20Metadata;
 
+    /// @notice Returns the totalSupply of assets deposited in the vault
     function totalSupply(Storage storage, address vault) internal view returns (uint256) {
         return IERC4626(vault).maxWithdraw(address(this));
     }
 
+    /// @notice Returns the balance of assets of an account in the vault
     function balanceOf(Storage storage s, address vault, address account) internal view returns (uint256) {
         return IERC4626(vault).convertToAssets(s.sharesOf[account]);
     }
 
+    /// @notice Deposits assets into the vault
     function deposit(Storage storage s, address vault, address, /*from*/ address to, uint256 amount)
         internal
         returns (uint256 assets)
@@ -42,6 +45,7 @@ library ERC4626Adapter {
         s.sharesOf[to] += shares;
     }
 
+    /// @notice Withdraws assets from the vault
     function withdraw(Storage storage s, address vault, address from, address to, uint256 amount)
         internal
         returns (uint256 assets)
@@ -67,6 +71,7 @@ library ERC4626Adapter {
         }
     }
 
+    /// @notice Transfers shares from one account to another from the same vault
     function transferFrom(Storage storage s, address vault, address from, address to, uint256 value) internal {
         if (IERC4626(vault).totalAssets() < value) {
             revert NonTransferrableRebasingTokenVaultBase.InsufficientTotalAssets(
@@ -84,10 +89,12 @@ library ERC4626Adapter {
         s.sharesOf[to] += shares;
     }
 
+    /// @notice Returns the price per share of the vault
     function pricePerShare(Storage storage s, address vault) internal view returns (uint256) {
         return IERC4626(vault).convertToAssets(10 ** s.underlyingToken.decimals());
     }
 
+    /// @notice Returns the asset of the vault
     function getAsset(Storage storage, address vault) internal view returns (address) {
         (bool success, bytes memory data) = vault.staticcall(abi.encodeWithSelector(IERC4626.asset.selector));
         if (!success) {

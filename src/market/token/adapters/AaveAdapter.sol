@@ -22,15 +22,18 @@ import {
 library AaveAdapter {
     using SafeERC20 for IERC20Metadata;
 
+    /// @notice Returns the totalSupply of assets deposited on Aave
     function totalSupply(Storage storage s, address /*vault*/ ) internal view returns (uint256) {
         IAToken aToken = IAToken(s.aavePool.getReserveData(address(s.underlyingToken)).aTokenAddress);
         return aToken.balanceOf(address(this));
     }
 
+    /// @notice Returns the balance of assets of an account on Aave
     function balanceOf(Storage storage s, address vault, address account) internal view returns (uint256) {
         return _unscale(s, vault, s.scaledBalanceOf[account]);
     }
 
+    /// @notice Deposits assets into Aave
     function deposit(Storage storage s, address vault, address, /* from*/ address to, uint256 amount)
         internal
         returns (uint256 assets)
@@ -49,6 +52,7 @@ library AaveAdapter {
         s.scaledBalanceOf[to] += shares;
     }
 
+    /// @notice Withdraws assets from Aave
     function withdraw(Storage storage s, address vault, address from, address to, uint256 amount)
         internal
         returns (uint256 assets)
@@ -79,6 +83,7 @@ library AaveAdapter {
         s.scaledTotalSupply -= shares;
     }
 
+    /// @notice Transfers shares from one account to another from Aave to Aave
     function transferFrom(Storage storage s, address vault, address from, address to, uint256 value) internal {
         IAToken aToken = IAToken(s.aavePool.getReserveData(address(s.underlyingToken)).aTokenAddress);
         if (s.underlyingToken.balanceOf(address(aToken)) < value) {
@@ -97,14 +102,17 @@ library AaveAdapter {
         s.scaledBalanceOf[to] += shares;
     }
 
+    /// @notice Unscales a scaled amount to the asset amount
     function _unscale(Storage storage s, address vault, uint256 scaledAmount) internal view returns (uint256) {
         return Math.mulDivDown(scaledAmount, pricePerShare(s, vault), WadRayMath.RAY);
     }
 
+    /// @notice Returns the price per share of Aave (liquidity index)
     function pricePerShare(Storage storage s, address /*vault*/ ) internal view returns (uint256) {
         return s.aavePool.getReserveNormalizedIncome(address(s.underlyingToken));
     }
 
+    /// @notice Returns the asset of Aave (underlying token)
     function getAsset(Storage storage s, address /*vault*/ ) internal view returns (address) {
         return address(s.underlyingToken);
     }

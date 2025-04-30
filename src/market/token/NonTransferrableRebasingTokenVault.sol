@@ -178,6 +178,7 @@ contract NonTransferrableRebasingTokenVault is
     function totalSupply() public view returns (uint256) {
         uint256 assets = 0;
         for (uint256 i = 0; i < s.vaultToAdapterMap.length(); i++) {
+            // slither-disable-next-line unused-return
             (address vault,) = s.vaultToAdapterMap.at(i);
             assets += s.totalSupply(vault);
         }
@@ -312,8 +313,9 @@ contract NonTransferrableRebasingTokenVault is
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Sets the adapter for a vault
-    /// @dev Sets the adapter first so that s.getAsset(vault) is available
+    /// @dev Sets the adapter first, so that s.getAsset(vault) is available
     function _setVaultAdapter(address vault, Adapter adapter) private {
+        // slither-disable-next-line unused-return
         s.vaultToAdapterMap.set(vault, uint256(adapter));
         emit VaultAdapterSet(vault, uint256(adapter));
 
@@ -322,20 +324,23 @@ contract NonTransferrableRebasingTokenVault is
         }
     }
 
+    /// @notice Removes a vault from the whitelist
     function _removeVault(address vault) private {
+        // slither-disable-next-line unused-return
         s.vaultToAdapterMap.remove(vault);
         emit VaultRemoved(vault);
     }
 
+    /// @notice Transfers assets from one account to another, using the `from` vault to the `to` vault
     function _transferFrom(address vaultFrom, address vaultTo, address from, address to, uint256 value) private {
         if (value > 0) {
             if (vaultFrom == vaultTo) {
                 s.transferFrom(vaultFrom, from, to, value);
             } else {
-                /* slither-disable unused-return */
+                // slither-disable-next-line unused-return
                 s.withdraw(vaultFrom, from, address(this), value);
+                // slither-disable-next-line unused-return
                 s.deposit(vaultTo, address(this), to, value);
-                /* slither-enable unused-return */
             }
         }
     }

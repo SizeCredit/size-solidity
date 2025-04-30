@@ -23,11 +23,12 @@ import {IPriceFeedV1_7_1} from "@src/oracle/v1.7.1/IPriceFeedV1_7_1.sol";
 ///         Note: this price feed is supposed to be only used on mainnet
 /// @dev `decimals` must be 18 to comply with Size contracts
 contract PriceFeedPendleChainlink is IPriceFeedV1_7_1 {
+    // slither-disable-start uninitialized-state
     /* solhint-disable */
     uint256 public constant decimals = 18;
     PendleSparkLinearDiscountOracle public immutable ptToUnderlyingPriceFeed;
     ChainlinkPriceFeed public immutable underlyingToQuotePriceFeed;
-
+    // slither-disable-end uninitialized-state
     /* solhint-enable */
 
     constructor(
