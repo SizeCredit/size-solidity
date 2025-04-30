@@ -19,10 +19,10 @@ import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {AaveAdapter} from "@src/market/token/adapters/AaveAdapter.sol";
-import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
+import {AaveAdapter} from "@src/market/token/libraries/AaveAdapter.sol";
+import {ERC4626Adapter} from "@src/market/token/libraries/ERC4626Adapter.sol";
 
-struct Storage {
+struct NTRTVStorage {
     // v1.5
     ISizeFactory sizeFactory;
     IPool aavePool;
@@ -35,6 +35,7 @@ struct Storage {
     // v1.8
     mapping(address user => address vault) vaultOf;
     mapping(address user => uint256 shares) sharesOf;
+    mapping(address vault => uint256 dust) vaultDust;
     EnumerableMap.AddressToUintMap vaultToAdapterMap;
 }
 
@@ -55,7 +56,7 @@ abstract contract NonTransferrableRebasingTokenVaultBase {
                             STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    Storage internal s;
+    NTRTVStorage internal s;
 
     /*//////////////////////////////////////////////////////////////
                             EVENTS

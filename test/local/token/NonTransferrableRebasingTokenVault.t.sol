@@ -22,7 +22,7 @@ import {
     DEFAULT_VAULT,
     NonTransferrableRebasingTokenVaultBase
 } from "@src/market/token/NonTransferrableRebasingTokenVaultBase.sol";
-import {Adapter} from "@src/market/token/adapters/BaseAdapter.sol";
+import {Adapter} from "@src/market/token/libraries/AdapterLibrary.sol";
 
 import {BaseTest} from "@test/BaseTest.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";

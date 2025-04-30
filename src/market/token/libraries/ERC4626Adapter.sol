@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
@@ -10,25 +9,25 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {
-    NonTransferrableRebasingTokenVaultBase,
-    Storage
+    NTRTVStorage,
+    NonTransferrableRebasingTokenVaultBase
 } from "@src/market/token/NonTransferrableRebasingTokenVaultBase.sol";
 
 library ERC4626Adapter {
     using SafeERC20 for IERC20Metadata;
 
     /// @notice Returns the totalSupply of assets deposited in the vault
-    function totalSupply(Storage storage, address vault) internal view returns (uint256) {
+    function totalSupply(NTRTVStorage storage, address vault) internal view returns (uint256) {
         return IERC4626(vault).maxWithdraw(address(this));
     }
 
     /// @notice Returns the balance of assets of an account in the vault
-    function balanceOf(Storage storage s, address vault, address account) internal view returns (uint256) {
+    function balanceOf(NTRTVStorage storage s, address vault, address account) internal view returns (uint256) {
         return IERC4626(vault).convertToAssets(s.sharesOf[account]);
     }
 
     /// @notice Deposits assets into the vault
-    function deposit(Storage storage s, address vault, address, /*from*/ address to, uint256 amount)
+    function deposit(NTRTVStorage storage s, address vault, address, /*from*/ address to, uint256 amount)
         internal
         returns (uint256 assets)
     {
@@ -46,7 +45,7 @@ library ERC4626Adapter {
     }
 
     /// @notice Withdraws assets from the vault
-    function withdraw(Storage storage s, address vault, address from, address to, uint256 amount)
+    function withdraw(NTRTVStorage storage s, address vault, address from, address to, uint256 amount)
         internal
         returns (uint256 assets)
     {
@@ -65,14 +64,14 @@ library ERC4626Adapter {
         if (fullWithdraw) {
             uint256 dust = s.sharesOf[from] - shares;
             s.sharesOf[from] = 0;
-            s.sharesOf[Ownable2StepUpgradeable(address(this)).owner()] += dust;
+            s.vaultDust[vault] += dust;
         } else {
             s.sharesOf[from] -= shares;
         }
     }
 
     /// @notice Transfers shares from one account to another from the same vault
-    function transferFrom(Storage storage s, address vault, address from, address to, uint256 value) internal {
+    function transferFrom(NTRTVStorage storage s, address vault, address from, address to, uint256 value) internal {
         if (IERC4626(vault).totalAssets() < value) {
             revert NonTransferrableRebasingTokenVaultBase.InsufficientTotalAssets(
                 address(vault), IERC4626(vault).totalAssets(), value
@@ -90,12 +89,12 @@ library ERC4626Adapter {
     }
 
     /// @notice Returns the price per share of the vault
-    function pricePerShare(Storage storage s, address vault) internal view returns (uint256) {
+    function pricePerShare(NTRTVStorage storage s, address vault) internal view returns (uint256) {
         return IERC4626(vault).convertToAssets(10 ** s.underlyingToken.decimals());
     }
 
     /// @notice Returns the asset of the vault
-    function getAsset(Storage storage, address vault) internal view returns (address) {
+    function getAsset(NTRTVStorage storage, address vault) internal view returns (address) {
         (bool success, bytes memory data) = vault.staticcall(abi.encodeWithSelector(IERC4626.asset.selector));
         if (!success) {
             revert Errors.INVALID_VAULT(vault);

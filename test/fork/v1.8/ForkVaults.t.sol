@@ -21,7 +21,7 @@ import {ProposeSafeTxUpgradeToV1_8Script} from "@script/ProposeSafeTxUpgradeToV1
 import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {Size} from "@src/market/Size.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
-import {Adapter} from "@src/market/token/adapters/BaseAdapter.sol";
+import {Adapter} from "@src/market/token/libraries/AdapterLibrary.sol";
 
 contract ForkVaultsTest is ForkTest, Networks {
     IERC4626 public eUSDC22 = IERC4626(0xe0a80d35bB6618CBA260120b279d357978c42BCE);

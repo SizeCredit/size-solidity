@@ -7,7 +7,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
-import {Adapter} from "@src/market/token/adapters/BaseAdapter.sol";
+import {Adapter} from "@src/market/token/libraries/AdapterLibrary.sol";
 import {UNISWAP_V3_FACTORY_BYTECODE} from "@test/mocks/UniswapV3FactoryBytecode.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 

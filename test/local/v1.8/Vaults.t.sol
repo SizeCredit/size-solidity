@@ -6,7 +6,7 @@ import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/market/libraries/Math.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {DEFAULT_VAULT} from "@src/market/token/NonTransferrableRebasingTokenVaultBase.sol";
-import {Adapter} from "@src/market/token/adapters/BaseAdapter.sol";
+import {Adapter} from "@src/market/token/libraries/AdapterLibrary.sol";
 import {BaseTest, Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 

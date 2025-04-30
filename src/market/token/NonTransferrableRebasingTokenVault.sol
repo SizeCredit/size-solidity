@@ -23,10 +23,10 @@ import {Errors} from "@src/market/libraries/Errors.sol";
 
 import {
     DEFAULT_VAULT,
-    NonTransferrableRebasingTokenVaultBase,
-    Storage
+    NTRTVStorage,
+    NonTransferrableRebasingTokenVaultBase
 } from "@src/market/token/NonTransferrableRebasingTokenVaultBase.sol";
-import {Adapter, BaseAdapter} from "@src/market/token/adapters/BaseAdapter.sol";
+import {Adapter, AdapterLibrary} from "@src/market/token/libraries/AdapterLibrary.sol";
 
 /// @title NonTransferrableRebasingTokenVault
 /// @custom:security-contact security@size.credit
@@ -47,7 +47,7 @@ contract NonTransferrableRebasingTokenVault is
 {
     using SafeERC20 for IERC20Metadata;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
-    using BaseAdapter for Storage;
+    using AdapterLibrary for NTRTVStorage;
 
     /*//////////////////////////////////////////////////////////////
                             CONSTRUCTOR/INITIALIZER
@@ -105,10 +105,14 @@ contract NonTransferrableRebasingTokenVault is
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
+    /// @notice Sets the adapter for a vault
+    /// @dev Setting a wrong adapter may brick the vault (`VaultAdapterFunctions` may revert or return incorrect values)
     function setVaultAdapter(address vault, Adapter adapter) external onlyOwner {
         _setVaultAdapter(vault, adapter);
     }
 
+    /// @notice Removes a vault from the whitelist
+    /// @dev Removing a vault will brick the vault (all `VaultAdapterFunctions` will revert)
     function removeVault(address vault) external onlyOwner {
         _removeVault(vault);
     }
@@ -141,9 +145,7 @@ contract NonTransferrableRebasingTokenVault is
             revert ERC20InvalidReceiver(address(0));
         }
 
-        address vaultFrom = s.vaultOf[from];
-        address vaultTo = s.vaultOf[to];
-        _transferFrom(vaultFrom, vaultTo, from, to, value);
+        _transferFrom(s.vaultOf[from], s.vaultOf[to], from, to, value);
 
         emit Transfer(from, to, value);
 
@@ -232,7 +234,7 @@ contract NonTransferrableRebasingTokenVault is
     ///        inconsistencies when the user changes vaults. For example, if the user switches to a new
     ///        vault but still holds a dust amount of shares in the previous one, the underlying tokens
     ///        held by the new vault may not accurately reflect the current vault assignment, leading to
-    ///        misattribution of assets. The dust is sent to the owner.
+    ///        misattribution of assets. The dust is sent to the vaultDust[vault] mapping.
     ///        See https://slowmist.medium.com/slowmist-aave-v2-security-audit-checklist-0d9ef442436b#5aed
     function withdraw(address from, address to, uint256 amount) external onlyMarket returns (uint256 assets) {
         if (from == address(0)) {
@@ -248,31 +250,42 @@ contract NonTransferrableRebasingTokenVault is
     }
 
     /*//////////////////////////////////////////////////////////////
-                            VIEW FUNCTIONS
+                            HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Returns the vault of an account
     function vaultOf(address user) public view returns (address) {
         return s.vaultOf[user];
     }
 
+    /// @notice Returns the shares of an account
     function sharesOf(address user) public view returns (uint256) {
         return s.sharesOf[user];
     }
 
+    /// @notice Returns the scaled balance of an account
     function scaledBalanceOf(address user) public view returns (uint256) {
         return s.scaledBalanceOf[user];
     }
 
+    /// @notice Returns the scaled total supply of the vault
     function scaledTotalSupply() public view returns (uint256) {
         return s.scaledTotalSupply;
     }
 
+    /// @notice Returns the size factory
     function sizeFactory() public view returns (ISizeFactory) {
         return s.sizeFactory;
     }
 
+    /// @notice Returns the Aave pool
     function aavePool() public view returns (IPool) {
         return s.aavePool;
+    }
+
+    /// @notice Returns the dust of a vault
+    function vaultDust(address vault) public view returns (uint256) {
+        return s.vaultDust[vault];
     }
 
     /// @notice Returns the current liquidity index of the variable pool
