@@ -88,6 +88,26 @@ After v1.5, markets can be deployed through a `SizeFactory` contract. This contr
 
 After v1.7, the `SizeFactory` also holds the access control for all Size markets. A fallback mechanism is still used on individual markets, where roles are first checked on each deployment, and then on the factory contract. This means the administrator must take appropriate care to revoke roles both on the factory and on individual markets in case of a privilege de-escalation scenario. The benefit of this approach is that existing markets will continue to work as usual even if all accounts have not been granted roles on the SizeFactory contract. Note: This change allows the factory access control to act on behalf of a role (e.g., pause a market) but does not grant it the ability to manage roles (grant/revoke). Role management in `AccessControl`'s for market is strictly governed by the market-scoped `DEFAULT_ADMIN_ROLE`, which is not overridden by the factory access control, which means, if the admin revokes his role with `renounceRole`, it may not be able to revoke other roles later.
 
+#### Copy trading
+
+Since Size v1.6.1, users can copy other users' limit orders.
+
+- Users can copy borrow/loan offers from other users
+- Users can copy both or a single offer from a single address
+- Users can specify safeguards per copied curve:
+  - min/max APR (safety envelope): if the calculated APR falls outside of this range, the min/max is used instead
+  - min/max tenor: if the requested tenor goes outside of this range, the market order reverts
+- Users can specify offset APRs to be applied to the curves
+- Once a copy offer is set, the user's own offers should be ignored, even if they update them. Copy offers have precedence until erased (setting them to null/default vales)
+
+As an additional safety measure against inverted curves, market orders check that the borrow offer is lower than the user's loan offer for a given tenor. This does not prevent the copy address from changing curves in a single multicall transaction and bypassing this check.
+
+Notes
+
+1. Copying another account's limit orders introduces the risk of them placing suboptimal rates and executing market orders against delegators, incurring monetary losses. Only trusted addresses should be copied.
+2. The max/min params from the `copyLimitOrder` method are not global max/min for the user-defined limit orders; they are specific to copy offers. Once the copy address offer is no longer valid, max/min guards for mismatched curves will not be applied. The only reason to stop market orders is in the event of "self arbitrage," i.e., for a given tenor, when the borrow curve >= lending curve, since these users could be drained by an attacker by borrowing high and lending low in a single transaction.
+3. The offset APR parameters are not validated and can cause market orders reverts depending on the final APR result
+
 #### Authorization
 
 Users can authorize other operator accounts to perform specific actions or any action on their behalf on any market (per chain) through a new `setAuthorization` method called on the `SizeFactory` introduced in v1.7. This enables users to delegate all Size functionalities to third parties, enabling more complex strategies and automations.
@@ -117,25 +137,17 @@ A non-exhaustive list of the risks of improper authorization includes:
 
 Because of the related risks, a recommended pattern is to authorize pre-vetted smart contracts in the beginning of a `multicall` operation, and revoke the authorization at the end of it. This way, the strategy contract will not hold any funds or credit on behalf of the user, and will be only responsible for specific actions during a limited time.
 
-#### Copy trading
+#### Custom vaults
 
-Since Size v1.6.1, users can copy other users' limit orders.
+Since v1.8, users can select variable pools in addition to Aave to deposit underlying borrow tokens to earn variable yield while their limit orders on the orderbook remain unmatched. This can be done through the `setUserConfiguration` call, which introduces a new `vault` parameter (a breaking change from the previous version). This parameter is used to `setVault` on the `NonTransferrableRebasingTokenVault` contract (e.g., svUSDC), an upgrade from the previous `NonTransferrableScaledTokenV1_5` (e.g., saUSDC) introduced in v1.5. If not set, the default vault is Aave.
 
-- Users can copy borrow/loan offers from other users
-- Users can copy both or a single offer from a single address
-- Users can specify safeguards per copied curve:
-  - min/max APR (safety envelope): if the calculated APR falls outside of this range, the min/max is used instead
-  - min/max tenor: if the requested tenor goes outside of this range, the market order reverts
-- Users can specify offset APRs to be applied to the curves
-- Once a copy offer is set, the user's own offers should be ignored, even if they update them. Copy offers have precedence until erased (setting them to null/default vales)
+The token vault contract is a "vault of vaults" in a sense, a non-transferrable rebasing ERC-20 token that takes underlying tokens from users and deposits them into different vaults. Vaults are whitelisted by the admin, who must confirm these are non-malicious and ERC4626 compatible. In the event where a vault is compromised, only users adopting that vault should be affected (market order reverts, balances unreliable, etc.), and the rest of the protocol should function without issues.
 
-As an additional safety measure against inverted curves, market orders check that the borrow offer is lower than the user's loan offer for a given tenor. This does not prevent the copy address from changing curves in a single multicall transaction and bypassing this check.
+To keep accounting in check, several mappings are added: from user to vault, from user to vault shares, and from vault to adapter. Currently, only two adapters are supported through a ["strategy" design pattern](https://refactoring.guru/design-patterns/strategy): `AaveAdapter` and `ERC4626Adapter`. Adapters must implement the `VaultAdapterFunctions` methods (deposit, withdraw, balanceOf, etc.). In the future, other adapters may be introduced through an upgrade on the token vault contract.
 
-Notes
+In some cases, [withdrawing from the vault may leave "dust" shares](https://slowmist.medium.com/slowmist-aave-v2-security-audit-checklist-0d9ef442436b#5aed) with the user, which are then burned so that they do not roll over during a vault change.
 
-1. Copying another account's limit orders introduces the risk of them placing suboptimal rates and executing market orders against delegators, incurring monetary losses. Only trusted addresses should be copied.
-2. The max/min params from the `copyLimitOrder` method are not global max/min for the user-defined limit orders; they are specific to copy offers. Once the copy address offer is no longer valid, max/min guards for mismatched curves will not be applied. The only reason to stop market orders is in the event of "self arbitrage," i.e., for a given tenor, when the borrow curve >= lending curve, since these users could be drained by an attacker by borrowing high and lending low in a single transaction.
-3. The offset APR parameters are not validated and can cause market orders reverts depending on the final APR result
+Since there can be an unlimited number of whitelisted vaults, the amount of underlying held by `NonTransferrableRebasingTokenVault` cannot be computed in constant time, so  `totalSupply` should not be used onchain. In addition, due to rounding in scaled/shares accounting, the invariant `SUM(balanceOf) == totalSupply()` may not hold true. However, we should still have `SUM(balanceOf) <= totalSupply()`, since `balanceOf` rounds down, and also to guarantee the solvency of the protocol.
 
 ## Test
 
