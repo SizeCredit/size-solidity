@@ -112,7 +112,8 @@ contract NonTransferrableRebasingTokenVault is
     }
 
     /// @notice Removes a vault from the whitelist
-    /// @dev Removing a vault will brick the vault (all `VaultAdapterFunctions` will revert)
+    /// @dev Removing a vault will brick the vault (all `VaultAdapterFunctions` will revert,
+    ///        and vaultToAdapterMap.at() will not return the vault, so `totalSupply()` will ignore it)
     function removeVault(address vault) external onlyOwner {
         _removeVault(vault);
     }

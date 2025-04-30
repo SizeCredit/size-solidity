@@ -258,6 +258,40 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         assertEq(token.balanceOf(user), 500);
     }
 
+    function test_NonTransferrableRebasingTokenVault_admin_removes_vault_after_deposits() public {
+        _deposit(bob, address(underlying), 3000);
+        assertEq(token.balanceOf(bob), 3000);
+        assertEq(token.totalSupply(), 3000);
+
+        vm.prank(owner);
+        token.setVaultAdapter(address(vault), Adapter.ERC4626);
+
+        vm.prank(address(size));
+        token.setVault(user, address(vault));
+
+        deal(address(underlying), address(size), 1000);
+        vm.prank(address(size));
+        underlying.approve(address(token), 1000);
+
+        vm.prank(address(size));
+        token.deposit(user, user, 1000);
+        assertEq(token.balanceOf(user), 1000);
+        assertEq(token.totalSupply(), 4000);
+
+        vm.prank(owner);
+        token.removeVault(address(vault));
+
+        vm.prank(address(size));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vault)));
+        token.withdraw(user, user, 500);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vault)));
+        token.balanceOf(user);
+
+        assertEq(token.totalSupply(), 3000);
+        assertEq(token.balanceOf(bob), 3000);
+    }
+
     function test_NonTransferrableRebasingTokenVault_transferFrom_aave_to_aave() public {
         vm.prank(owner);
         token.setVaultAdapter(address(vault), Adapter.ERC4626);
