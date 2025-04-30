@@ -5,11 +5,11 @@ import {Contract, Networks} from "@script/Networks.sol";
 import {ForkTest} from "@test/fork/ForkTest.sol";
 import {console} from "forge-std/console.sol";
 
+import {IAToken} from "@aave/interfaces/IAToken.sol";
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {SizeMock} from "@test/mocks/SizeMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
-
-import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IERC4626Morpho} from "@test/fork/v1.8/interfaces/IERC4626Morpho.sol";
@@ -55,6 +55,24 @@ contract ForkVaultsTest is ForkTest, Networks {
             (bool success,) = targets[i].call(datas[i]);
             assertTrue(success);
         }
+    }
+
+    function testFork_ForkVaults_aave() public {
+        NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
+
+        aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
+
+        uint256 usdcBalanceBefore = usdc.balanceOf(address(aToken));
+
+        _deposit(alice, usdc, 100e6);
+
+        uint256 usdcBalanceAfter = usdc.balanceOf(address(aToken));
+        assertEq(usdcBalanceAfter, usdcBalanceBefore + 100e6);
+        assertEq(borrowTokenVault.balanceOf(alice), 100e6);
+
+        _withdraw(alice, usdc, type(uint256).max);
+
+        assertEq(usdc.balanceOf(alice), 100e6);
     }
 
     function testFork_ForkVaults_eUSDC22() public {
