@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 import {Math, PERCENT} from "@src/market/libraries/Math.sol";
 import {
@@ -40,6 +41,7 @@ import {SizeFactoryOffchainGetters} from "@src/factory/SizeFactoryOffchainGetter
 import {Action, ActionsBitmap, Authorization} from "@src/factory/libraries/Authorization.sol";
 
 import {ISizeFactoryV1_7} from "@src/factory/interfaces/ISizeFactoryV1_7.sol";
+import {ISizeFactoryV1_8} from "@src/factory/interfaces/ISizeFactoryV1_8.sol";
 
 import {BORROW_RATE_UPDATER_ROLE, KEEPER_ROLE, PAUSER_ROLE} from "@src/factory/interfaces/ISizeFactory.sol";
 
@@ -142,7 +144,7 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactory
-    function isMarket(address candidate) external view returns (bool) {
+    function isMarket(address candidate) public view returns (bool) {
         return markets.contains(candidate);
     }
 
@@ -179,5 +181,13 @@ contract SizeFactory is
             uint256 nonce = authorizationNonces[onBehalfOf];
             return Authorization.isActionSet(authorizations[nonce][operator][onBehalfOf], action);
         }
+    }
+
+    /// @inheritdoc ISizeFactoryV1_8
+    function callMarket(ISize market, bytes calldata data) external {
+        if (!isMarket(address(market))) {
+            revert Errors.INVALID_MARKET(address(market));
+        }
+        Address.functionCall(address(market), data);
     }
 }
