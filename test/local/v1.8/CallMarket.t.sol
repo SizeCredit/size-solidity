@@ -12,6 +12,7 @@ import {DataView} from "@src/market/SizeViewData.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {ISizeV1_7} from "@src/market/interfaces/v1.7/ISizeV1_7.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {Adapter} from "@src/market/token/libraries/AdapterLibrary.sol";
 
 import {
     CopyLimitOrder,
@@ -19,6 +20,7 @@ import {
     CopyLimitOrdersParams
 } from "@src/market/libraries/actions/CopyLimitOrders.sol";
 import {DepositOnBehalfOfParams, DepositParams} from "@src/market/libraries/actions/Deposit.sol";
+
 import {
     InitializeDataParams,
     InitializeFeeConfigParams,
@@ -29,6 +31,10 @@ import {
     SellCreditMarketOnBehalfOfParams,
     SellCreditMarketParams
 } from "@src/market/libraries/actions/SellCreditMarket.sol";
+import {
+    SetUserConfigurationOnBehalfOfParams,
+    SetUserConfigurationParams
+} from "@src/market/libraries/actions/SetUserConfiguration.sol";
 import {WithdrawOnBehalfOfParams, WithdrawParams} from "@src/market/libraries/actions/Withdraw.sol";
 
 import {BaseTest} from "@test/BaseTest.sol";
@@ -42,6 +48,8 @@ contract CallMarketTest is BaseTest {
     SizeMock size2;
     PriceFeedMock priceFeed2;
     IERC20Metadata collateral2;
+    CopyLimitOrder fullCopy =
+        CopyLimitOrder({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: type(uint256).max, offsetAPR: 0});
 
     function setUp() public override {
         super.setUp();
@@ -215,14 +223,6 @@ contract CallMarketTest is BaseTest {
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.04e18));
         size = size1;
 
-        CopyLimitOrder memory fullCopy = CopyLimitOrder({
-            minTenor: 0,
-            maxTenor: type(uint256).max,
-            minAPR: 0,
-            maxAPR: type(uint256).max,
-            offsetAPR: 0
-        });
-
         bytes[] memory datas = new bytes[](4);
         datas[0] = abi.encodeCall(
             ISizeFactoryV1_7.setAuthorization,
@@ -274,5 +274,116 @@ contract CallMarketTest is BaseTest {
 
         assertEq(size1.getLoanOfferAPR(bob, 365 days), 0.03e18);
         assertEq(size2.getLoanOfferAPR(bob, 365 days), 0.04e18);
+    }
+
+    function test_CallMarket_user_can_execute_ideal_flow() public {
+        _setPrice(1e18);
+        _deposit(alice, usdc, 500e6);
+
+        size = size1;
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
+        size = size2;
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.04e18));
+
+        _setVaultAdapter(vault2, Adapter.ERC4626);
+
+        uint256 depositAmount = 100e6;
+
+        _mint(address(usdc), candy, depositAmount);
+
+        Action[] memory actions = new Action[](3);
+        actions[0] = Action.SET_USER_CONFIGURATION;
+        actions[1] = Action.DEPOSIT;
+        actions[2] = Action.COPY_LIMIT_ORDERS;
+
+        bytes[] memory datas = new bytes[](6);
+        datas[0] = abi.encodeCall(
+            ISizeFactoryV1_7.setAuthorization, (address(sizeFactory), Authorization.getActionsBitmap(actions))
+        );
+        datas[1] = abi.encodeCall(
+            ISizeFactoryV1_8.callMarket,
+            (
+                size1,
+                abi.encodeCall(
+                    ISizeV1_7.setUserConfigurationOnBehalfOf,
+                    (
+                        SetUserConfigurationOnBehalfOfParams({
+                            params: SetUserConfigurationParams({
+                                vault: address(vault2),
+                                openingLimitBorrowCR: 1.5e18,
+                                allCreditPositionsForSaleDisabled: false,
+                                creditPositionIdsForSale: false,
+                                creditPositionIds: new uint256[](0)
+                            }),
+                            onBehalfOf: candy
+                        })
+                    )
+                )
+            )
+        );
+        datas[2] = abi.encodeCall(
+            ISizeFactoryV1_8.callMarket,
+            (
+                size1,
+                abi.encodeCall(
+                    ISizeV1_7.depositOnBehalfOf,
+                    (
+                        DepositOnBehalfOfParams({
+                            params: DepositParams({token: address(usdc), amount: depositAmount, to: candy}),
+                            onBehalfOf: candy
+                        })
+                    )
+                )
+            )
+        );
+        datas[3] = abi.encodeCall(
+            ISizeFactoryV1_8.callMarket,
+            (
+                size1,
+                abi.encodeCall(
+                    ISizeV1_7.copyLimitOrdersOnBehalfOf,
+                    (
+                        CopyLimitOrdersOnBehalfOfParams({
+                            params: CopyLimitOrdersParams({
+                                copyAddress: alice,
+                                copyLoanOffer: fullCopy,
+                                copyBorrowOffer: fullCopy
+                            }),
+                            onBehalfOf: candy
+                        })
+                    )
+                )
+            )
+        );
+        datas[4] = abi.encodeCall(
+            ISizeFactoryV1_8.callMarket,
+            (
+                size2,
+                abi.encodeCall(
+                    ISizeV1_7.copyLimitOrdersOnBehalfOf,
+                    (
+                        CopyLimitOrdersOnBehalfOfParams({
+                            params: CopyLimitOrdersParams({
+                                copyAddress: alice,
+                                copyLoanOffer: fullCopy,
+                                copyBorrowOffer: fullCopy
+                            }),
+                            onBehalfOf: candy
+                        })
+                    )
+                )
+            )
+        );
+        datas[5] =
+            abi.encodeCall(ISizeFactoryV1_7.setAuthorization, (address(sizeFactory), Authorization.nullActionsBitmap()));
+
+        vm.prank(candy);
+        usdc.approve(address(size1), depositAmount);
+        vm.prank(candy);
+        sizeFactory.multicall(datas);
+
+        assertEq(_state().candy.borrowTokenBalance, depositAmount);
+        assertEq(size1.getLoanOfferAPR(candy, 365 days), 0.03e18);
+        assertEq(size2.getLoanOfferAPR(candy, 365 days), 0.04e18);
     }
 }
