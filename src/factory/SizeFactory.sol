@@ -184,10 +184,10 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactoryV1_8
-    function callMarket(ISize market, bytes calldata data) external {
+    function callMarket(ISize market, bytes calldata data) external returns (bytes memory result) {
         if (!isMarket(address(market))) {
             revert Errors.INVALID_MARKET(address(market));
         }
-        Address.functionCall(address(market), data);
+        result = Address.functionCall(address(market), data);
     }
 }
