@@ -7,6 +7,6 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 interface ICollectionsManagerUserActions {
-    function subscribeToCollections(uint256[] memory collectionIds) external;
-    function unsubscribeFromCollections(uint256[] memory collectionIds) external;
+    function subscribeUserToCollections(address user, uint256[] memory collectionIds) external;
+    function unsubscribeUserFromCollections(address user, uint256[] memory collectionIds) external;
 }

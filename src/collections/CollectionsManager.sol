@@ -53,11 +53,4 @@ contract CollectionsManager is
         override
         onlySizeFactoryHasRole(DEFAULT_ADMIN_ROLE)
     {}
-
-    modifier onlySizeFactoryHasRole(bytes32 role) {
-        if (!AccessControlUpgradeable(address(sizeFactory)).hasRole(role, msg.sender)) {
-            revert IAccessControl.AccessControlUnauthorizedAccount(msg.sender, role);
-        }
-        _;
-    }
 }

@@ -23,28 +23,28 @@ abstract contract CollectionsManagerUserActions is ICollectionsManagerUserAction
                             USER ACTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function subscribeToCollections(uint256[] memory collectionIds) external {
+    function subscribeUserToCollections(address user, uint256[] memory collectionIds) external onlySizeFactory {
         for (uint256 i = 0; i < collectionIds.length; i++) {
             if (!isValidCollectionId(collectionIds[i])) {
-                revert();
+                revert InvalidCollectionId(collectionIds[i]);
             }
 
-            bool added = userToCollectionIds[msg.sender].add(collectionIds[i]);
+            bool added = userToCollectionIds[user].add(collectionIds[i]);
             if (added) {
-                emit SubscribedToCollection(msg.sender, collectionIds[i]);
+                emit SubscribedToCollection(user, collectionIds[i]);
             }
         }
     }
 
-    function unsubscribeFromCollections(uint256[] memory collectionIds) external {
+    function unsubscribeUserFromCollections(address user, uint256[] memory collectionIds) external onlySizeFactory {
         for (uint256 i = 0; i < collectionIds.length; i++) {
             if (!isValidCollectionId(collectionIds[i])) {
-                revert();
+                revert InvalidCollectionId(collectionIds[i]);
             }
 
-            bool removed = userToCollectionIds[msg.sender].remove(collectionIds[i]);
+            bool removed = userToCollectionIds[user].remove(collectionIds[i]);
             if (removed) {
-                emit UnsubscribedFromCollection(msg.sender, collectionIds[i]);
+                emit UnsubscribedFromCollection(user, collectionIds[i]);
             }
         }
     }

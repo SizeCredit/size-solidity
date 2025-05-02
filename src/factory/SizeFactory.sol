@@ -190,4 +190,14 @@ contract SizeFactory is
         }
         result = Address.functionCall(address(market), data);
     }
+
+    /// @inheritdoc ISizeFactoryV1_8
+    function subscribeToCollections(uint256[] memory collectionIds) external {
+        collectionsManager.subscribeUserToCollections(msg.sender, collectionIds);
+    }
+
+    /// @inheritdoc ISizeFactoryV1_8
+    function unsubscribeFromCollections(uint256[] memory collectionIds) external {
+        collectionsManager.unsubscribeUserFromCollections(msg.sender, collectionIds);
+    }
 }

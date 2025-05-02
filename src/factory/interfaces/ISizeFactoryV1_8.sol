@@ -14,4 +14,12 @@ interface ISizeFactoryV1_8 {
     /// @dev Anybody can do arbitrary Size calls with this function, so users MUST revoke authorizations at the end of the transaction.
     ///      Since this function executes arbitrary calls on Size markets, it should not have any trust assumptions on the ACL of factory-executed calls.
     function callMarket(ISize market, bytes calldata data) external returns (bytes memory);
+
+    /// @notice Subscribe to collections
+    /// @param collectionIds The collection ids to subscribe to
+    function subscribeToCollections(uint256[] memory collectionIds) external;
+
+    /// @notice Unsubscribe from collections
+    /// @param collectionIds The collection ids to unsubscribe from
+    function unsubscribeFromCollections(uint256[] memory collectionIds) external;
 }
