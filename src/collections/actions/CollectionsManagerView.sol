@@ -69,6 +69,10 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         returns (uint256)
     {
         // TODO
+        if (!isCopyingCollectionRateProviderForMarket(user, collectionId, rateProvider, market)) {
+            return type(uint256).max;
+        }
+        return market.getLoanOfferAPR(rateProvider, tenor);
     }
 
     function getBorrowOfferAPR(address user, address rateProvider, ISize market, uint256 tenor)
@@ -77,6 +81,10 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         returns (uint256)
     {
         // TODO
+        if (!isCopyingCollectionRateProviderForMarket(user, collectionId, rateProvider, market)) {
+            return 0;
+        }
+        return market.getBorrowOfferAPR(rateProvider, tenor);
     }
 
     /*//////////////////////////////////////////////////////////////
