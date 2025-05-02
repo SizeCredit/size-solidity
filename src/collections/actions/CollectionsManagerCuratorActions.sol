@@ -31,6 +31,8 @@ abstract contract CollectionsManagerCuratorActions is ICollectionsManagerCurator
     event MarketRemovedFromCollection(uint256 collectionId, address market);
     event RateProviderAddedToMarket(uint256 collectionId, address market, address rateProvider);
     event RateProviderRemovedFromMarket(uint256 collectionId, address market, address rateProvider);
+    event RateProviderAddedToCollection(address rateProvider, uint256 collectionId);
+    event RateProviderRemovedFromCollection(address rateProvider, uint256 collectionId);
     event CollectionBoundsSet(uint256 collectionId, uint256 minAPR, uint256 maxAPR, uint256 minTenor, uint256 maxTenor);
 
     /*//////////////////////////////////////////////////////////////
@@ -38,8 +40,6 @@ abstract contract CollectionsManagerCuratorActions is ICollectionsManagerCurator
     //////////////////////////////////////////////////////////////*/
 
     error CollectionCuratorMismatch(uint256 collectionId, address expectedCurator, address curator);
-    error MarketNotInCollection(uint256 collectionId, address market);
-    error RateProviderNotInMarket(uint256 collectionId, address market, address rateProvider);
 
     /*//////////////////////////////////////////////////////////////
                             MODIFIERS
@@ -60,16 +60,17 @@ abstract contract CollectionsManagerCuratorActions is ICollectionsManagerCurator
     function createCollection() external returns (uint256 collectionId) {
         collectionId = collectionIdCounter++;
 
-        Collection storage collection = collections[collectionIdCounter];
+        Collection storage collection = collections[collectionId];
         collection.curator = msg.sender;
         collection.minAPR = 0;
         collection.maxAPR = type(uint256).max;
         collection.minTenor = 0;
         collection.maxTenor = type(uint256).max;
 
-        emit CollectionCreated(collectionIdCounter, msg.sender);
+        emit CollectionCreated(collectionId, msg.sender);
     }
 
+    /// @inheritdoc ICollectionsManagerCuratorActions
     function transferCollection(uint256 collectionId, address newCurator)
         external
         onlyCollectionCurator(collectionId)
@@ -80,6 +81,7 @@ abstract contract CollectionsManagerCuratorActions is ICollectionsManagerCurator
         emit CollectionTransferred(collectionId, msg.sender, newCurator);
     }
 
+    /// @inheritdoc ICollectionsManagerCuratorActions
     function addMarketsToCollection(uint256 collectionId, ISize[] memory markets)
         external
         onlyCollectionCurator(collectionId)
@@ -96,6 +98,7 @@ abstract contract CollectionsManagerCuratorActions is ICollectionsManagerCurator
         }
     }
 
+    /// @inheritdoc ICollectionsManagerCuratorActions
     function removeMarketsFromCollection(uint256 collectionId, ISize[] memory markets)
         external
         onlyCollectionCurator(collectionId)
@@ -109,6 +112,7 @@ abstract contract CollectionsManagerCuratorActions is ICollectionsManagerCurator
         }
     }
 
+    /// @inheritdoc ICollectionsManagerCuratorActions
     function addRateProvidersToMarket(uint256 collectionId, ISize market, address[] memory rateProviders)
         external
         onlyCollectionCurator(collectionId)
@@ -125,6 +129,7 @@ abstract contract CollectionsManagerCuratorActions is ICollectionsManagerCurator
         }
     }
 
+    /// @inheritdoc ICollectionsManagerCuratorActions
     function removeRateProvidersFromMarket(uint256 collectionId, ISize market, address[] memory rateProviders)
         external
         onlyCollectionCurator(collectionId)
@@ -141,6 +146,7 @@ abstract contract CollectionsManagerCuratorActions is ICollectionsManagerCurator
         }
     }
 
+    /// @inheritdoc ICollectionsManagerCuratorActions
     function setCollectionBounds(
         uint256 collectionId,
         uint256 minAPR,

@@ -9,7 +9,13 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 interface ICollectionsManagerView {
     function isValidCollectionId(uint256 collectionId) external view returns (bool);
     function isSubscribedToCollection(address user, uint256 collectionId) external view returns (bool);
-    function isCopyingRateProvider(address user, address rateProvider, ISize market) external view returns (bool);
+    /// @dev Should not revert
+    function isCopyingCollectionRateProviderForMarket(
+        address user,
+        uint256 collectionId,
+        address rateProvider,
+        ISize market
+    ) external view returns (bool);
     function getSubscribedCollections(address user) external view returns (uint256[] memory collectionIds);
     function getCollectionBounds(uint256 collectionId)
         external

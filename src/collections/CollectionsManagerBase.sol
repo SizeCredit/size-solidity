@@ -41,6 +41,7 @@ abstract contract CollectionsManagerBase {
 
     error InvalidCollectionId(uint256 collectionId);
     error OnlySizeFactory(address user);
+    error MarketNotInCollection(uint256 collectionId, address market);
 
     /*//////////////////////////////////////////////////////////////
                             MODIFIERS
