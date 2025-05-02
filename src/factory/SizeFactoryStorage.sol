@@ -29,5 +29,5 @@ abstract contract SizeFactoryStorage {
     // mapping of authorization nonces per account (added in v1.7)
     mapping(address onBehalfOf => uint256 nonce) public authorizationNonces;
     // collections manager (added in v1.8)
-    ICollectiosManager collectionsManager;
+    ICollectionsManager collectionsManager;
 }
