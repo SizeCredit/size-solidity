@@ -8,7 +8,6 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 /// @author Size (https://size.credit/)
 interface ICollectionsManagerCuratorActions {
     function createCollection() external returns (uint256 collectionId);
-    function transferCollection(uint256 collectionId, address newCurator) external;
     function addMarketsToCollection(uint256 collectionId, ISize[] memory markets) external;
     function removeMarketsFromCollection(uint256 collectionId, ISize[] memory markets) external;
     function addRateProvidersToMarket(uint256 collectionId, ISize market, address[] memory rateProviders) external;

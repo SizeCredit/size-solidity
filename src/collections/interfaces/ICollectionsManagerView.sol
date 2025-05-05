@@ -23,11 +23,11 @@ interface ICollectionsManagerView {
         returns (uint256 minAPR, uint256 maxAPR, uint256 minTenor, uint256 maxTenor);
     function getLoanOfferAPR(address user, ISize market, uint256 tenor) external view returns (uint256); // user-defined lend curve
     function getBorrowOfferAPR(address user, ISize market, uint256 tenor) external view returns (uint256); // user-defined borrow curve
-    function getLoanOfferAPR(address user, address rateProvider, ISize market, uint256 tenor)
+    function getLoanOfferAPR(address user, uint256 collectionId, address rateProvider, ISize market, uint256 tenor)
         external
         view
         returns (uint256); // RP lend curve
-    function getBorrowOfferAPR(address user, address rateProvider, ISize market, uint256 tenor)
+    function getBorrowOfferAPR(address user, uint256 collectionId, address rateProvider, ISize market, uint256 tenor)
         external
         view
         returns (uint256); // RP borrow curve

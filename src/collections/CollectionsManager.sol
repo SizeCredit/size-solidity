@@ -2,7 +2,11 @@
 pragma solidity 0.8.23;
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
+import {ERC721EnumerableUpgradeable} from
+    "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {CollectionsManagerBase} from "@src/collections/CollectionsManagerBase.sol";
 import {CollectionsManagerCuratorActions} from "@src/collections/actions/CollectionsManagerCuratorActions.sol";
@@ -28,6 +32,7 @@ contract CollectionsManager is
     CollectionsManagerCuratorActions,
     CollectionsManagerView,
     CollectionsManagerUserActions,
+    /* ERC721EnumerableUpgradeable */
     MulticallUpgradeable,
     UUPSUpgradeable
 {
@@ -37,6 +42,8 @@ contract CollectionsManager is
     }
 
     function initialize(ISizeFactory _sizeFactory) external initializer {
+        __ERC721Enumerable_init();
+        __ERC721_init("Size Collections", "SIZE_COLLECTIONS");
         __Multicall_init();
         __UUPSUpgradeable_init();
 
@@ -48,4 +55,8 @@ contract CollectionsManager is
         override
         onlySizeFactoryHasRole(DEFAULT_ADMIN_ROLE)
     {}
+
+    function _baseURI() internal view virtual override returns (string memory) {
+        return string.concat("https://api.size.credit/collections/", Strings.toString(block.chainid), "/");
+    }
 }

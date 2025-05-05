@@ -30,7 +30,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         uint256 collectionId,
         address rateProvider,
         ISize market
-    ) external view returns (bool) {
+    ) public view returns (bool) {
         if (!isValidCollectionId(collectionId)) {
             return false;
         }
@@ -63,7 +63,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         return market.getBorrowOfferAPR(user, tenor);
     }
 
-    function getLoanOfferAPR(address user, address rateProvider, ISize market, uint256 tenor)
+    function getLoanOfferAPR(address user, uint256 collectionId, address rateProvider, ISize market, uint256 tenor)
         external
         view
         returns (uint256)
@@ -75,7 +75,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         return market.getLoanOfferAPR(rateProvider, tenor);
     }
 
-    function getBorrowOfferAPR(address user, address rateProvider, ISize market, uint256 tenor)
+    function getBorrowOfferAPR(address user, uint256 collectionId, address rateProvider, ISize market, uint256 tenor)
         external
         view
         returns (uint256)
@@ -103,10 +103,6 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         maxAPR = collections[collectionId].maxAPR;
         minTenor = collections[collectionId].minTenor;
         maxTenor = collections[collectionId].maxTenor;
-    }
-
-    function getCollectionCurator(uint256 collectionId) external view returns (address) {
-        return collections[collectionId].curator;
     }
 
     function getCollectionMarkets(uint256 collectionId) external view returns (address[] memory) {

@@ -9,7 +9,6 @@ import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 
 struct Collection {
-    address curator;
     uint256 minAPR;
     uint256 maxAPR;
     uint256 minTenor;

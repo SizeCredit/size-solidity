@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {ERC721EnumerableUpgradeable} from
+    "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import {Collection, CollectionsManagerBase} from "@src/collections/CollectionsManagerBase.sol";
@@ -18,15 +21,17 @@ bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice See the documentation in {ICollectionsManagerCuratorActions}.
-abstract contract CollectionsManagerCuratorActions is ICollectionsManagerCuratorActions, CollectionsManagerBase {
+abstract contract CollectionsManagerCuratorActions is
+    ICollectionsManagerCuratorActions,
+    ERC721EnumerableUpgradeable,
+    CollectionsManagerBase
+{
     using EnumerableSet for EnumerableSet.AddressSet;
 
     /*//////////////////////////////////////////////////////////////
                             EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event CollectionCreated(uint256 collectionId, address curator);
-    event CollectionTransferred(uint256 collectionId, address oldCurator, address newCurator);
     event MarketAddedToCollection(uint256 collectionId, address market);
     event MarketRemovedFromCollection(uint256 collectionId, address market);
     event RateProviderAddedToMarket(uint256 collectionId, address market, address rateProvider);
@@ -46,8 +51,8 @@ abstract contract CollectionsManagerCuratorActions is ICollectionsManagerCurator
     //////////////////////////////////////////////////////////////*/
 
     modifier onlyCollectionCurator(uint256 collectionId) {
-        if (collections[collectionId].curator != msg.sender) {
-            revert CollectionCuratorMismatch(collectionId, collections[collectionId].curator, msg.sender);
+        if (ownerOf(collectionId) != msg.sender) {
+            revert CollectionCuratorMismatch(collectionId, ownerOf(collectionId), msg.sender);
         }
         _;
     }
@@ -61,24 +66,12 @@ abstract contract CollectionsManagerCuratorActions is ICollectionsManagerCurator
         collectionId = collectionIdCounter++;
 
         Collection storage collection = collections[collectionId];
-        collection.curator = msg.sender;
         collection.minAPR = 0;
         collection.maxAPR = type(uint256).max;
         collection.minTenor = 0;
         collection.maxTenor = type(uint256).max;
 
-        emit CollectionCreated(collectionId, msg.sender);
-    }
-
-    /// @inheritdoc ICollectionsManagerCuratorActions
-    function transferCollection(uint256 collectionId, address newCurator)
-        external
-        onlyCollectionCurator(collectionId)
-    {
-        Collection storage collection = collections[collectionId];
-        collection.curator = newCurator;
-
-        emit CollectionTransferred(collectionId, msg.sender, newCurator);
+        _safeMint(msg.sender, collectionId);
     }
 
     /// @inheritdoc ICollectionsManagerCuratorActions
