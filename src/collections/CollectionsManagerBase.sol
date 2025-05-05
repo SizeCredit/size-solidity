@@ -7,13 +7,11 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
 
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
+import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
 
 struct MarketInformation {
     bool exists;
-    uint256 minAPR;
-    uint256 maxAPR;
-    uint256 minTenor;
-    uint256 maxTenor;
+    CopyLimitOrder copyLimitOrder;
     EnumerableSet.AddressSet rateProviders;
 }
 

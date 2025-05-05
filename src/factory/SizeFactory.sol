@@ -73,6 +73,15 @@ contract SizeFactory is
         _grantRole(PAUSER_ROLE, _owner);
         _grantRole(KEEPER_ROLE, _owner);
         _grantRole(BORROW_RATE_UPDATER_ROLE, _owner);
+
+        collectionsManager = CollectionsManager(
+            address(
+                new ERC1967Proxy(
+                    address(new CollectionsManager()),
+                    abi.encodeCall(CollectionsManager.initialize, ISizeFactory(address(this)))
+                )
+            )
+        );
     }
 
     /// @inheritdoc ISizeFactoryV1_8
@@ -81,6 +90,15 @@ contract SizeFactory is
         onlyRole(DEFAULT_ADMIN_ROLE)
         reinitializer(1_08_00)
     {
+        collectionsManager = CollectionsManager(
+            address(
+                new ERC1967Proxy(
+                    address(new CollectionsManager()),
+                    abi.encodeCall(CollectionsManager.initialize, ISizeFactory(address(this)))
+                )
+            )
+        );
+
         for (uint256 i = 0; i < users.length; i++) {
             collectionsManager.subscribeUserToCollections(users[i], collectionIds);
         }
