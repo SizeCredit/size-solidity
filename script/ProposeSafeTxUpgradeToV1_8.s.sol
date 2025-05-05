@@ -76,10 +76,13 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
             )
         );
 
-        // SizeFactory.upgradeToAndCall(v1_8, multicall[setSizeImplementation,setNonTransferrableRebasingTokenVaultImplementation])
-        bytes[] memory multicallDatas = new bytes[](2);
-        multicallDatas[0] = abi.encodeCall(SizeFactory.setSizeImplementation, (address(sizeV1_8Implementation)));
-        multicallDatas[1] = abi.encodeCall(
+        // SizeFactory.upgradeToAndCall(v1_8, multicall[reinitialize, setSizeImplementation, setNonTransferrableRebasingTokenVaultImplementation])
+        bytes[] memory multicallDatas = new bytes[](3);
+        address[] memory users = vm.envOr("USERS", ",", new address[](0));
+        uint256[] memory collectionIds = vm.envOr("COLLECTION_IDS", ",", new uint256[](0));
+        multicallDatas[0] = abi.encodeCall(SizeFactory.reinitialize, (users, collectionIds));
+        multicallDatas[1] = abi.encodeCall(SizeFactory.setSizeImplementation, (address(sizeV1_8Implementation)));
+        multicallDatas[2] = abi.encodeCall(
             SizeFactory.setNonTransferrableRebasingTokenVaultImplementation,
             (address(borrowTokenVaultV1_8Implementation))
         );

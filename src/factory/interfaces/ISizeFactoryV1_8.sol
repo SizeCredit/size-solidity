@@ -8,6 +8,14 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 /// @author Size (https://size.credit/)
 /// @notice The interface for the size factory v1.8
 interface ISizeFactoryV1_8 {
+    /// @notice Reinitialize the factory
+    /// @param users The users to reinitialize the factory for
+    /// @param collectionIds The collection ids to subscribe to
+    /// @dev Before v1.8, users could copy rate providers directly through `copyLimitOrders`.
+    ///        In v1.8, this method was deprecated in favor of collections. The `reinitialize` function serves as a migration path
+    ///        for users who are following the only off-chain collection currently offered by Size.
+    function reinitialize(address[] memory users, uint256[] memory collectionIds) external;
+
     /// @notice Call a market with data. This can be used to batch operations on multiple markets.
     /// @param market The market to call
     /// @param data The data to call the market with

@@ -15,12 +15,8 @@ import {CollectionsManagerView} from "@src/collections/actions/CollectionsManage
 
 import {ICollectionsManager} from "@src/collections/interfaces/ICollectionsManager.sol";
 
-import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
+import {DEFAULT_ADMIN_ROLE, ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
-
-import {Errors} from "@src/market/libraries/Errors.sol";
-
-bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
 
 /// @title CollectionsManager
 /// @custom:security-contact security@size.credit

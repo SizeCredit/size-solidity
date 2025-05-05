@@ -15,7 +15,6 @@ import {
 } from "@src/market/libraries/actions/Initialize.sol";
 
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
@@ -55,7 +54,6 @@ contract SizeFactory is
     SizeFactoryOffchainGetters,
     SizeFactoryEvents,
     MulticallUpgradeable,
-    Ownable2StepUpgradeable,
     AccessControlUpgradeable,
     UUPSUpgradeable
 {
@@ -67,9 +65,7 @@ contract SizeFactory is
     }
 
     function initialize(address _owner) external initializer {
-        __Ownable_init(_owner);
         __Multicall_init();
-        __Ownable2Step_init();
         __AccessControl_init();
         __UUPSUpgradeable_init();
 
@@ -77,6 +73,17 @@ contract SizeFactory is
         _grantRole(PAUSER_ROLE, _owner);
         _grantRole(KEEPER_ROLE, _owner);
         _grantRole(BORROW_RATE_UPDATER_ROLE, _owner);
+    }
+
+    /// @inheritdoc ISizeFactoryV1_8
+    function reinitialize(address[] memory users, uint256[] memory collectionIds)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        reinitializer(1_08_00)
+    {
+        for (uint256 i = 0; i < users.length; i++) {
+            collectionsManager.subscribeUserToCollections(users[i], collectionIds);
+        }
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
