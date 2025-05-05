@@ -87,7 +87,7 @@ library Events {
         uint256 creditPositionToCompensateId,
         uint256 amount
     );
-    event SetUserConfiguration( // v1.8
+    event SetUserConfiguration( // updated in v1.8
         address indexed sender,
         address indexed onBehalfOf,
         address indexed vault,
@@ -99,7 +99,6 @@ library Events {
     event CopyLimitOrders(
         address indexed sender,
         address indexed onBehalfOf,
-        address indexed copyAddress,
         uint256 minTenorLoanOffer,
         uint256 maxTenorLoanOffer,
         uint256 minAPRLoanOffer,
@@ -110,7 +109,7 @@ library Events {
         uint256 minAPRBorrowOffer,
         uint256 maxAPRBorrowOffer,
         int256 offsetAPRBorrowOffer
-    ); // v1.6.1
+    ); // v1.6.1, updated in v1.8
 
     // creates
 

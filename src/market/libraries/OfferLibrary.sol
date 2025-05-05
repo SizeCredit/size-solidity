@@ -176,7 +176,8 @@ library OfferLibrary {
                 offsetAPR: 0
             });
         } else {
-            limitOrder = state.data.users[userCopyLimitOrders.copyAddress].loanOffer;
+            // TODO
+            limitOrder = state.data.users[userCopyLimitOrders.___deprecated_copyAddress].loanOffer;
             copyLimitOrder = userCopyLimitOrders.copyLoanOffer;
         }
     }
@@ -202,7 +203,8 @@ library OfferLibrary {
                 offsetAPR: 0
             });
         } else {
-            limitOrder = state.data.users[userCopyLimitOrders.copyAddress].borrowOffer;
+            // TODO
+            limitOrder = state.data.users[userCopyLimitOrders.___deprecated_copyAddress].borrowOffer;
             copyLimitOrder = userCopyLimitOrders.copyBorrowOffer;
         }
     }

@@ -4,7 +4,9 @@ pragma solidity 0.8.23;
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {CollectionsManagerBase} from "@src/collections/CollectionsManagerBase.sol";
 import {ICollectionsManagerView} from "@src/collections/interfaces/ICollectionsManagerView.sol";
+
 import {ISize} from "@src/market/interfaces/ISize.sol";
+import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
 
 /// @title CollectionsManagerView
 /// @custom:security-contact security@size.credit
@@ -90,10 +92,10 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
                             COLLECTION VIEW
     //////////////////////////////////////////////////////////////*/
 
-    function getCollectionMarketBounds(uint256 collectionId, ISize market)
+    function getCollectionMarketCopyLimitOrder(uint256 collectionId, ISize market)
         external
         view
-        returns (uint256 minAPR, uint256 maxAPR, uint256 minTenor, uint256 maxTenor)
+        returns (CopyLimitOrder memory)
     {
         if (!isValidCollectionId(collectionId)) {
             revert InvalidCollectionId(collectionId);
@@ -101,10 +103,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         if (!collections[collectionId][market].exists) {
             revert MarketNotInCollection(collectionId, address(market));
         }
-        minAPR = collections[collectionId][market].minAPR;
-        maxAPR = collections[collectionId][market].maxAPR;
-        minTenor = collections[collectionId][market].minTenor;
-        maxTenor = collections[collectionId][market].maxTenor;
+        return collections[collectionId][market].copyLimitOrder;
     }
 
     function getCollectionMarketRateProviders(uint256 collectionId, ISize market)

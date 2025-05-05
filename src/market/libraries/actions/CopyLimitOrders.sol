@@ -111,7 +111,7 @@ library CopyLimitOrders {
         );
 
         state.data.usersCopyLimitOrders[onBehalfOf] = UserCopyLimitOrders({
-            copyAddress: address(0),
+            ___deprecated_copyAddress: address(0),
             copyLoanOffer: params.copyLoanOffer,
             copyBorrowOffer: params.copyBorrowOffer
         });

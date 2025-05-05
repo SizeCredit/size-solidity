@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {ISize} from "@src/market/interfaces/ISize.sol";
+import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
 
 /// @title ICollectionsManagerView
 /// @custom:security-contact security@size.credit
@@ -17,10 +18,10 @@ interface ICollectionsManagerView {
         ISize market
     ) external view returns (bool);
     function getSubscribedCollections(address user) external view returns (uint256[] memory collectionIds);
-    function getCollectionBounds(uint256 collectionId)
+    function getCollectionMarketCopyLimitOrder(uint256 collectionId, ISize market)
         external
         view
-        returns (uint256 minAPR, uint256 maxAPR, uint256 minTenor, uint256 maxTenor);
+        returns (CopyLimitOrder memory);
     function getLoanOfferAPR(address user, ISize market, uint256 tenor) external view returns (uint256); // user-defined lend curve
     function getBorrowOfferAPR(address user, ISize market, uint256 tenor) external view returns (uint256); // user-defined borrow curve
     function getLoanOfferAPR(address user, uint256 collectionId, address rateProvider, ISize market, uint256 tenor)

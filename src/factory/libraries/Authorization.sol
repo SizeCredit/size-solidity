@@ -24,7 +24,7 @@ enum Action {
     SELF_LIQUIDATE,
     COMPENSATE,
     SET_USER_CONFIGURATION,
-    __deprecated_COPY_LIMIT_ORDERS,
+    COPY_LIMIT_ORDERS,
     // add more actions here
     NUMBER_OF_ACTIONS
 }
