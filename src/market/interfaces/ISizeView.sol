@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {___deprecated_UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
+import {UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
 import {DataView, UserView} from "@src/market/SizeViewData.sol";
 import {CreditPosition, DebtPosition, LoanStatus} from "@src/market/libraries/LoanLibrary.sol";
 import {BuyCreditMarket, BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
@@ -58,10 +58,7 @@ interface ISizeView is ISizeViewV1_7 {
     /// @notice Get the user copy limit orders for a given user
     /// @param user The address of the user
     /// @return The user copy limit orders
-    function ___deprecated_getUserCopyLimitOrders(address user)
-        external
-        view
-        returns (__deprecated_UserCopyLimitOrders memory);
+    function getUserCopyLimitOrders(address user) external view returns (UserCopyLimitOrders memory);
 
     /// @notice Get the user vault for a given user
     /// @param user The address of the user

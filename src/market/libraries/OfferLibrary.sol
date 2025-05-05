@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
 import {State} from "@src/market/SizeStorage.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {Math} from "@src/market/libraries/Math.sol";

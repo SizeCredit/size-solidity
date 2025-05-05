@@ -8,9 +8,8 @@ import {Errors} from "@src/market/libraries/Errors.sol";
 import {Events} from "@src/market/libraries/Events.sol";
 import {CopyLimitOrder, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
 
+// updated in v1.8, removed `address copyAddress` from params
 struct CopyLimitOrdersParams {
-    // the address to copy the limit orders from
-    address copyAddress;
     // the loan offer copy parameters (null means no copy)
     CopyLimitOrder copyLoanOffer;
     // the borrow offer copy parameters (null means no copy)
@@ -28,9 +27,6 @@ struct CopyLimitOrdersOnBehalfOfParams {
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice Contains the logic for copying limit orders
-/// @dev Invariants:
-///      - copyAddress != address(0) <=> at least one of copyLoanOffer or copyBorrowOffer is non-null
-///      - copyAddress == address(0) <=> both copyLoanOffer and copyBorrowOffer are null
 library CopyLimitOrders {
     using OfferLibrary for CopyLimitOrder;
 
@@ -83,23 +79,6 @@ library CopyLimitOrders {
             }
         }
 
-        // validate copyAddress
-        if (params.copyAddress == onBehalfOf) {
-            revert Errors.INVALID_ADDRESS(params.copyAddress);
-        }
-
-        if (bothNull) {
-            // both offers are null, so copyAddress must be address(0)
-            if (params.copyAddress != address(0)) {
-                revert Errors.INVALID_ADDRESS(params.copyAddress);
-            }
-        } else {
-            // at least one offer is non-null, so copyAddress must be non-zero
-            if (params.copyAddress == address(0)) {
-                revert Errors.NULL_ADDRESS();
-            }
-        }
-
         // validate copyLoanOffer.offsetAPR
         // N/A
 
@@ -119,7 +98,6 @@ library CopyLimitOrders {
         emit Events.CopyLimitOrders(
             msg.sender,
             onBehalfOf,
-            params.copyAddress,
             params.copyLoanOffer.minTenor,
             params.copyLoanOffer.maxTenor,
             params.copyLoanOffer.minAPR,
@@ -133,7 +111,7 @@ library CopyLimitOrders {
         );
 
         state.data.usersCopyLimitOrders[onBehalfOf] = UserCopyLimitOrders({
-            copyAddress: params.copyAddress,
+            copyAddress: address(0),
             copyLoanOffer: params.copyLoanOffer,
             copyBorrowOffer: params.copyBorrowOffer
         });

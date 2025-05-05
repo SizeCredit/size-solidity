@@ -6,12 +6,9 @@ import {Test} from "forge-std/Test.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 
-import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
-import {Adapter} from "@src/market/token/libraries/AdapterLibrary.sol";
 import {UNISWAP_V3_FACTORY_BYTECODE} from "@test/mocks/UniswapV3FactoryBytecode.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
-import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {Size} from "@src/market/Size.sol";
 import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
 
@@ -44,6 +41,8 @@ import {SetUserConfigurationParams} from "@src/market/libraries/actions/SetUserC
 
 import {KEEPER_ROLE} from "@src/factory/SizeFactory.sol";
 import {UserView} from "@src/market/SizeView.sol";
+import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
+import {CopyLimitOrdersParams} from "@src/market/libraries/actions/CopyLimitOrders.sol";
 
 import {UpdateConfigParams} from "@src/market/libraries/actions/UpdateConfig.sol";
 
@@ -95,7 +94,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         vm.label(address(variablePool), "VariablePool");
 
         vm.label(address(size.data().collateralToken), "szWETH");
-        vm.label(address(size.data().borrowTokenVault), "szvUSDC");
+        vm.label(address(size.data().borrowAToken), "szaUSDC");
         vm.label(address(size.data().debtToken), "szDebtUSDC");
 
         vm.label(address(sizeFactory), "SizeFactory");
@@ -443,7 +442,6 @@ contract BaseTest is Test, Deploy, AssertsHelper {
 
     function _setUserConfiguration(
         address user,
-        address vault,
         uint256 openingLimitBorrowCR,
         bool allCreditPositionsForSaleDisabled,
         bool creditPositionIdsForSale,
@@ -452,11 +450,26 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         vm.prank(user);
         size.setUserConfiguration(
             SetUserConfigurationParams({
-                vault: vault,
                 openingLimitBorrowCR: openingLimitBorrowCR,
                 allCreditPositionsForSaleDisabled: allCreditPositionsForSaleDisabled,
                 creditPositionIdsForSale: creditPositionIdsForSale,
                 creditPositionIds: creditPositionIds
+            })
+        );
+    }
+
+    function _copyLimitOrders(
+        address user,
+        address copyAddress,
+        CopyLimitOrder memory copyLoanOffer,
+        CopyLimitOrder memory copyBorrowOffer
+    ) internal {
+        vm.prank(user);
+        size.copyLimitOrders(
+            CopyLimitOrdersParams({
+                copyAddress: copyAddress,
+                copyLoanOffer: copyLoanOffer,
+                copyBorrowOffer: copyBorrowOffer
             })
         );
     }
@@ -469,17 +482,6 @@ contract BaseTest is Test, Deploy, AssertsHelper {
     function _setLiquidityIndex(address token, uint256 index) internal {
         vm.prank(address(this));
         PoolMock(address(variablePool)).setLiquidityIndex(token, index);
-    }
-
-    function _setVaultAdapter(IERC4626 v, Adapter adapter) internal {
-        return _setVaultAdapter(address(v), adapter);
-    }
-
-    function _setVaultAdapter(address v, Adapter adapter) internal {
-        NonTransferrableRebasingTokenVault borrowTokenVault =
-            NonTransferrableRebasingTokenVault(address(size.data().borrowTokenVault));
-        vm.prank(address(this));
-        borrowTokenVault.setVaultAdapter(v, adapter);
     }
 
     function _setLiquidityIndex(uint256 index) internal {
