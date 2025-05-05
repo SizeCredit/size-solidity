@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {Collection, CollectionsManagerBase} from "@src/collections/CollectionsManagerBase.sol";
+import {CollectionsManagerBase} from "@src/collections/CollectionsManagerBase.sol";
 import {ICollectionsManagerView} from "@src/collections/interfaces/ICollectionsManagerView.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 
@@ -37,11 +37,10 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         if (!userToCollectionIds[user].contains(collectionId)) {
             return false;
         }
-        Collection storage collection = collections[collectionId];
-        if (!collection.markets.contains(address(market))) {
+        if (!collections[collectionId][market].exists) {
             return false;
         }
-        return collection.marketToRateProviders[market].contains(rateProvider);
+        return collections[collectionId][market].rateProviders.contains(rateProvider);
     }
 
     /// @inheritdoc ICollectionsManagerView
@@ -91,7 +90,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
                             COLLECTION VIEW
     //////////////////////////////////////////////////////////////*/
 
-    function getCollectionBounds(uint256 collectionId)
+    function getCollectionMarketBounds(uint256 collectionId, ISize market)
         external
         view
         returns (uint256 minAPR, uint256 maxAPR, uint256 minTenor, uint256 maxTenor)
@@ -99,14 +98,13 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         if (!isValidCollectionId(collectionId)) {
             revert InvalidCollectionId(collectionId);
         }
-        minAPR = collections[collectionId].minAPR;
-        maxAPR = collections[collectionId].maxAPR;
-        minTenor = collections[collectionId].minTenor;
-        maxTenor = collections[collectionId].maxTenor;
-    }
-
-    function getCollectionMarkets(uint256 collectionId) external view returns (address[] memory) {
-        return collections[collectionId].markets.values();
+        if (!collections[collectionId][market].exists) {
+            revert MarketNotInCollection(collectionId, address(market));
+        }
+        minAPR = collections[collectionId][market].minAPR;
+        maxAPR = collections[collectionId][market].maxAPR;
+        minTenor = collections[collectionId][market].minTenor;
+        maxTenor = collections[collectionId][market].maxTenor;
     }
 
     function getCollectionMarketRateProviders(uint256 collectionId, ISize market)
@@ -114,6 +112,12 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         view
         returns (address[] memory)
     {
-        return collections[collectionId].marketToRateProviders[market].values();
+        if (!isValidCollectionId(collectionId)) {
+            revert InvalidCollectionId(collectionId);
+        }
+        if (!collections[collectionId][market].exists) {
+            revert MarketNotInCollection(collectionId, address(market));
+        }
+        return collections[collectionId][market].rateProviders.values();
     }
 }

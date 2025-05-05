@@ -6,7 +6,7 @@ import {ERC721EnumerableUpgradeable} from
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-import {Collection, CollectionsManagerBase} from "@src/collections/CollectionsManagerBase.sol";
+import {CollectionsManagerBase} from "@src/collections/CollectionsManagerBase.sol";
 
 import {ICollectionsManagerCuratorActions} from "@src/collections/interfaces/ICollectionsManagerCuratorActions.sol";
 
@@ -32,13 +32,19 @@ abstract contract CollectionsManagerCuratorActions is
                             EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event MarketAddedToCollection(uint256 collectionId, address market);
-    event MarketRemovedFromCollection(uint256 collectionId, address market);
-    event RateProviderAddedToMarket(uint256 collectionId, address market, address rateProvider);
-    event RateProviderRemovedFromMarket(uint256 collectionId, address market, address rateProvider);
-    event RateProviderAddedToCollection(address rateProvider, uint256 collectionId);
-    event RateProviderRemovedFromCollection(address rateProvider, uint256 collectionId);
-    event CollectionBoundsSet(uint256 collectionId, uint256 minAPR, uint256 maxAPR, uint256 minTenor, uint256 maxTenor);
+    event AddMarketToCollection(
+        uint256 indexed collectionId,
+        address indexed market,
+        uint256 minAPR,
+        uint256 maxAPR,
+        uint256 minTenor,
+        uint256 maxTenor
+    );
+    event RemoveMarketFromCollection(uint256 indexed collectionId, address indexed market);
+    event AddRateProviderToMarket(uint256 indexed collectionId, address indexed market, address indexed rateProvider);
+    event RemoveRateProviderFromMarket(
+        uint256 indexed collectionId, address indexed market, address indexed rateProvider
+    );
 
     /*//////////////////////////////////////////////////////////////
                             ERRORS
@@ -64,30 +70,45 @@ abstract contract CollectionsManagerCuratorActions is
     /// @inheritdoc ICollectionsManagerCuratorActions
     function createCollection() external returns (uint256 collectionId) {
         collectionId = collectionIdCounter++;
-
-        Collection storage collection = collections[collectionId];
-        collection.minAPR = 0;
-        collection.maxAPR = type(uint256).max;
-        collection.minTenor = 0;
-        collection.maxTenor = type(uint256).max;
-
         _safeMint(msg.sender, collectionId);
     }
 
     /// @inheritdoc ICollectionsManagerCuratorActions
-    function addMarketsToCollection(uint256 collectionId, ISize[] memory markets)
-        external
-        onlyCollectionCurator(collectionId)
-    {
+    function addMarketsToCollection(
+        uint256 collectionId,
+        ISize[] memory markets,
+        uint256[] memory minAPR,
+        uint256[] memory maxAPR,
+        uint256[] memory minTenor,
+        uint256[] memory maxTenor
+    ) external onlyCollectionCurator(collectionId) {
+        if (
+            markets.length != minAPR.length || markets.length != maxAPR.length || markets.length != minTenor.length
+                || markets.length != maxTenor.length
+        ) {
+            revert Errors.INVALID_ARRAY_LENGTH();
+        }
+
         for (uint256 i = 0; i < markets.length; i++) {
             if (!sizeFactory.isMarket(address(markets[i]))) {
                 revert Errors.INVALID_MARKET(address(markets[i]));
             }
-
-            bool added = collections[collectionId].markets.add(address(markets[i]));
-            if (added) {
-                emit MarketAddedToCollection(collectionId, address(markets[i]));
+            if (minAPR[i] > maxAPR[i]) {
+                revert Errors.INVALID_APR_RANGE(minAPR[i], maxAPR[i]);
             }
+            if (minTenor[i] > maxTenor[i]) {
+                revert Errors.INVALID_TENOR_RANGE(minTenor[i], maxTenor[i]);
+            }
+
+            collections[collectionId][markets[i]].exists = true;
+            collections[collectionId][markets[i]].minAPR = minAPR[i];
+            collections[collectionId][markets[i]].maxAPR = maxAPR[i];
+            collections[collectionId][markets[i]].minTenor = minTenor[i];
+            collections[collectionId][markets[i]].maxTenor = maxTenor[i];
+
+            emit AddMarketToCollection(
+                collectionId, address(markets[i]), minAPR[i], maxAPR[i], minTenor[i], maxTenor[i]
+            );
         }
     }
 
@@ -96,69 +117,39 @@ abstract contract CollectionsManagerCuratorActions is
         external
         onlyCollectionCurator(collectionId)
     {
-        Collection storage collection = collections[collectionId];
         for (uint256 i = 0; i < markets.length; i++) {
-            bool removed = collection.markets.remove(address(markets[i]));
-            if (removed) {
-                emit MarketRemovedFromCollection(collectionId, address(markets[i]));
-            }
+            delete collections[collectionId][markets[i]];
+            emit RemoveMarketFromCollection(collectionId, address(markets[i]));
         }
     }
 
     /// @inheritdoc ICollectionsManagerCuratorActions
-    function addRateProvidersToMarket(uint256 collectionId, ISize market, address[] memory rateProviders)
+    function addRateProvidersToCollectionMarket(uint256 collectionId, ISize market, address[] memory rateProviders)
         external
         onlyCollectionCurator(collectionId)
     {
-        if (!collections[collectionId].markets.contains(address(market))) {
+        if (!collections[collectionId][market].exists) {
             revert MarketNotInCollection(collectionId, address(market));
         }
 
         for (uint256 i = 0; i < rateProviders.length; i++) {
-            bool added = collections[collectionId].marketToRateProviders[market].add(rateProviders[i]);
-            if (added) {
-                emit RateProviderAddedToMarket(collectionId, address(market), rateProviders[i]);
-            }
+            collections[collectionId][market].rateProviders.add(rateProviders[i]);
+            emit AddRateProviderToMarket(collectionId, address(market), rateProviders[i]);
         }
     }
 
     /// @inheritdoc ICollectionsManagerCuratorActions
-    function removeRateProvidersFromMarket(uint256 collectionId, ISize market, address[] memory rateProviders)
+    function removeRateProvidersFromCollectionMarket(uint256 collectionId, ISize market, address[] memory rateProviders)
         external
         onlyCollectionCurator(collectionId)
     {
-        if (!collections[collectionId].markets.contains(address(market))) {
+        if (!collections[collectionId][market].exists) {
             revert MarketNotInCollection(collectionId, address(market));
         }
 
         for (uint256 i = 0; i < rateProviders.length; i++) {
-            bool removed = collections[collectionId].marketToRateProviders[market].remove(rateProviders[i]);
-            if (removed) {
-                emit RateProviderRemovedFromMarket(collectionId, address(market), rateProviders[i]);
-            }
+            collections[collectionId][market].rateProviders.remove(rateProviders[i]);
+            emit RemoveRateProviderFromMarket(collectionId, address(market), rateProviders[i]);
         }
-    }
-
-    /// @inheritdoc ICollectionsManagerCuratorActions
-    function setCollectionBounds(
-        uint256 collectionId,
-        uint256 minAPR,
-        uint256 maxAPR,
-        uint256 minTenor,
-        uint256 maxTenor
-    ) external onlyCollectionCurator(collectionId) {
-        if (minAPR > maxAPR) {
-            revert Errors.INVALID_APR_RANGE(minAPR, maxAPR);
-        }
-        if (minTenor > maxTenor) {
-            revert Errors.INVALID_TENOR_RANGE(minTenor, maxTenor);
-        }
-
-        collections[collectionId].minAPR = minAPR;
-        collections[collectionId].maxAPR = maxAPR;
-        collections[collectionId].minTenor = minTenor;
-        collections[collectionId].maxTenor = maxTenor;
-
-        emit CollectionBoundsSet(collectionId, minAPR, maxAPR, minTenor, maxTenor);
     }
 }

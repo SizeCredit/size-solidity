@@ -55,11 +55,6 @@ import {Compensate, CompensateOnBehalfOfParams, CompensateParams} from "@src/mar
 import {PartialRepay, PartialRepayParams} from "@src/market/libraries/actions/PartialRepay.sol";
 
 import {
-    CopyLimitOrders,
-    CopyLimitOrdersOnBehalfOfParams,
-    CopyLimitOrdersParams
-} from "@src/market/libraries/actions/CopyLimitOrders.sol";
-import {
     LiquidateWithReplacement,
     LiquidateWithReplacementParams
 } from "@src/market/libraries/actions/LiquidateWithReplacement.sol";
@@ -108,7 +103,6 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     using SetUserConfiguration for State;
     using RiskLibrary for State;
     using Multicall for State;
-    using CopyLimitOrders for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -412,21 +406,5 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     {
         state.validateSetUserConfiguration(externalParams);
         state.executeSetUserConfiguration(externalParams);
-    }
-
-    /// @inheritdoc ISize
-    function copyLimitOrders(CopyLimitOrdersParams calldata params) external payable override(ISize) {
-        copyLimitOrdersOnBehalfOf(CopyLimitOrdersOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
-    }
-
-    /// @inheritdoc ISizeV1_7
-    function copyLimitOrdersOnBehalfOf(CopyLimitOrdersOnBehalfOfParams memory externalParams)
-        public
-        payable
-        override(ISizeV1_7)
-        whenNotPaused
-    {
-        state.validateCopyLimitOrders(externalParams);
-        state.executeCopyLimitOrders(externalParams);
     }
 }

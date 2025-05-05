@@ -33,6 +33,12 @@ struct SellCreditMarketParams {
     uint256 maxAPR;
     // Whether amount means credit or cash
     bool exactAmountIn;
+    // The collection Id (introduced in v1.8)
+    // If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
+    uint256 collectionId;
+    // The rate provider (introduced in v1.8)
+    // If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
+    address rateProvider;
 }
 
 struct SellCreditMarketOnBehalfOfParams {

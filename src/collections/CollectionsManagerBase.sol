@@ -8,13 +8,13 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 
-struct Collection {
+struct MarketInformation {
+    bool exists;
     uint256 minAPR;
     uint256 maxAPR;
     uint256 minTenor;
     uint256 maxTenor;
-    EnumerableSet.AddressSet markets;
-    mapping(ISize market => EnumerableSet.AddressSet rateProviders) marketToRateProviders;
+    EnumerableSet.AddressSet rateProviders;
 }
 
 /// @title CollectionManagerStorage
@@ -31,7 +31,7 @@ abstract contract CollectionsManagerBase {
     // collection Id counter
     uint256 collectionIdCounter;
     // mapping of collection Id to collection
-    mapping(uint256 collectionId => Collection collection) collections;
+    mapping(uint256 collectionId => mapping(ISize market => MarketInformation marketInformation) collection) collections;
     // mapping of user to collection Ids set
     mapping(address user => EnumerableSet.UintSet collectionIds) userToCollectionIds;
 

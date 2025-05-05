@@ -44,8 +44,6 @@ import {SetUserConfigurationParams} from "@src/market/libraries/actions/SetUserC
 
 import {KEEPER_ROLE} from "@src/factory/SizeFactory.sol";
 import {UserView} from "@src/market/SizeView.sol";
-import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
-import {CopyLimitOrdersParams} from "@src/market/libraries/actions/CopyLimitOrders.sol";
 
 import {UpdateConfigParams} from "@src/market/libraries/actions/UpdateConfig.sol";
 
@@ -459,22 +457,6 @@ contract BaseTest is Test, Deploy, AssertsHelper {
                 allCreditPositionsForSaleDisabled: allCreditPositionsForSaleDisabled,
                 creditPositionIdsForSale: creditPositionIdsForSale,
                 creditPositionIds: creditPositionIds
-            })
-        );
-    }
-
-    function _copyLimitOrders(
-        address user,
-        address copyAddress,
-        CopyLimitOrder memory copyLoanOffer,
-        CopyLimitOrder memory copyBorrowOffer
-    ) internal {
-        vm.prank(user);
-        size.copyLimitOrders(
-            CopyLimitOrdersParams({
-                copyAddress: copyAddress,
-                copyLoanOffer: copyLoanOffer,
-                copyBorrowOffer: copyBorrowOffer
             })
         );
     }

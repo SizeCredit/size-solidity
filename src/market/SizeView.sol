@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {SizeStorage, State, User, UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
+import {SizeStorage, State, User, ___deprecated_UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
 import {VariablePoolBorrowRateParams} from "@src/market/libraries/YieldCurveLibrary.sol";
 
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
@@ -114,8 +114,12 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     /// @inheritdoc ISizeView
-    function getUserCopyLimitOrders(address user) external view returns (UserCopyLimitOrders memory) {
-        return state.data.usersCopyLimitOrders[user];
+    function ___deprecated_getUserCopyLimitOrders(address user)
+        external
+        view
+        returns (__deprecated_UserCopyLimitOrders memory)
+    {
+        return state.data.__deprecated_usersCopyLimitOrders[user];
     }
 
     /// @inheritdoc ISizeView
