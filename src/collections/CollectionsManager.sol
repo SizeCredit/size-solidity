@@ -29,10 +29,10 @@ bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
 contract CollectionsManager is
     ICollectionsManager,
     CollectionsManagerBase,
+    ERC721EnumerableUpgradeable,
     CollectionsManagerCuratorActions,
     CollectionsManagerView,
     CollectionsManagerUserActions,
-    /* ERC721EnumerableUpgradeable */
     MulticallUpgradeable,
     UUPSUpgradeable
 {

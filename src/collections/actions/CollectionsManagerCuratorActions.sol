@@ -23,8 +23,8 @@ bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
 /// @notice See the documentation in {ICollectionsManagerCuratorActions}.
 abstract contract CollectionsManagerCuratorActions is
     ICollectionsManagerCuratorActions,
-    ERC721EnumerableUpgradeable,
-    CollectionsManagerBase
+    CollectionsManagerBase,
+    ERC721EnumerableUpgradeable
 {
     using EnumerableSet for EnumerableSet.AddressSet;
 
