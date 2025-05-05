@@ -26,6 +26,7 @@ abstract contract CollectionsManagerBase {
                             STORAGE
     //////////////////////////////////////////////////////////////*/
 
+    // size factory
     ISizeFactory sizeFactory;
     // collection Id counter
     uint256 collectionIdCounter;
