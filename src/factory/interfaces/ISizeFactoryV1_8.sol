@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {ICollectionsManager} from "@src/collections/interfaces/ICollectionsManager.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 
 /// @title ISizeFactoryV1_8
@@ -14,7 +15,11 @@ interface ISizeFactoryV1_8 {
     /// @dev Before v1.8, users could copy rate providers directly through `copyLimitOrders`.
     ///        In v1.8, this method was deprecated in favor of collections. The `reinitialize` function serves as a migration path
     ///        for users who are following the only off-chain collection currently offered by Size.
-    function reinitialize(address[] memory users, uint256[] memory collectionIds) external;
+    function reinitialize(
+        ICollectionsManager _collectionsManager,
+        address[] memory users,
+        uint256[] memory collectionIds
+    ) external;
 
     /// @notice Call a market with data. This can be used to batch operations on multiple markets.
     /// @param market The market to call

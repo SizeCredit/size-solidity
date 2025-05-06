@@ -57,6 +57,8 @@ import {FeeOnTransferERC4626} from "@test/mocks/vaults/FeeOnTransferERC4626.sol"
 import {LimitsERC4626} from "@test/mocks/vaults/LimitsERC4626.sol";
 import {MaliciousERC4626} from "@test/mocks/vaults/MaliciousERC4626.sol";
 
+import {CollectionsManager} from "@src/collections/CollectionsManager.sol";
+
 abstract contract Deploy {
     address internal implementation;
     ERC1967Proxy internal proxy;
@@ -103,6 +105,17 @@ abstract contract Deploy {
             sizeFactory = SizeFactory(
                 address(new ERC1967Proxy(address(new SizeFactory()), abi.encodeCall(SizeFactory.initialize, (owner))))
             );
+
+            CollectionsManager collectionsManager = CollectionsManager(
+                address(
+                    new ERC1967Proxy(
+                        address(new CollectionsManager()),
+                        abi.encodeCall(CollectionsManager.initialize, ISizeFactory(address(sizeFactory)))
+                    )
+                )
+            );
+            hevm.prank(owner);
+            sizeFactory.setCollectionsManager(collectionsManager);
         }
 
         address borrowTokenVaultImplementation = address(new NonTransferrableRebasingTokenVault());
@@ -182,6 +195,17 @@ abstract contract Deploy {
             sizeFactory = SizeFactory(
                 address(new ERC1967Proxy(address(new SizeFactory()), abi.encodeCall(SizeFactory.initialize, (owner))))
             );
+
+            CollectionsManager collectionsManager = CollectionsManager(
+                address(
+                    new ERC1967Proxy(
+                        address(new CollectionsManager()),
+                        abi.encodeCall(CollectionsManager.initialize, ISizeFactory(address(sizeFactory)))
+                    )
+                )
+            );
+            hevm.prank(owner);
+            sizeFactory.setCollectionsManager(collectionsManager);
         }
 
         address borrowTokenVaultImplementation = address(new NonTransferrableRebasingTokenVault());

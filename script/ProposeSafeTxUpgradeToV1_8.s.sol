@@ -6,6 +6,9 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeab
 import {console} from "forge-std/console.sol";
 
 import {NonTransferrableScaledTokenV1_5} from "@deprecated/token/NonTransferrableScaledTokenV1_5.sol";
+
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {CollectionsManager} from "@src/collections/CollectionsManager.sol";
 import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {Size} from "@src/market/Size.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
@@ -52,6 +55,14 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         Size sizeV1_8Implementation = new Size();
         SizeFactory sizeFactoryV1_8Implementation = new SizeFactory();
         NonTransferrableRebasingTokenVault borrowTokenVaultV1_8Implementation = new NonTransferrableRebasingTokenVault();
+        CollectionsManager collectionsManager = CollectionsManager(
+            address(
+                new ERC1967Proxy(
+                    address(new CollectionsManager()),
+                    abi.encodeCall(CollectionsManager.initialize, ISizeFactory(address(_sizeFactory)))
+                )
+            )
+        );
 
         ISize[] memory markets = _sizeFactory.getMarkets();
         NonTransferrableScaledTokenV1_5 v1_5 =
@@ -80,7 +91,7 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         bytes[] memory multicallDatas = new bytes[](3);
         address[] memory users = vm.envOr("USERS", ",", new address[](0));
         uint256[] memory collectionIds = vm.envOr("COLLECTION_IDS", ",", new uint256[](0));
-        multicallDatas[0] = abi.encodeCall(SizeFactory.reinitialize, (users, collectionIds));
+        multicallDatas[0] = abi.encodeCall(SizeFactory.reinitialize, (collectionsManager, users, collectionIds));
         multicallDatas[1] = abi.encodeCall(SizeFactory.setSizeImplementation, (address(sizeV1_8Implementation)));
         multicallDatas[2] = abi.encodeCall(
             SizeFactory.setNonTransferrableRebasingTokenVaultImplementation,

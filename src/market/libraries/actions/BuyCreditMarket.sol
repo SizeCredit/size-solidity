@@ -159,9 +159,8 @@ library BuyCreditMarket {
         // N/A
 
         // validate inverted curve
-        try state.getBorrowOfferAPR(
-            borrower, withCollectionParams.collectionId, withCollectionParams.rateProvider, tenor
-        ) returns (uint256 loanAPR) {
+        try state.getLoanOfferAPR(borrower, withCollectionParams.collectionId, withCollectionParams.rateProvider, tenor)
+        returns (uint256 loanAPR) {
             if (borrowAPR >= loanAPR) {
                 revert Errors.MISMATCHED_CURVES(borrower, tenor, loanAPR, borrowAPR);
             }

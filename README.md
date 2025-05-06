@@ -154,6 +154,7 @@ Since there can be an unlimited number of whitelisted vaults, the amount of unde
 Since Size v1.8, TODO ...
 
 - The behavior of copy trading changed, where rate providers' limit orders does not have have precedence over a user curve.
+- During reinitialization, all users who previously used the copyLimitOrder feature will subscribe to a newly created collection equivalent to the rate provider they previously copied. To maintain consistency with the previous behavior, their limit orders will be cleared, since now they can also be used by the executor of the market order (taker). Finally, by default, market orders will select the user-defined yield curve, which means these users won't have any, and the market orders will revert until integrators adapt and pass extra collection parameters.
 
 The following methods were deprecated:
 

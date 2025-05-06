@@ -6,6 +6,13 @@ import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Mu
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
+import {ICollectionsManager} from "@src/collections/interfaces/ICollectionsManager.sol";
+import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
+import {BuyCreditLimitOnBehalfOfParams, BuyCreditLimitParams} from "@src/market/libraries/actions/BuyCreditLimit.sol";
+import {
+    SellCreditLimitOnBehalfOfParams, SellCreditLimitParams
+} from "@src/market/libraries/actions/SellCreditLimit.sol";
+
 import {Math, PERCENT} from "@src/market/libraries/Math.sol";
 import {
     InitializeDataParams,
@@ -76,34 +83,47 @@ contract SizeFactory is
         _grantRole(PAUSER_ROLE, _owner);
         _grantRole(KEEPER_ROLE, _owner);
         _grantRole(BORROW_RATE_UPDATER_ROLE, _owner);
-
-        collectionsManager = CollectionsManager(
-            address(
-                new ERC1967Proxy(
-                    address(new CollectionsManager()),
-                    abi.encodeCall(CollectionsManager.initialize, ISizeFactory(address(this)))
-                )
-            )
-        );
     }
 
     /// @inheritdoc ISizeFactoryV1_8
-    function reinitialize(address[] memory users, uint256[] memory collectionIds)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-        reinitializer(1_08_00)
-    {
-        collectionsManager = CollectionsManager(
-            address(
-                new ERC1967Proxy(
-                    address(new CollectionsManager()),
-                    abi.encodeCall(CollectionsManager.initialize, ISizeFactory(address(this)))
-                )
-            )
-        );
+    function reinitialize(
+        ICollectionsManager _collectionsManager,
+        address[] memory users,
+        uint256[] memory collectionIds
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) reinitializer(1_08_00) {
+        collectionsManager = _collectionsManager;
+        emit CollectionsManagerSet(address(0), address(_collectionsManager));
 
+        YieldCurve memory nullCurve;
         for (uint256 i = 0; i < users.length; i++) {
             collectionsManager.subscribeUserToCollections(users[i], collectionIds);
+            bool authorizationSet = false;
+            for (uint256 j = 0; j < markets.length(); j++) {
+                ISize market = ISize(markets.at(j));
+                bool marketContainsCollection = collectionsManager.collectionContainsMarket(collectionIds[i], market);
+                if (marketContainsCollection) {
+                    if (!authorizationSet) {
+                        Action[] memory actions = new Action[](2);
+                        actions[0] = Action.BUY_CREDIT_LIMIT;
+                        actions[1] = Action.SELL_CREDIT_LIMIT;
+                        _setAuthorization(address(this), users[i], Authorization.getActionsBitmap(actions));
+                        authorizationSet = true;
+                    }
+                    market.buyCreditLimitOnBehalfOf(
+                        BuyCreditLimitOnBehalfOfParams({
+                            params: BuyCreditLimitParams({maxDueDate: 0, curveRelativeTime: nullCurve}),
+                            onBehalfOf: users[i]
+                        })
+                    );
+                    market.sellCreditLimitOnBehalfOf(
+                        SellCreditLimitOnBehalfOfParams({
+                            params: SellCreditLimitParams({maxDueDate: 0, curveRelativeTime: nullCurve}),
+                            onBehalfOf: users[i]
+                        })
+                    );
+                }
+            }
+            _setAuthorization(address(this), users[i], Authorization.nullActionsBitmap());
         }
     }
 
@@ -130,6 +150,11 @@ contract SizeFactory is
             nonTransferrableTokenVaultImplementation, _nonTransferrableTokenVaultImplementation
         );
         nonTransferrableTokenVaultImplementation = _nonTransferrableTokenVaultImplementation;
+    }
+
+    function setCollectionsManager(ICollectionsManager _collectionsManager) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        emit CollectionsManagerSet(address(collectionsManager), address(_collectionsManager));
+        collectionsManager = _collectionsManager;
     }
 
     /// @inheritdoc ISizeFactory
@@ -181,6 +206,10 @@ contract SizeFactory is
         // validate msg.sender
         // N/A
 
+        _setAuthorization(operator, msg.sender, actionsBitmap);
+    }
+
+    function _setAuthorization(address operator, address onBehalfOf, ActionsBitmap actionsBitmap) internal {
         // validate operator
         if (operator == address(0)) {
             revert Errors.NULL_ADDRESS();
@@ -190,9 +219,9 @@ contract SizeFactory is
             revert Errors.INVALID_ACTIONS_BITMAP(Authorization.toUint256(actionsBitmap));
         }
 
-        uint256 nonce = authorizationNonces[msg.sender];
-        emit SetAuthorization(msg.sender, operator, Authorization.toUint256(actionsBitmap), nonce);
-        authorizations[nonce][operator][msg.sender] = actionsBitmap;
+        uint256 nonce = authorizationNonces[onBehalfOf];
+        emit SetAuthorization(onBehalfOf, operator, Authorization.toUint256(actionsBitmap), nonce);
+        authorizations[nonce][operator][onBehalfOf] = actionsBitmap;
     }
 
     /// @inheritdoc ISizeFactoryV1_7

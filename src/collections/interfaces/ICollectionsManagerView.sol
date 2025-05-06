@@ -21,6 +21,13 @@ interface ICollectionsManagerView {
     /// @dev Should not revert
     function isSubscribedToCollection(address user, uint256 collectionId) external view returns (bool);
 
+    /// @notice Check if a collection contains a market
+    /// @param collectionId The collection ID to check
+    /// @param market The market to check
+    /// @return True if the collection contains the market, false otherwise
+    /// @dev Should not revert
+    function collectionContainsMarket(uint256 collectionId, ISize market) external view returns (bool);
+
     /// @notice Check if a user is copying a collection rate provider for a market
     /// @param user The user to check
     /// @param collectionId The collection ID to check

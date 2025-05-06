@@ -32,6 +32,14 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
     }
 
     /// @inheritdoc ICollectionsManagerView
+    function collectionContainsMarket(uint256 collectionId, ISize market) external view returns (bool) {
+        if (!isValidCollectionId(collectionId)) {
+            return false;
+        }
+        return collections[collectionId][market].exists;
+    }
+
+    /// @inheritdoc ICollectionsManagerView
     function isCopyingCollectionRateProviderForMarket(
         address user,
         uint256 collectionId,
