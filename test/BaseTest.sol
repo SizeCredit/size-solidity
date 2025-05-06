@@ -219,7 +219,9 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         uint256 creditPositionId,
         uint256 amount,
         uint256 tenor,
-        bool exactAmountIn
+        bool exactAmountIn,
+        uint256 collectionId,
+        address rateProvider
     ) internal returns (uint256) {
         vm.prank(borrower);
         size.sellCreditMarket(
@@ -230,7 +232,9 @@ contract BaseTest is Test, Deploy, AssertsHelper {
                 tenor: tenor,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: collectionId,
+                rateProvider: rateProvider
             })
         );
         (uint256 debtPositionsCount,) = size.getPositionsCount();
@@ -242,22 +246,34 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         address lender,
         uint256 creditPositionId,
         uint256 amount,
+        uint256 tenor,
+        bool exactAmountIn
+    ) internal returns (uint256) {
+        return
+            _sellCreditMarket(borrower, lender, creditPositionId, amount, tenor, exactAmountIn, RESERVED_ID, address(0));
+    }
+
+    function _sellCreditMarket(
+        address borrower,
+        address lender,
+        uint256 creditPositionId,
+        uint256 amount,
         uint256 tenor
     ) internal returns (uint256) {
-        return _sellCreditMarket(borrower, lender, creditPositionId, amount, tenor, true);
+        return _sellCreditMarket(borrower, lender, creditPositionId, amount, tenor, true, RESERVED_ID, address(0));
     }
 
     function _sellCreditMarket(address borrower, address lender, uint256 creditPositionId) internal returns (uint256) {
         return _sellCreditMarket(
-            borrower, lender, creditPositionId, size.getCreditPosition(creditPositionId).credit, type(uint256).max, true
+            borrower,
+            lender,
+            creditPositionId,
+            size.getCreditPosition(creditPositionId).credit,
+            type(uint256).max,
+            true,
+            RESERVED_ID,
+            address(0)
         );
-    }
-
-    function _sellCreditMarket(address borrower, address lender, uint256 amount, uint256 tenor, bool exactAmountIn)
-        internal
-        returns (uint256)
-    {
-        return _sellCreditMarket(borrower, lender, RESERVED_ID, amount, tenor, exactAmountIn);
     }
 
     function _sellCreditLimit(address borrower, uint256 maxDueDate, YieldCurve memory curveRelativeTime) internal {

@@ -18,18 +18,16 @@ interface ICollectionsManagerView {
         ISize market
     ) external view returns (bool);
     function getSubscribedCollections(address user) external view returns (uint256[] memory collectionIds);
-    function getCollectionMarketCopyLimitOrder(uint256 collectionId, ISize market)
+    function getCollectionMarketCopyLimitOrders(uint256 collectionId, ISize market)
         external
         view
-        returns (CopyLimitOrder memory);
-    function getLoanOfferAPR(address user, ISize market, uint256 tenor) external view returns (uint256); // user-defined lend curve
-    function getBorrowOfferAPR(address user, ISize market, uint256 tenor) external view returns (uint256); // user-defined borrow curve
-    function getLoanOfferAPR(address user, uint256 collectionId, address rateProvider, ISize market, uint256 tenor)
+        returns (CopyLimitOrder memory loanOffer, CopyLimitOrder memory borrowOffer);
+    function getLoanOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
         external
         view
-        returns (uint256); // RP lend curve
-    function getBorrowOfferAPR(address user, uint256 collectionId, address rateProvider, ISize market, uint256 tenor)
+        returns (bool success, uint256 apr);
+    function getBorrowOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
         external
         view
-        returns (uint256); // RP borrow curve
+        returns (bool success, uint256 apr);
 }

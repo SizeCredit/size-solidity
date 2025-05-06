@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {Size} from "@src/market/Size.sol";
 import {Events} from "@src/market/libraries/Events.sol";
 
+import {Errors} from "@src/market/libraries/Errors.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 import {BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {Logger} from "@test/Logger.sol";
@@ -19,7 +20,10 @@ contract BuyCreditMarketSimulationScript is Script, Logger {
         address lender = address(vm.envAddress("LENDER"));
         address borrower = address(vm.envAddress("BORROWER"));
         uint256 amount = 100e6;
-        uint256 apr = size.getBorrowOfferAPR(borrower, tenor);
+        (bool success, uint256 apr) = size.getBorrowOfferAPR(borrower, RESERVED_ID, address(0), tenor);
+        if (!success) {
+            revert Errors.INVALID_OFFER(borrower);
+        }
 
         BuyCreditMarketParams memory params = BuyCreditMarketParams({
             borrower: borrower,
@@ -28,7 +32,9 @@ contract BuyCreditMarketSimulationScript is Script, Logger {
             amount: amount,
             deadline: block.timestamp,
             minAPR: apr,
-            exactAmountIn: false
+            exactAmountIn: false,
+            collectionId: RESERVED_ID,
+            rateProvider: address(0)
         });
 
         vm.recordLogs();

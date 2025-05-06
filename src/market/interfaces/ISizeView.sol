@@ -2,8 +2,10 @@
 pragma solidity 0.8.23;
 
 import {UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
+
 import {DataView, UserView} from "@src/market/SizeViewData.sol";
 import {CreditPosition, DebtPosition, LoanStatus} from "@src/market/libraries/LoanLibrary.sol";
+import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
 import {BuyCreditMarket, BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {
     InitializeFeeConfigParams,
@@ -55,10 +57,15 @@ interface ISizeView is ISizeViewV1_7 {
     /// @return The user view
     function getUserView(address user) external view returns (UserView memory);
 
-    /// @notice Get the user copy limit orders for a given user
+    /// @notice Get the user copy loan offer for a given user
     /// @param user The address of the user
-    /// @return The user copy limit orders
-    function getUserCopyLimitOrders(address user) external view returns (UserCopyLimitOrders memory);
+    /// @return The user copy loan offer
+    function getCopyLoanOffer(address user) external view returns (CopyLimitOrder memory);
+
+    /// @notice Get the user copy borrow offer for a given user
+    /// @param user The address of the user
+    /// @return The user copy borrow offer
+    function getCopyBorrowOffer(address user) external view returns (CopyLimitOrder memory);
 
     /// @notice Get the user vault for a given user
     /// @param user The address of the user
@@ -94,17 +101,19 @@ interface ISizeView is ISizeViewV1_7 {
     /// @return The count of debt positions and credit positions
     function getPositionsCount() external view returns (uint256, uint256);
 
-    /// @notice Get the APR for a borrow offer
+    /// @notice Get the APR for a user-defined borrow offer
     /// @param borrower The address of the borrower
     /// @param tenor The tenor of the loan
-    /// @return The APR of the borrow offer
-    function getBorrowOfferAPR(address borrower, uint256 tenor) external view returns (uint256);
+    /// @return success True if the APR is valid, false otherwise
+    /// @return apr The APR
+    function getUserDefinedBorrowOfferAPR(address borrower, uint256 tenor) external view returns (bool, uint256);
 
-    /// @notice Get the APR for a loan offer
+    /// @notice Get the APR for a user-defined loan offer
     /// @param lender The address of the lender
     /// @param tenor The tenor of the loan
-    /// @return The APR of the loan offer
-    function getLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256);
+    /// @return success True if the APR is valid, false otherwise
+    /// @return apr The APR
+    function getUserDefinedLoanOfferAPR(address lender, uint256 tenor) external view returns (bool, uint256);
 
     /// @notice Get the assigned collateral for a debt position
     /// @param debtPositionId The ID of the debt position

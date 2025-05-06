@@ -10,11 +10,12 @@ import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
 interface ICollectionsManagerCuratorActions {
     /// @dev Mints a ERC721EnumerableUpgradeable NFT collection to the curator. Can be used to transfer ownership of the collection to another curator.
     function createCollection() external returns (uint256 collectionId);
-    // TODO pass boundaries both for borrow and loan offers
+
     function addMarketsToCollection(
         uint256 collectionId,
         ISize[] memory markets,
-        CopyLimitOrder[] memory copyLimitOrders
+        CopyLimitOrder[] memory copyLoanOffers,
+        CopyLimitOrder[] memory copyBorrowOffers
     ) external;
 
     /// @dev The `delete` keyword will set the `exists` flag to false

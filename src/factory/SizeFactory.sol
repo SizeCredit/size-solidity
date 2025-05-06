@@ -228,4 +228,22 @@ contract SizeFactory is
     function unsubscribeFromCollections(uint256[] memory collectionIds) external {
         collectionsManager.unsubscribeUserFromCollections(msg.sender, collectionIds);
     }
+
+    /// @inheritdoc ISizeFactoryV1_8
+    function getLoanOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
+        external
+        view
+        returns (bool, uint256)
+    {
+        return collectionsManager.getLoanOfferAPR(user, collectionId, market, rateProvider, tenor);
+    }
+
+    /// @inheritdoc ISizeFactoryV1_8
+    function getBorrowOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
+        external
+        view
+        returns (bool, uint256)
+    {
+        return collectionsManager.getBorrowOfferAPR(user, collectionId, market, rateProvider, tenor);
+    }
 }

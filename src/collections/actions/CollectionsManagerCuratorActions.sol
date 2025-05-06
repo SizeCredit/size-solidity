@@ -36,10 +36,8 @@ abstract contract CollectionsManagerCuratorActions is
     event AddMarketToCollection(
         uint256 indexed collectionId,
         address indexed market,
-        uint256 minAPR,
-        uint256 maxAPR,
-        uint256 minTenor,
-        uint256 maxTenor
+        CopyLimitOrder copyLoanOffer,
+        CopyLimitOrder copyBorrowOffer
     );
     event RemoveMarketFromCollection(uint256 indexed collectionId, address indexed market);
     event AddRateProviderToMarket(uint256 indexed collectionId, address indexed market, address indexed rateProvider);
@@ -78,15 +76,10 @@ abstract contract CollectionsManagerCuratorActions is
     function addMarketsToCollection(
         uint256 collectionId,
         ISize[] memory markets,
-        uint256[] memory minAPRs,
-        uint256[] memory maxAPRs,
-        uint256[] memory minTenors,
-        uint256[] memory maxTenors
+        CopyLimitOrder[] memory copyLoanOffers,
+        CopyLimitOrder[] memory copyBorrowOffers
     ) external onlyCollectionCurator(collectionId) {
-        if (
-            markets.length != minAPRs.length || markets.length != maxAPRs.length || markets.length != minTenors.length
-                || markets.length != maxTenors.length
-        ) {
+        if (markets.length != copyLoanOffers.length || markets.length != copyBorrowOffers.length) {
             revert Errors.ARRAY_LENGTHS_MISMATCH();
         }
 
@@ -94,25 +87,24 @@ abstract contract CollectionsManagerCuratorActions is
             if (!sizeFactory.isMarket(address(markets[i]))) {
                 revert Errors.INVALID_MARKET(address(markets[i]));
             }
-            if (minAPRs[i] > maxAPRs[i]) {
-                revert Errors.INVALID_APR_RANGE(minAPRs[i], maxAPRs[i]);
+            if (copyLoanOffers[i].minTenor > copyLoanOffers[i].maxTenor) {
+                revert Errors.INVALID_TENOR_RANGE(copyLoanOffers[i].minTenor, copyLoanOffers[i].maxTenor);
             }
-            if (minTenors[i] > maxTenors[i]) {
-                revert Errors.INVALID_TENOR_RANGE(minTenors[i], maxTenors[i]);
+            if (copyLoanOffers[i].minAPR > copyLoanOffers[i].maxAPR) {
+                revert Errors.INVALID_APR_RANGE(copyLoanOffers[i].minAPR, copyLoanOffers[i].maxAPR);
+            }
+            if (copyBorrowOffers[i].minTenor > copyBorrowOffers[i].maxTenor) {
+                revert Errors.INVALID_TENOR_RANGE(copyBorrowOffers[i].minTenor, copyBorrowOffers[i].maxTenor);
+            }
+            if (copyBorrowOffers[i].minAPR > copyBorrowOffers[i].maxAPR) {
+                revert Errors.INVALID_APR_RANGE(copyBorrowOffers[i].minAPR, copyBorrowOffers[i].maxAPR);
             }
 
             collections[collectionId][markets[i]].exists = true;
-            collections[collectionId][markets[i]].copyLimitOrder = CopyLimitOrder({
-                minTenor: minTenors[i],
-                maxTenor: maxTenors[i],
-                minAPR: minAPRs[i],
-                maxAPR: maxAPRs[i],
-                offsetAPR: 0
-            });
+            collections[collectionId][markets[i]].copyLoanOffer = copyLoanOffers[i];
+            collections[collectionId][markets[i]].copyBorrowOffer = copyBorrowOffers[i];
 
-            emit AddMarketToCollection(
-                collectionId, address(markets[i]), minAPRs[i], maxAPRs[i], minTenors[i], maxTenors[i]
-            );
+            emit AddMarketToCollection(collectionId, address(markets[i]), copyLoanOffers[i], copyBorrowOffers[i]);
         }
     }
 

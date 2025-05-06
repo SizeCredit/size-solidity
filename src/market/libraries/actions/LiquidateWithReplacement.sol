@@ -27,6 +27,12 @@ struct LiquidateWithReplacementParams {
     uint256 deadline;
     // The minimum APR for the loan
     uint256 minAPR;
+    // The collection Id (introduced in v1.8)
+    // If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
+    uint256 collectionId;
+    // The rate provider (introduced in v1.8)
+    // If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
+    address rateProvider;
 }
 
 /// @title LiquidateWithReplacement
@@ -75,18 +81,24 @@ library LiquidateWithReplacement {
         }
 
         // validate minAPR
-        uint256 borrowAPR = state.getBorrowOfferAPRByTenor(params.borrower, tenor);
-        if (borrowAPR < params.minAPR) {
+        (bool success, uint256 borrowAPR) =
+            state.getBorrowOfferAPR(params.borrower, params.collectionId, params.rateProvider, tenor);
+        if (!success) {
+            revert Errors.INVALID_OFFER(params.borrower);
+        } else if (borrowAPR < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(borrowAPR, params.minAPR);
         }
 
+        // validate exactAmountIn
+        // N/A
+
         // validate inverted curve
-        try state.getLoanOfferAPRByTenor(params.borrower, tenor) returns (uint256 loanAPR) {
-            if (borrowAPR >= loanAPR) {
-                revert Errors.MISMATCHED_CURVES(params.borrower, tenor, loanAPR, borrowAPR);
-            }
-        } catch (bytes memory) {
+        uint256 loanAPR;
+        (success, loanAPR) = state.getLoanOfferAPR(params.borrower, params.collectionId, params.rateProvider, tenor);
+        if (!success) {
             // N/A
+        } else if (borrowAPR >= loanAPR) {
+            revert Errors.MISMATCHED_CURVES(params.borrower, tenor, loanAPR, borrowAPR);
         }
     }
 
@@ -140,7 +152,10 @@ library LiquidateWithReplacement {
             })
         );
 
-        uint256 ratePerTenor = state.getBorrowOfferRatePerTenor(params.borrower, tenor);
+        uint256 ratePerTenor;
+        // slither-disable-next-line unused-return
+        (, ratePerTenor) =
+            state.getBorrowOfferRatePerTenor(params.borrower, params.collectionId, params.rateProvider, tenor);
         uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.futureValue, PERCENT, PERCENT + ratePerTenor);
         liquidatorProfitBorrowToken = debtPositionCopy.futureValue - issuanceValue;
 

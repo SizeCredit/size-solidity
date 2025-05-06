@@ -31,6 +31,12 @@ struct BuyCreditMarketParams {
     uint256 minAPR;
     // Whether amount means cash or credit
     bool exactAmountIn;
+    // The collection Id (introduced in v1.8)
+    // If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
+    uint256 collectionId;
+    // The rate provider (introduced in v1.8)
+    // If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
+    address rateProvider;
 }
 
 struct BuyCreditMarketOnBehalfOfParams {
@@ -136,8 +142,11 @@ library BuyCreditMarket {
         }
 
         // validate minAPR
-        uint256 borrowAPR = state.getBorrowOfferAPRByTenor(borrower, tenor);
-        if (borrowAPR < params.minAPR) {
+        (bool success, uint256 borrowAPR) =
+            state.getBorrowOfferAPR(borrower, params.collectionId, params.rateProvider, tenor);
+        if (!success) {
+            revert Errors.INVALID_OFFER(borrower);
+        } else if (borrowAPR < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(borrowAPR, params.minAPR);
         }
 
@@ -145,12 +154,12 @@ library BuyCreditMarket {
         // N/A
 
         // validate inverted curve
-        try state.getLoanOfferAPRByTenor(borrower, tenor) returns (uint256 loanAPR) {
-            if (borrowAPR >= loanAPR) {
-                revert Errors.MISMATCHED_CURVES(borrower, tenor, loanAPR, borrowAPR);
-            }
-        } catch (bytes memory) {
+        uint256 loanAPR;
+        (success, loanAPR) = state.getLoanOfferAPR(borrower, params.collectionId, params.rateProvider, tenor);
+        if (!success) {
             // N/A
+        } else if (borrowAPR >= loanAPR) {
+            revert Errors.MISMATCHED_CURVES(borrower, tenor, loanAPR, borrowAPR);
         }
     }
 
@@ -174,7 +183,10 @@ library BuyCreditMarket {
             swapData.tenor = debtPosition.dueDate - block.timestamp;
         }
 
-        uint256 ratePerTenor = state.getBorrowOfferRatePerTenor(swapData.borrower, swapData.tenor);
+        // slither-disable-next-line unused-return
+        (, uint256 ratePerTenor) = state.getBorrowOfferRatePerTenor(
+            swapData.borrower, params.collectionId, params.rateProvider, swapData.tenor
+        );
 
         if (params.exactAmountIn) {
             swapData.cashAmountIn = params.amount;

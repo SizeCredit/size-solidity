@@ -33,13 +33,13 @@ struct SellCreditMarketParams {
     uint256 maxAPR;
     // Whether amount means credit or cash
     bool exactAmountIn;
+    // The collection Id (introduced in v1.8)
+    // If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
+    uint256 collectionId;
+    // The rate provider (introduced in v1.8)
+    // If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
+    address rateProvider;
 }
-// // The collection Id (introduced in v1.8)
-// // If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
-// uint256 collectionId;
-// // The rate provider (introduced in v1.8)
-// // If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
-// address rateProvider;
 
 struct SellCreditMarketOnBehalfOfParams {
     // The parameters for selling credit as a market order
@@ -138,8 +138,11 @@ library SellCreditMarket {
         }
 
         // validate maxAPR
-        uint256 loanAPR = state.getLoanOfferAPRByTenor(params.lender, tenor);
-        if (loanAPR > params.maxAPR) {
+        (bool success, uint256 loanAPR) =
+            state.getLoanOfferAPR(params.lender, params.collectionId, params.rateProvider, tenor);
+        if (!success) {
+            revert Errors.INVALID_OFFER(params.lender);
+        } else if (loanAPR > params.maxAPR) {
             revert Errors.APR_GREATER_THAN_MAX_APR(loanAPR, params.maxAPR);
         }
 
@@ -147,12 +150,12 @@ library SellCreditMarket {
         // N/A
 
         // validate inverted curve
-        try state.getBorrowOfferAPRByTenor(params.lender, tenor) returns (uint256 borrowAPR) {
-            if (borrowAPR >= loanAPR) {
-                revert Errors.MISMATCHED_CURVES(params.lender, tenor, loanAPR, borrowAPR);
-            }
-        } catch (bytes memory) {
+        uint256 borrowAPR;
+        (success, borrowAPR) = state.getBorrowOfferAPR(params.lender, params.collectionId, params.rateProvider, tenor);
+        if (!success) {
             // N/A
+        } else if (borrowAPR >= loanAPR) {
+            revert Errors.MISMATCHED_CURVES(params.lender, tenor, loanAPR, borrowAPR);
         }
     }
 
@@ -174,7 +177,9 @@ library SellCreditMarket {
             swapData.tenor = debtPosition.dueDate - block.timestamp;
         }
 
-        uint256 ratePerTenor = state.getLoanOfferRatePerTenor(params.lender, swapData.tenor);
+        // slither-disable-next-line unused-return
+        (, uint256 ratePerTenor) =
+            state.getLoanOfferRatePerTenor(params.lender, params.collectionId, params.rateProvider, swapData.tenor);
 
         if (params.exactAmountIn) {
             swapData.creditAmountIn = params.amount;

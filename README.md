@@ -149,6 +149,12 @@ In some cases, [withdrawing from the vault may leave "dust" shares](https://slow
 
 Since there can be an unlimited number of whitelisted vaults, the amount of underlying held by `NonTransferrableRebasingTokenVault` cannot be computed in constant time, so  `totalSupply` should not be used onchain. In addition, due to rounding in scaled/shares accounting, the invariant `SUM(balanceOf) == totalSupply()` may not hold true. However, we should still have `SUM(balanceOf) <= totalSupply()`, since `balanceOf` rounds down, and also to guarantee the solvency of the protocol.
 
+#### Collections, curators and rate providers
+
+Since Size v1.8, TODO ...
+
+- The behavior of copy trading changed, where rate providers' limit orders does not have have precedence over a user curve.
+
 ## Test
 
 ```bash

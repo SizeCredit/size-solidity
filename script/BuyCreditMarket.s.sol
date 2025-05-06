@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {Size} from "@src/market/Size.sol";
 import {Logger} from "@test/Logger.sol";
 
+import {Errors} from "@src/market/libraries/Errors.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 import {BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {Script} from "forge-std/Script.sol";
@@ -25,7 +26,10 @@ contract BuyCreditMarketScript is Script, Logger {
 
         uint256 amount = 6e6;
 
-        uint256 apr = size.getBorrowOfferAPR(borrower, tenor);
+        (bool success, uint256 apr) = size.getBorrowOfferAPR(borrower, RESERVED_ID, address(0), tenor);
+        if (!success) {
+            revert Errors.INVALID_OFFER(borrower);
+        }
 
         BuyCreditMarketParams memory params = BuyCreditMarketParams({
             borrower: borrower,
@@ -34,7 +38,9 @@ contract BuyCreditMarketScript is Script, Logger {
             amount: amount,
             deadline: block.timestamp,
             minAPR: apr,
-            exactAmountIn: false
+            exactAmountIn: false,
+            collectionId: RESERVED_ID,
+            rateProvider: address(0)
         });
         console.log("lender USDC", size.getUserView(lender).borrowTokenBalance);
         vm.startBroadcast(deployerPrivateKey);

@@ -11,7 +11,8 @@ import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
 
 struct MarketInformation {
     bool exists;
-    CopyLimitOrder copyLimitOrder;
+    CopyLimitOrder copyLoanOffer;
+    CopyLimitOrder copyBorrowOffer;
     EnumerableSet.AddressSet rateProviders;
 }
 

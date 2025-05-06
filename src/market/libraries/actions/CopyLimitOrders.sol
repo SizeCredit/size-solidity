@@ -45,11 +45,8 @@ library CopyLimitOrders {
             revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.COPY_LIMIT_ORDERS));
         }
 
-        bool bothNull = true;
-
         // validate copyLoanOffer
         if (!params.copyLoanOffer.isNull()) {
-            bothNull = false;
             // validate copyLoanOffer.minTenor
             // validate copyLoanOffer.maxTenor
             if (params.copyLoanOffer.minTenor > params.copyLoanOffer.maxTenor) {
@@ -65,7 +62,6 @@ library CopyLimitOrders {
 
         // validate copyBorrowOffer
         if (!params.copyBorrowOffer.isNull()) {
-            bothNull = false;
             // validate copyBorrowOffer.minTenor
             // validate copyBorrowOffer.maxTenor
             if (params.copyBorrowOffer.minTenor > params.copyBorrowOffer.maxTenor) {
@@ -110,10 +106,7 @@ library CopyLimitOrders {
             params.copyBorrowOffer.offsetAPR
         );
 
-        state.data.usersCopyLimitOrders[onBehalfOf] = UserCopyLimitOrders({
-            ___deprecated_copyAddress: address(0),
-            copyLoanOffer: params.copyLoanOffer,
-            copyBorrowOffer: params.copyBorrowOffer
-        });
+        state.data.usersCopyLimitOrders[onBehalfOf].copyLoanOffer = params.copyLoanOffer;
+        state.data.usersCopyLimitOrders[onBehalfOf].copyBorrowOffer = params.copyBorrowOffer;
     }
 }
