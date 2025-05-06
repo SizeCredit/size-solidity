@@ -18,6 +18,9 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
     using EnumerableSet for EnumerableSet.AddressSet;
     using OfferLibrary for CopyLimitOrder;
 
+    error InvalidCollectionMarketRateProvider(uint256 collectionId, address market, address rateProvider);
+    error InvalidTenor(uint256 tenor, uint256 minTenor, uint256 maxTenor);
+
     /// @inheritdoc ICollectionsManagerView
     function isValidCollectionId(uint256 collectionId) public view returns (bool) {
         return collectionId < collectionIdCounter;
@@ -59,7 +62,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
     function getLoanOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
         external
         view
-        returns (bool success, uint256 apr)
+        returns (uint256 apr)
     {
         return getLimitOrderAPR(user, collectionId, market, rateProvider, tenor, true);
     }
@@ -67,7 +70,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
     function getBorrowOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
         external
         view
-        returns (bool success, uint256 apr)
+        returns (uint256 apr)
     {
         return getLimitOrderAPR(user, collectionId, market, rateProvider, tenor, false);
     }
@@ -79,38 +82,29 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         address rateProvider,
         uint256 tenor,
         bool isLoanOffer
-    ) private view returns (bool success, uint256 apr) {
+    ) private view returns (uint256 apr) {
         // if collectionId is RESERVED_ID and rateProvider is address(0), return the user-defined yield curve
         if (collectionId == RESERVED_ID && rateProvider == address(0)) {
             return getUserDefinedLimitOrderAPR(user, collectionId, market, rateProvider, tenor, isLoanOffer);
         }
         // else, return the yield curve for that collection, market and rate provider
-        // if the user is not copying the collection rate provider for that market, return success = false
+        // if the user is not copying the collection rate provider for that market, revert
         else if (!isCopyingCollectionRateProviderForMarket(user, collectionId, rateProvider, market)) {
-            return (false, 0);
+            revert InvalidCollectionMarketRateProvider(collectionId, address(market), rateProvider);
         }
         // else, return the rate-provider yield curve for that market and rate provider
         else {
             // validate min/max tenor
             CopyLimitOrder memory copyLimitOrder = getCopyLimitOrder(user, collectionId, market, isLoanOffer);
-            if (tenor < copyLimitOrder.minTenor) {
-                return (false, 0);
-            } else if (tenor > copyLimitOrder.maxTenor) {
-                return (false, 0);
+            if (tenor < copyLimitOrder.minTenor || tenor > copyLimitOrder.maxTenor) {
+                revert InvalidTenor(tenor, copyLimitOrder.minTenor, copyLimitOrder.maxTenor);
             } else {
-                // validate min/max apr
-                (success, apr) = market.getUserDefinedLoanOfferAPR(rateProvider, tenor);
-                if (!success) {
-                    return (false, 0);
-                } else {
-                    // validate min/max apr
-                    if (apr < copyLimitOrder.minAPR) {
-                        return (true, copyLimitOrder.minAPR);
-                    } else if (apr > copyLimitOrder.maxAPR) {
-                        return (true, copyLimitOrder.maxAPR);
-                    } else {
-                        return (true, apr);
-                    }
+                // validate min/max APR
+                apr = market.getUserDefinedLoanOfferAPR(rateProvider, tenor);
+                if (apr < copyLimitOrder.minAPR) {
+                    apr = copyLimitOrder.minAPR;
+                } else if (apr > copyLimitOrder.maxAPR) {
+                    apr = copyLimitOrder.maxAPR;
                 }
             }
         }
@@ -123,7 +117,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         address rateProvider,
         uint256 tenor,
         bool isLoanOffer
-    ) private view returns (bool success, uint256 apr) {
+    ) private view returns (uint256 apr) {
         if (isLoanOffer) {
             return market.getUserDefinedLoanOfferAPR(user, tenor);
         } else {

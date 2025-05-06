@@ -26,10 +26,7 @@ contract BuyCreditMarketScript is Script, Logger {
 
         uint256 amount = 6e6;
 
-        (bool success, uint256 apr) = size.getBorrowOfferAPR(borrower, RESERVED_ID, address(0), tenor);
-        if (!success) {
-            revert Errors.INVALID_OFFER(borrower);
-        }
+        uint256 apr = size.getUserDefinedBorrowOfferAPR(borrower, tenor);
 
         BuyCreditMarketParams memory params = BuyCreditMarketParams({
             borrower: borrower,

@@ -37,13 +37,12 @@ interface ISizeFactoryV1_8 {
     /// @param market The market
     /// @param rateProvider The rate provider
     /// @param tenor The tenor
-    /// @return success True if the APR is valid, false otherwise
     /// @return apr The APR
     /// @dev Since v1.8, this function is moved to the SizeFactory contract as it contains the link to the CollectionsManager, where collections provide APRs for different markets through rate providers
     function getLoanOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
         external
         view
-        returns (bool success, uint256 apr);
+        returns (uint256);
 
     /// @notice Get the borrow offer APR
     /// @param user The user
@@ -51,11 +50,10 @@ interface ISizeFactoryV1_8 {
     /// @param market The market
     /// @param rateProvider The rate provider
     /// @param tenor The tenor
-    /// @return success True if the APR is valid, false otherwise
     /// @return apr The APR
     /// @dev Since v1.8, this function is moved to the SizeFactory contract as it contains the link to the CollectionsManager, where collections provide APRs for different markets through rate providers
     function getBorrowOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
         external
         view
-        returns (bool success, uint256 apr);
+        returns (uint256);
 }

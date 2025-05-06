@@ -20,10 +20,7 @@ contract BuyCreditMarketSimulationScript is Script, Logger {
         address lender = address(vm.envAddress("LENDER"));
         address borrower = address(vm.envAddress("BORROWER"));
         uint256 amount = 100e6;
-        (bool success, uint256 apr) = size.getBorrowOfferAPR(borrower, RESERVED_ID, address(0), tenor);
-        if (!success) {
-            revert Errors.INVALID_OFFER(borrower);
-        }
+        uint256 apr = size.getUserDefinedBorrowOfferAPR(borrower, tenor);
 
         BuyCreditMarketParams memory params = BuyCreditMarketParams({
             borrower: borrower,

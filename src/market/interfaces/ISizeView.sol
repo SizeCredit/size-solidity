@@ -104,16 +104,14 @@ interface ISizeView is ISizeViewV1_7 {
     /// @notice Get the APR for a user-defined borrow offer
     /// @param borrower The address of the borrower
     /// @param tenor The tenor of the loan
-    /// @return success True if the APR is valid, false otherwise
     /// @return apr The APR
-    function getUserDefinedBorrowOfferAPR(address borrower, uint256 tenor) external view returns (bool, uint256);
+    function getUserDefinedBorrowOfferAPR(address borrower, uint256 tenor) external view returns (uint256);
 
     /// @notice Get the APR for a user-defined loan offer
     /// @param lender The address of the lender
     /// @param tenor The tenor of the loan
-    /// @return success True if the APR is valid, false otherwise
     /// @return apr The APR
-    function getUserDefinedLoanOfferAPR(address lender, uint256 tenor) external view returns (bool, uint256);
+    function getUserDefinedLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256);
 
     /// @notice Get the assigned collateral for a debt position
     /// @param debtPositionId The ID of the debt position

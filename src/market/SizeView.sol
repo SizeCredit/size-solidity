@@ -27,14 +27,16 @@ import {ISizeView} from "@src/market/interfaces/ISizeView.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {LimitOrder, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
 
-import {BuyCreditMarket, BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
+import {BuyCreditMarket, BuyCreditMarketWithCollectionParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {
     InitializeDataParams,
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/market/libraries/actions/Initialize.sol";
-import {SellCreditMarket, SellCreditMarketParams} from "@src/market/libraries/actions/SellCreditMarket.sol";
+import {
+    SellCreditMarket, SellCreditMarketWithCollectionParams
+} from "@src/market/libraries/actions/SellCreditMarket.sol";
 
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {ISizeViewV1_7} from "@src/market/interfaces/v1.7/ISizeViewV1_7.sol";
@@ -164,12 +166,12 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     /// @inheritdoc ISizeView
-    function getUserDefinedBorrowOfferAPR(address borrower, uint256 tenor) external view returns (bool, uint256) {
+    function getUserDefinedBorrowOfferAPR(address borrower, uint256 tenor) external view returns (uint256) {
         return state.getUserDefinedBorrowOfferAPR(borrower, tenor);
     }
 
     /// @inheritdoc ISizeView
-    function getUserDefinedLoanOfferAPR(address lender, uint256 tenor) external view returns (bool, uint256) {
+    function getUserDefinedLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256) {
         return state.getUserDefinedLoanOfferAPR(lender, tenor);
     }
 
@@ -177,7 +179,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
     function getBorrowOfferAPR(address borrower, uint256 collectionId, address rateProvider, uint256 tenor)
         public
         view
-        returns (bool, uint256)
+        returns (uint256)
     {
         return state.getBorrowOfferAPR(borrower, collectionId, rateProvider, tenor);
     }
@@ -186,7 +188,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
     function getLoanOfferAPR(address lender, uint256 collectionId, address rateProvider, uint256 tenor)
         public
         view
-        returns (bool, uint256)
+        returns (uint256)
     {
         return state.getLoanOfferAPR(lender, collectionId, rateProvider, tenor);
     }
@@ -206,21 +208,21 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     /// @inheritdoc ISizeView
-    function getBuyCreditMarketSwapData(BuyCreditMarketParams memory params)
+    function getBuyCreditMarketSwapData(BuyCreditMarketWithCollectionParams memory withCollectionParams)
         external
         view
         returns (BuyCreditMarket.SwapDataBuyCreditMarket memory)
     {
-        return BuyCreditMarket.getSwapData(state, params);
+        return BuyCreditMarket.getSwapData(state, withCollectionParams);
     }
 
     /// @inheritdoc ISizeView
-    function getSellCreditMarketSwapData(SellCreditMarketParams memory params)
+    function getSellCreditMarketSwapData(SellCreditMarketWithCollectionParams memory withCollectionParams)
         external
         view
         returns (SellCreditMarket.SwapDataSellCreditMarket memory)
     {
-        return SellCreditMarket.getSwapData(state, params);
+        return SellCreditMarket.getSwapData(state, withCollectionParams);
     }
 
     /// @inheritdoc ISizeView

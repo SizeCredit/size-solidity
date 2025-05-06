@@ -25,9 +25,9 @@ interface ICollectionsManagerView {
     function getLoanOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
         external
         view
-        returns (bool success, uint256 apr);
+        returns (uint256 apr);
     function getBorrowOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
         external
         view
-        returns (bool success, uint256 apr);
+        returns (uint256 apr);
 }

@@ -31,6 +31,11 @@ struct BuyCreditMarketParams {
     uint256 minAPR;
     // Whether amount means cash or credit
     bool exactAmountIn;
+}
+
+struct BuyCreditMarketWithCollectionParams {
+    // The parameters for buying credit as a market order
+    BuyCreditMarketParams params;
     // The collection Id (introduced in v1.8)
     // If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
     uint256 collectionId;
@@ -41,7 +46,7 @@ struct BuyCreditMarketParams {
 
 struct BuyCreditMarketOnBehalfOfParams {
     // The parameters for the buy credit market
-    BuyCreditMarketParams params;
+    BuyCreditMarketWithCollectionParams withCollectionParams;
     // The account to transfer the cash from
     address onBehalfOf;
     // The account to transfer the credit to
@@ -78,7 +83,8 @@ library BuyCreditMarket {
         external
         view
     {
-        BuyCreditMarketParams memory params = externalParams.params;
+        BuyCreditMarketWithCollectionParams memory withCollectionParams = externalParams.withCollectionParams;
+        BuyCreditMarketParams memory params = withCollectionParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
         address recipient = externalParams.recipient;
 
@@ -142,11 +148,10 @@ library BuyCreditMarket {
         }
 
         // validate minAPR
-        (bool success, uint256 borrowAPR) =
-            state.getBorrowOfferAPR(borrower, params.collectionId, params.rateProvider, tenor);
-        if (!success) {
-            revert Errors.INVALID_OFFER(borrower);
-        } else if (borrowAPR < params.minAPR) {
+        uint256 borrowAPR = state.getBorrowOfferAPR(
+            borrower, withCollectionParams.collectionId, withCollectionParams.rateProvider, tenor
+        );
+        if (borrowAPR < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(borrowAPR, params.minAPR);
         }
 
@@ -154,24 +159,32 @@ library BuyCreditMarket {
         // N/A
 
         // validate inverted curve
-        uint256 loanAPR;
-        (success, loanAPR) = state.getLoanOfferAPR(borrower, params.collectionId, params.rateProvider, tenor);
-        if (!success) {
+        try state.getBorrowOfferAPR(
+            borrower, withCollectionParams.collectionId, withCollectionParams.rateProvider, tenor
+        ) returns (uint256 loanAPR) {
+            if (borrowAPR >= loanAPR) {
+                revert Errors.MISMATCHED_CURVES(borrower, tenor, loanAPR, borrowAPR);
+            }
+        } catch (bytes memory) {
             // N/A
-        } else if (borrowAPR >= loanAPR) {
-            revert Errors.MISMATCHED_CURVES(borrower, tenor, loanAPR, borrowAPR);
         }
+
+        // validate collectionId
+        // validate rateProvider
+        // these are validated in `CollectionsManager`
     }
 
     /// @notice Gets the swap data for buying credit as a market order
     /// @param state The state
-    /// @param params The input parameters for buying credit as a market order
+    /// @param withCollectionParams The input parameters for buying credit as a market order
     /// @return swapData The swap data for buying credit as a market order
-    function getSwapData(State storage state, BuyCreditMarketParams memory params)
+    function getSwapData(State storage state, BuyCreditMarketWithCollectionParams memory withCollectionParams)
         public
         view
         returns (SwapDataBuyCreditMarket memory swapData)
     {
+        BuyCreditMarketParams memory params = withCollectionParams.params;
+
         if (params.creditPositionId == RESERVED_ID) {
             swapData.borrower = params.borrower;
             swapData.tenor = params.tenor;
@@ -183,9 +196,8 @@ library BuyCreditMarket {
             swapData.tenor = debtPosition.dueDate - block.timestamp;
         }
 
-        // slither-disable-next-line unused-return
-        (, uint256 ratePerTenor) = state.getBorrowOfferRatePerTenor(
-            swapData.borrower, params.collectionId, params.rateProvider, swapData.tenor
+        uint256 ratePerTenor = state.getBorrowOfferRatePerTenor(
+            swapData.borrower, withCollectionParams.collectionId, withCollectionParams.rateProvider, swapData.tenor
         );
 
         if (params.exactAmountIn) {
@@ -220,7 +232,8 @@ library BuyCreditMarket {
     function executeBuyCreditMarket(State storage state, BuyCreditMarketOnBehalfOfParams calldata externalParams)
         external
     {
-        BuyCreditMarketParams memory params = externalParams.params;
+        BuyCreditMarketWithCollectionParams memory withCollectionParams = externalParams.withCollectionParams;
+        BuyCreditMarketParams memory params = withCollectionParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
         address recipient = externalParams.recipient;
 
@@ -234,10 +247,12 @@ library BuyCreditMarket {
             params.tenor,
             params.deadline,
             params.minAPR,
-            params.exactAmountIn
+            params.exactAmountIn,
+            withCollectionParams.collectionId,
+            withCollectionParams.rateProvider
         );
 
-        SwapDataBuyCreditMarket memory swapData = getSwapData(state, params);
+        SwapDataBuyCreditMarket memory swapData = getSwapData(state, withCollectionParams);
 
         if (params.creditPositionId == RESERVED_ID) {
             // slither-disable-next-line unused-return

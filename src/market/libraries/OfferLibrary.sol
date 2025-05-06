@@ -74,47 +74,39 @@ library OfferLibrary {
     function getUserDefinedBorrowOfferAPR(State storage state, address user, uint256 tenor)
         internal
         view
-        returns (bool success, uint256 apr)
+        returns (uint256 apr)
     {
-        return getUserDefinedLimitOrderAPR(state, state.data.users[user].borrowOffer, tenor);
+        return getUserDefinedLimitOrderAPR(state, user, state.data.users[user].borrowOffer, tenor);
     }
 
     function getUserDefinedLoanOfferAPR(State storage state, address user, uint256 tenor)
         internal
         view
-        returns (bool success, uint256 apr)
+        returns (uint256 apr)
     {
-        return getUserDefinedLimitOrderAPR(state, state.data.users[user].loanOffer, tenor);
+        return getUserDefinedLimitOrderAPR(state, user, state.data.users[user].loanOffer, tenor);
     }
 
-    function getUserDefinedLimitOrderAPR(State storage state, LimitOrder memory limitOrder, uint256 tenor)
+    function getUserDefinedLimitOrderAPR(State storage state, address user, LimitOrder memory limitOrder, uint256 tenor)
         internal
         view
-        returns (bool success, uint256 apr)
+        returns (uint256 apr)
     {
         if (tenor == 0) {
-            return (false, 0);
+            revert Errors.NULL_TENOR();
         }
         if (isNull(limitOrder)) {
-            return (false, 0);
+            revert Errors.INVALID_OFFER(user);
         }
         if (block.timestamp + tenor > limitOrder.maxDueDate) {
-            return (false, 0);
-        }
-        if (tenor < limitOrder.curveRelativeTime.tenors[0]) {
-            return (false, 0);
-        }
-        if (tenor > limitOrder.curveRelativeTime.tenors[limitOrder.curveRelativeTime.tenors.length - 1]) {
-            return (false, 0);
+            revert Errors.PAST_MAX_DUE_DATE(limitOrder.maxDueDate);
         }
         VariablePoolBorrowRateParams memory params = VariablePoolBorrowRateParams({
             variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
             variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
             variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
         });
-        // reverts if marketRateMultiplier is used and VariablePoolBorrowRate is disabled or curveRelativeTime.aprs (final APR) has negative values
-        apr = limitOrder.curveRelativeTime.getAPR(params, tenor);
-        return (true, apr);
+        return limitOrder.curveRelativeTime.getAPR(params, tenor);
     }
 
     /// @notice Get the APR by tenor of a loan offer
@@ -123,7 +115,6 @@ library OfferLibrary {
     /// @param collectionId The collection id
     /// @param rateProvider The rate provider
     /// @param tenor The tenor
-    /// @return success True if the APR is valid, false otherwise
     /// @return apr The APR
     function getLoanOfferAPR(
         State storage state,
@@ -131,7 +122,7 @@ library OfferLibrary {
         uint256 collectionId,
         address rateProvider,
         uint256 tenor
-    ) public view returns (bool success, uint256 apr) {
+    ) public view returns (uint256 apr) {
         return state.data.sizeFactory.getLoanOfferAPR(user, collectionId, ISize(address(this)), rateProvider, tenor);
     }
 
@@ -141,7 +132,6 @@ library OfferLibrary {
     /// @param collectionId The collection id
     /// @param rateProvider The rate provider
     /// @param tenor The tenor
-    /// @return success True if the absolute rate is valid, false otherwise
     /// @return ratePerTenor The absolute rate
     function getLoanOfferRatePerTenor(
         State storage state,
@@ -149,9 +139,8 @@ library OfferLibrary {
         uint256 collectionId,
         address rateProvider,
         uint256 tenor
-    ) internal view returns (bool success, uint256 ratePerTenor) {
-        uint256 apr;
-        (success, apr) = getLoanOfferAPR(state, user, collectionId, rateProvider, tenor);
+    ) internal view returns (uint256 ratePerTenor) {
+        uint256 apr = getLoanOfferAPR(state, user, collectionId, rateProvider, tenor);
         ratePerTenor = Math.aprToRatePerTenor(apr, tenor);
     }
 
@@ -161,7 +150,6 @@ library OfferLibrary {
     /// @param collectionId The collection id
     /// @param rateProvider The rate provider
     /// @param tenor The tenor
-    /// @return success True if the APR is valid, false otherwise
     /// @return apr The APR
     function getBorrowOfferAPR(
         State storage state,
@@ -169,7 +157,7 @@ library OfferLibrary {
         uint256 collectionId,
         address rateProvider,
         uint256 tenor
-    ) public view returns (bool success, uint256 apr) {
+    ) public view returns (uint256 apr) {
         return state.data.sizeFactory.getBorrowOfferAPR(user, collectionId, ISize(address(this)), rateProvider, tenor);
     }
 
@@ -179,7 +167,6 @@ library OfferLibrary {
     /// @param collectionId The collection id
     /// @param rateProvider The rate provider
     /// @param tenor The tenor
-    /// @return success True if the absolute rate is valid, false otherwise
     /// @return ratePerTenor The absolute rate
     function getBorrowOfferRatePerTenor(
         State storage state,
@@ -187,9 +174,8 @@ library OfferLibrary {
         uint256 collectionId,
         address rateProvider,
         uint256 tenor
-    ) internal view returns (bool success, uint256 ratePerTenor) {
-        uint256 apr;
-        (success, apr) = getBorrowOfferAPR(state, user, collectionId, rateProvider, tenor);
+    ) internal view returns (uint256 ratePerTenor) {
+        uint256 apr = getBorrowOfferAPR(state, user, collectionId, rateProvider, tenor);
         ratePerTenor = Math.aprToRatePerTenor(apr, tenor);
     }
 }

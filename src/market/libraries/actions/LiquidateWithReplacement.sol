@@ -27,6 +27,11 @@ struct LiquidateWithReplacementParams {
     uint256 deadline;
     // The minimum APR for the loan
     uint256 minAPR;
+}
+
+struct LiquidateWithReplacementWithCollectionParams {
+    // The parameters for liquidating a debt position with a replacement borrower
+    LiquidateWithReplacementParams params;
     // The collection Id (introduced in v1.8)
     // If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
     uint256 collectionId;
@@ -50,11 +55,12 @@ library LiquidateWithReplacement {
 
     /// @notice Validates the input parameters for liquidating a debt position with a replacement borrower
     /// @param state The state
-    /// @param params The input parameters for liquidating a debt position with a replacement borrower
-    function validateLiquidateWithReplacement(State storage state, LiquidateWithReplacementParams calldata params)
-        external
-        view
-    {
+    /// @param withCollectionParams The input parameters for liquidating a debt position with a replacement borrower
+    function validateLiquidateWithReplacement(
+        State storage state,
+        LiquidateWithReplacementWithCollectionParams calldata withCollectionParams
+    ) external view {
+        LiquidateWithReplacementParams memory params = withCollectionParams.params;
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
 
         // validate liquidate
@@ -81,11 +87,8 @@ library LiquidateWithReplacement {
         }
 
         // validate minAPR
-        (bool success, uint256 borrowAPR) =
-            state.getBorrowOfferAPR(params.borrower, params.collectionId, params.rateProvider, tenor);
-        if (!success) {
-            revert Errors.INVALID_OFFER(params.borrower);
-        } else if (borrowAPR < params.minAPR) {
+        uint256 borrowAPR = state.getUserDefinedBorrowOfferAPR(params.borrower, tenor);
+        if (borrowAPR < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(borrowAPR, params.minAPR);
         }
 
@@ -93,13 +96,19 @@ library LiquidateWithReplacement {
         // N/A
 
         // validate inverted curve
-        uint256 loanAPR;
-        (success, loanAPR) = state.getLoanOfferAPR(params.borrower, params.collectionId, params.rateProvider, tenor);
-        if (!success) {
+        try state.getLoanOfferAPR(
+            params.borrower, withCollectionParams.collectionId, withCollectionParams.rateProvider, tenor
+        ) returns (uint256 loanAPR) {
+            if (borrowAPR >= loanAPR) {
+                revert Errors.MISMATCHED_CURVES(params.borrower, tenor, loanAPR, borrowAPR);
+            }
+        } catch (bytes memory) {
             // N/A
-        } else if (borrowAPR >= loanAPR) {
-            revert Errors.MISMATCHED_CURVES(params.borrower, tenor, loanAPR, borrowAPR);
         }
+
+        // validate collectionId
+        // validate rateProvider
+        // these are validated in `CollectionsManager`
     }
 
     /// @notice Validates the minimum profit in collateral tokens expected by the liquidator
@@ -124,20 +133,23 @@ library LiquidateWithReplacement {
 
     /// @notice Executes the liquidation of a debt position with a replacement borrower
     /// @param state The state
-    /// @param params The input parameters for liquidating a debt position with a replacement borrower
+    /// @param withCollectionParams The input parameters for liquidating a debt position with a replacement borrower
     /// @return liquidatorProfitCollateralToken The profit in collateral tokens expected by the liquidator
     /// @return liquidatorProfitBorrowToken The profit in borrow tokens expected by the liquidator
-    function executeLiquidateWithReplacement(State storage state, LiquidateWithReplacementParams calldata params)
-        external
-        returns (uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken)
-    {
+    function executeLiquidateWithReplacement(
+        State storage state,
+        LiquidateWithReplacementWithCollectionParams calldata withCollectionParams
+    ) external returns (uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken) {
+        LiquidateWithReplacementParams memory params = withCollectionParams.params;
         emit Events.LiquidateWithReplacement(
             msg.sender,
             params.debtPositionId,
             params.borrower,
             params.minimumCollateralProfit,
             params.deadline,
-            params.minAPR
+            params.minAPR,
+            withCollectionParams.collectionId,
+            withCollectionParams.rateProvider
         );
 
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
@@ -152,10 +164,9 @@ library LiquidateWithReplacement {
             })
         );
 
-        uint256 ratePerTenor;
-        // slither-disable-next-line unused-return
-        (, ratePerTenor) =
-            state.getBorrowOfferRatePerTenor(params.borrower, params.collectionId, params.rateProvider, tenor);
+        uint256 ratePerTenor = state.getBorrowOfferRatePerTenor(
+            params.borrower, withCollectionParams.collectionId, withCollectionParams.rateProvider, tenor
+        );
         uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.futureValue, PERCENT, PERCENT + ratePerTenor);
         liquidatorProfitBorrowToken = debtPositionCopy.futureValue - issuanceValue;
 

@@ -233,7 +233,7 @@ contract SizeFactory is
     function getLoanOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
         external
         view
-        returns (bool, uint256)
+        returns (uint256)
     {
         return collectionsManager.getLoanOfferAPR(user, collectionId, market, rateProvider, tenor);
     }
@@ -242,7 +242,7 @@ contract SizeFactory is
     function getBorrowOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
         external
         view
-        returns (bool, uint256)
+        returns (uint256)
     {
         return collectionsManager.getBorrowOfferAPR(user, collectionId, market, rateProvider, tenor);
     }

@@ -33,6 +33,11 @@ struct SellCreditMarketParams {
     uint256 maxAPR;
     // Whether amount means credit or cash
     bool exactAmountIn;
+}
+
+struct SellCreditMarketWithCollectionParams {
+    // The parameters for selling credit as a market order
+    SellCreditMarketParams params;
     // The collection Id (introduced in v1.8)
     // If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
     uint256 collectionId;
@@ -43,7 +48,7 @@ struct SellCreditMarketParams {
 
 struct SellCreditMarketOnBehalfOfParams {
     // The parameters for selling credit as a market order
-    SellCreditMarketParams params;
+    SellCreditMarketWithCollectionParams withCollectionParams;
     // The account to receive the debt
     address onBehalfOf;
     // The account to receive the cash
@@ -79,7 +84,8 @@ library SellCreditMarket {
         external
         view
     {
-        SellCreditMarketParams memory params = externalParams.params;
+        SellCreditMarketWithCollectionParams memory withCollectionParams = externalParams.withCollectionParams;
+        SellCreditMarketParams memory params = withCollectionParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
         address recipient = externalParams.recipient;
 
@@ -138,11 +144,10 @@ library SellCreditMarket {
         }
 
         // validate maxAPR
-        (bool success, uint256 loanAPR) =
-            state.getLoanOfferAPR(params.lender, params.collectionId, params.rateProvider, tenor);
-        if (!success) {
-            revert Errors.INVALID_OFFER(params.lender);
-        } else if (loanAPR > params.maxAPR) {
+        uint256 loanAPR = state.getLoanOfferAPR(
+            params.lender, withCollectionParams.collectionId, withCollectionParams.rateProvider, tenor
+        );
+        if (loanAPR > params.maxAPR) {
             revert Errors.APR_GREATER_THAN_MAX_APR(loanAPR, params.maxAPR);
         }
 
@@ -150,24 +155,32 @@ library SellCreditMarket {
         // N/A
 
         // validate inverted curve
-        uint256 borrowAPR;
-        (success, borrowAPR) = state.getBorrowOfferAPR(params.lender, params.collectionId, params.rateProvider, tenor);
-        if (!success) {
+        try state.getBorrowOfferAPR(
+            params.lender, withCollectionParams.collectionId, withCollectionParams.rateProvider, tenor
+        ) returns (uint256 borrowAPR) {
+            if (borrowAPR >= loanAPR) {
+                revert Errors.MISMATCHED_CURVES(params.lender, tenor, loanAPR, borrowAPR);
+            }
+        } catch (bytes memory) {
             // N/A
-        } else if (borrowAPR >= loanAPR) {
-            revert Errors.MISMATCHED_CURVES(params.lender, tenor, loanAPR, borrowAPR);
         }
+
+        // validate collectionId
+        // validate rateProvider
+        // these are validated in `CollectionsManager`
     }
 
     /// @notice Returns the swap data for selling credit as a market order
     /// @param state The state
-    /// @param params The input parameters for selling credit as a market order
+    /// @param withCollectionParams The input parameters for selling credit as a market order
     /// @return swapData The swap data for selling credit as a market order
-    function getSwapData(State storage state, SellCreditMarketParams memory params)
+    function getSwapData(State storage state, SellCreditMarketWithCollectionParams memory withCollectionParams)
         public
         view
         returns (SwapDataSellCreditMarket memory swapData)
     {
+        SellCreditMarketParams memory params = withCollectionParams.params;
+
         if (params.creditPositionId == RESERVED_ID) {
             swapData.tenor = params.tenor;
         } else {
@@ -177,9 +190,9 @@ library SellCreditMarket {
             swapData.tenor = debtPosition.dueDate - block.timestamp;
         }
 
-        // slither-disable-next-line unused-return
-        (, uint256 ratePerTenor) =
-            state.getLoanOfferRatePerTenor(params.lender, params.collectionId, params.rateProvider, swapData.tenor);
+        uint256 ratePerTenor = state.getLoanOfferRatePerTenor(
+            params.lender, withCollectionParams.collectionId, withCollectionParams.rateProvider, swapData.tenor
+        );
 
         if (params.exactAmountIn) {
             swapData.creditAmountIn = params.amount;
@@ -219,7 +232,8 @@ library SellCreditMarket {
     function executeSellCreditMarket(State storage state, SellCreditMarketOnBehalfOfParams calldata externalParams)
         external
     {
-        SellCreditMarketParams memory params = externalParams.params;
+        SellCreditMarketWithCollectionParams memory withCollectionParams = externalParams.withCollectionParams;
+        SellCreditMarketParams memory params = withCollectionParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
         address recipient = externalParams.recipient;
 
@@ -233,10 +247,12 @@ library SellCreditMarket {
             params.tenor,
             params.deadline,
             params.maxAPR,
-            params.exactAmountIn
+            params.exactAmountIn,
+            withCollectionParams.collectionId,
+            withCollectionParams.rateProvider
         );
 
-        SwapDataSellCreditMarket memory swapData = getSwapData(state, params);
+        SwapDataSellCreditMarket memory swapData = getSwapData(state, withCollectionParams);
 
         if (params.creditPositionId == RESERVED_ID) {
             // slither-disable-next-line unused-return
