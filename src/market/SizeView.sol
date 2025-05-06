@@ -176,24 +176,6 @@ abstract contract SizeView is SizeStorage, ISizeView {
         return state.getUserDefinedLoanOfferAPR(lender, tenor);
     }
 
-    /// @inheritdoc ISizeViewV1_8
-    function getBorrowOfferAPR(address borrower, uint256 collectionId, address rateProvider, uint256 tenor)
-        external
-        view
-        returns (uint256)
-    {
-        return state.getBorrowOfferAPR(borrower, collectionId, rateProvider, tenor);
-    }
-
-    /// @inheritdoc ISizeViewV1_8
-    function getLoanOfferAPR(address lender, uint256 collectionId, address rateProvider, uint256 tenor)
-        external
-        view
-        returns (uint256)
-    {
-        return state.getLoanOfferAPR(lender, collectionId, rateProvider, tenor);
-    }
-
     /// @inheritdoc ISizeView
     function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256) {
         DebtPosition memory debtPosition = state.getDebtPosition(debtPositionId);

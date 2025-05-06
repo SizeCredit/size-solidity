@@ -17,26 +17,4 @@ interface ISizeViewV1_8 {
     /// @param tenor The tenor of the loan
     /// @return apr The APR
     function getUserDefinedLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256);
-
-    /// @notice Get the APR for a borrow offer for this market
-    /// @param borrower The address of the borrower
-    /// @param collectionId The collection ID
-    /// @param rateProvider The rate provider
-    /// @param tenor The tenor of the loan
-    /// @return apr The APR
-    function getBorrowOfferAPR(address borrower, uint256 collectionId, address rateProvider, uint256 tenor)
-        external
-        view
-        returns (uint256);
-
-    /// @notice Get the APR for a loan offer for this market
-    /// @param lender The address of the lender
-    /// @param collectionId The collection ID
-    /// @param rateProvider The rate provider
-    /// @param tenor The tenor of the loan
-    /// @return apr The APR
-    function getLoanOfferAPR(address lender, uint256 collectionId, address rateProvider, uint256 tenor)
-        external
-        view
-        returns (uint256);
 }

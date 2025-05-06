@@ -99,7 +99,7 @@ library OfferLibrary {
             revert Errors.INVALID_OFFER(user);
         }
         if (block.timestamp + tenor > limitOrder.maxDueDate) {
-            revert Errors.PAST_MAX_DUE_DATE(limitOrder.maxDueDate);
+            revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(block.timestamp + tenor, limitOrder.maxDueDate);
         }
         VariablePoolBorrowRateParams memory params = VariablePoolBorrowRateParams({
             variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
