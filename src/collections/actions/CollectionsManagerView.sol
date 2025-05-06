@@ -83,16 +83,15 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         uint256 tenor,
         bool isLoanOffer
     ) private view returns (uint256 apr) {
-        // if collectionId is RESERVED_ID and rateProvider is address(0), return the user-defined yield curve
+        // if collectionId is RESERVED_ID and rateProvider is address(0), return the user-defined yield curve and ignore the user-defined CopyLimitOrder params
         if (collectionId == RESERVED_ID && rateProvider == address(0)) {
-            return getUserDefinedLimitOrderAPR(user, collectionId, market, rateProvider, tenor, isLoanOffer);
+            return getUserDefinedLimitOrderAPR(user, market, tenor, isLoanOffer);
         }
-        // else, return the yield curve for that collection, market and rate provider
-        // if the user is not copying the collection rate provider for that market, revert
+        // else if the user is not copying the collection rate provider for that market, revert
         else if (!isCopyingCollectionRateProviderForMarket(user, collectionId, rateProvider, market)) {
             revert InvalidCollectionMarketRateProvider(collectionId, address(market), rateProvider);
         }
-        // else, return the rate-provider yield curve for that market and rate provider
+        // else, return the yield curve for that collection, market and rate provider
         else {
             // validate min/max tenor
             CopyLimitOrder memory copyLimitOrder = getCopyLimitOrder(user, collectionId, market, isLoanOffer);
@@ -110,14 +109,11 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         }
     }
 
-    function getUserDefinedLimitOrderAPR(
-        address user,
-        uint256 collectionId,
-        ISize market,
-        address rateProvider,
-        uint256 tenor,
-        bool isLoanOffer
-    ) private view returns (uint256 apr) {
+    function getUserDefinedLimitOrderAPR(address user, ISize market, uint256 tenor, bool isLoanOffer)
+        private
+        view
+        returns (uint256 apr)
+    {
         if (isLoanOffer) {
             return market.getUserDefinedLoanOfferAPR(user, tenor);
         } else {
@@ -135,18 +131,24 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         view
         returns (CopyLimitOrder memory copyLimitOrder)
     {
-        (CopyLimitOrder memory copyLoanOffer, CopyLimitOrder memory copyBorrowOffer) =
-            getCollectionMarketCopyLimitOrders(collectionId, market);
-        copyLimitOrder = isLoanOffer ? market.getCopyLoanOffer(user) : market.getCopyBorrowOffer(user);
+        copyLimitOrder = getUserCopyLimitOrder(user, market, isLoanOffer);
         if (copyLimitOrder.isNull()) {
-            copyLimitOrder = isLoanOffer ? copyLoanOffer : copyBorrowOffer;
+            copyLimitOrder = getCollectionMarketCopyLimitOrder(collectionId, market, isLoanOffer);
         }
     }
 
-    function getCollectionMarketCopyLimitOrders(uint256 collectionId, ISize market)
+    function getUserCopyLimitOrder(address user, ISize market, bool isLoanOffer)
         public
         view
-        returns (CopyLimitOrder memory copyLoanOffer, CopyLimitOrder memory copyBorrowOffer)
+        returns (CopyLimitOrder memory copyLimitOrder)
+    {
+        return isLoanOffer ? market.getCopyLoanOffer(user) : market.getCopyBorrowOffer(user);
+    }
+
+    function getCollectionMarketCopyLimitOrder(uint256 collectionId, ISize market, bool isLoanOffer)
+        public
+        view
+        returns (CopyLimitOrder memory copyLimitOrder)
     {
         if (!isValidCollectionId(collectionId)) {
             revert InvalidCollectionId(collectionId);
@@ -154,7 +156,9 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         if (!collections[collectionId][market].exists) {
             revert MarketNotInCollection(collectionId, address(market));
         }
-        return (collections[collectionId][market].copyLoanOffer, collections[collectionId][market].copyBorrowOffer);
+        return isLoanOffer
+            ? collections[collectionId][market].copyLoanOffer
+            : collections[collectionId][market].copyBorrowOffer;
     }
 
     function getCollectionMarketRateProviders(uint256 collectionId, ISize market)
