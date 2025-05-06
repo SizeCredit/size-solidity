@@ -219,9 +219,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         uint256 creditPositionId,
         uint256 amount,
         uint256 tenor,
-        bool exactAmountIn,
-        uint256 collectionId,
-        address rateProvider
+        bool exactAmountIn
     ) internal returns (uint256) {
         vm.prank(borrower);
         size.sellCreditMarket(
@@ -232,9 +230,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
                 tenor: tenor,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: exactAmountIn,
-                collectionId: collectionId,
-                rateProvider: rateProvider
+                exactAmountIn: exactAmountIn
             })
         );
         (uint256 debtPositionsCount,) = size.getPositionsCount();
@@ -246,33 +242,14 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         address lender,
         uint256 creditPositionId,
         uint256 amount,
-        uint256 tenor,
-        bool exactAmountIn
-    ) internal returns (uint256) {
-        return
-            _sellCreditMarket(borrower, lender, creditPositionId, amount, tenor, exactAmountIn, RESERVED_ID, address(0));
-    }
-
-    function _sellCreditMarket(
-        address borrower,
-        address lender,
-        uint256 creditPositionId,
-        uint256 amount,
         uint256 tenor
     ) internal returns (uint256) {
-        return _sellCreditMarket(borrower, lender, creditPositionId, amount, tenor, true, RESERVED_ID, address(0));
+        return _sellCreditMarket(borrower, lender, creditPositionId, amount, tenor, true);
     }
 
     function _sellCreditMarket(address borrower, address lender, uint256 creditPositionId) internal returns (uint256) {
         return _sellCreditMarket(
-            borrower,
-            lender,
-            creditPositionId,
-            size.getCreditPosition(creditPositionId).credit,
-            type(uint256).max,
-            true,
-            RESERVED_ID,
-            address(0)
+            borrower, lender, creditPositionId, size.getCreditPosition(creditPositionId).credit, type(uint256).max, true
         );
     }
 

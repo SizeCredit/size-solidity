@@ -155,6 +155,10 @@ Since Size v1.8, TODO ...
 
 - The behavior of copy trading changed, where rate providers' limit orders does not have have precedence over a user curve.
 
+The following methods were deprecated:
+
+- xxx
+
 ## Test
 
 ```bash

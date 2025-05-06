@@ -155,7 +155,7 @@ contract BuyCreditMarketTest is BaseTest {
         );
         vm.stopPrank();
 
-        uint256 apr = size.getBorrowOfferAPR(james, 365 days);
+        uint256 apr = size.getUserDefinedBorrowOfferAPR(james, 365 days);
 
         vm.startPrank(candy);
         vm.expectRevert(abi.encodeWithSelector(Errors.APR_LOWER_THAN_MIN_APR.selector, apr, apr + 1));

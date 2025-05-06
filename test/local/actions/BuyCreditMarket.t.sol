@@ -11,7 +11,11 @@ import {PERCENT} from "@src/market/libraries/Math.sol";
 import {LoanStatus, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 import {LimitOrder, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/market/libraries/YieldCurveLibrary.sol";
-import {BuyCreditMarket, BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
+import {
+    BuyCreditMarket,
+    BuyCreditMarketParams,
+    BuyCreditMarketWithCollectionParams
+} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Math, PERCENT, YEAR} from "@src/market/libraries/Math.sol";
@@ -128,7 +132,7 @@ contract BuyCreditMarketLendTest is BaseTest {
 
         amountIn = bound(amountIn, 5e6, 100e6);
         uint256 tenor = (curve.tenors[0] + curve.tenors[1]) / 2;
-        uint256 apr = size.getBorrowOfferAPR(alice, tenor);
+        uint256 apr = size.getUserDefinedBorrowOfferAPR(alice, tenor);
         uint256 rate = Math.aprToRatePerTenor(apr, tenor);
         uint256 futureValue = Math.mulDivDown(amountIn, PERCENT + rate, PERCENT);
 
@@ -429,14 +433,18 @@ contract BuyCreditMarketLendTest is BaseTest {
 
         Vars memory _before = _state();
 
-        BuyCreditMarketParams memory params = BuyCreditMarketParams({
-            borrower: address(0),
-            creditPositionId: local.creditPositionId,
-            amount: input.A2,
-            tenor: type(uint256).max,
-            deadline: block.timestamp,
-            minAPR: 0,
-            exactAmountIn: false
+        BuyCreditMarketWithCollectionParams memory withCollectionParams = BuyCreditMarketWithCollectionParams({
+            params: BuyCreditMarketParams({
+                borrower: address(0),
+                creditPositionId: local.creditPositionId,
+                amount: input.A2,
+                tenor: type(uint256).max,
+                deadline: block.timestamp,
+                minAPR: 0,
+                exactAmountIn: false
+            }),
+            collectionId: RESERVED_ID,
+            rateProvider: address(0)
         });
 
         bytes4[3] memory expectedErrors = [
@@ -445,9 +453,11 @@ contract BuyCreditMarketLendTest is BaseTest {
             Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector
         ];
 
-        try size.getBuyCreditMarketSwapData(params) returns (BuyCreditMarket.SwapDataBuyCreditMarket memory expected) {
+        try size.getBuyCreditMarketSwapData(withCollectionParams) returns (
+            BuyCreditMarket.SwapDataBuyCreditMarket memory expected
+        ) {
             vm.prank(candy);
-            try size.buyCreditMarket(params) {
+            try size.buyCreditMarket(withCollectionParams.params) {
                 Vars memory _after = _state();
                 uint256 fragmentationFee = (input.A2 == local.V1 ? 0 : size.feeConfig().fragmentationFee);
 
@@ -538,19 +548,25 @@ contract BuyCreditMarketLendTest is BaseTest {
             Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector
         ];
 
-        BuyCreditMarketParams memory params = BuyCreditMarketParams({
-            borrower: address(0),
-            creditPositionId: local.creditPositionId,
-            amount: input.V2,
-            tenor: type(uint256).max,
-            deadline: block.timestamp,
-            minAPR: 0,
-            exactAmountIn: true
+        BuyCreditMarketWithCollectionParams memory withCollectionParams = BuyCreditMarketWithCollectionParams({
+            params: BuyCreditMarketParams({
+                borrower: address(0),
+                creditPositionId: local.creditPositionId,
+                amount: input.V2,
+                tenor: type(uint256).max,
+                deadline: block.timestamp,
+                minAPR: 0,
+                exactAmountIn: true
+            }),
+            collectionId: RESERVED_ID,
+            rateProvider: address(0)
         });
 
-        try size.getBuyCreditMarketSwapData(params) returns (BuyCreditMarket.SwapDataBuyCreditMarket memory expected) {
+        try size.getBuyCreditMarketSwapData(withCollectionParams) returns (
+            BuyCreditMarket.SwapDataBuyCreditMarket memory expected
+        ) {
             vm.prank(candy);
-            try size.buyCreditMarket(params) {
+            try size.buyCreditMarket(withCollectionParams.params) {
                 Vars memory _after = _state();
 
                 uint256 Vmax = Math.mulDivUp(local.A1, PERCENT, PERCENT + local.r2);

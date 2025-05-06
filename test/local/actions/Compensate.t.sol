@@ -449,7 +449,7 @@ contract CompensateTest is BaseTest {
         uint256 amount = 1000e6;
         uint256 debtPositionId = _sellCreditMarket(alice, bob, RESERVED_ID, amount, tenor, false);
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
-        uint256 apr = size.getLoanOfferAPR(bob, tenor);
+        uint256 apr = size.getUserDefinedLoanOfferAPR(bob, tenor);
         uint256 r = Math.aprToRatePerTenor(apr, tenor);
         uint256 swapFee1 = size.getSwapFee(Math.mulDivUp(futureValue, 1e18, 1e18 + r), tenor);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];

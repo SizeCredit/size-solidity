@@ -35,9 +35,7 @@ contract BuyCreditMarketScript is Script, Logger {
             amount: amount,
             deadline: block.timestamp,
             minAPR: apr,
-            exactAmountIn: false,
-            collectionId: RESERVED_ID,
-            rateProvider: address(0)
+            exactAmountIn: false
         });
         console.log("lender USDC", size.getUserView(lender).borrowTokenBalance);
         vm.startBroadcast(deployerPrivateKey);

@@ -28,10 +28,10 @@ pragma solidity 0.8.23;
 //         _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
 //         _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.08e18));
 
-//         uint256 borrowOfferAPR = size.getBorrowOfferAPR(bob, 30 days);
+//         uint256 borrowOfferAPR = size.getUserDefinedBorrowOfferAPR(bob, 30 days);
 //         assertEq(borrowOfferAPR, 0.05e18);
 
-//         uint256 loanOfferAPR = size.getLoanOfferAPR(bob, 60 days);
+//         uint256 loanOfferAPR = size.getUserDefinedLoanOfferAPR(bob, 60 days);
 //         assertEq(loanOfferAPR, 0.08e18);
 
 //         _copyLimitOrders(
@@ -53,8 +53,8 @@ pragma solidity 0.8.23;
 //             })
 //         );
 
-//         assertEq(size.getBorrowOfferAPR(alice, 30 days), borrowOfferAPR);
-//         assertEq(size.getLoanOfferAPR(alice, 60 days), loanOfferAPR);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), borrowOfferAPR);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), loanOfferAPR);
 
 //         UserCopyLimitOrders memory userCopyLimitOrders = size.getUserCopyLimitOrders(alice);
 //         assertEq(userCopyLimitOrders.copyLoanOffer.minTenor, fullCopy.minTenor);
@@ -76,14 +76,14 @@ pragma solidity 0.8.23;
 //         _copyLimitOrders(alice, bob, fullCopy, nullCopy);
 
 //         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, alice));
-//         size.getBorrowOfferAPR(alice, 30 days);
+//         size.getUserDefinedBorrowOfferAPR(alice, 30 days);
 
-//         assertEq(size.getLoanOfferAPR(alice, 60 days), 0.08e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), 0.08e18);
 
 //         _sellCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.12e18));
-//         assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.12e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), 0.12e18);
 
-//         assertEq(size.getLoanOfferAPR(alice, 60 days), 0.08e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), 0.08e18);
 //     }
 
 //     function test_CopyLimitOrders_copyLimitOrders_copy_only_borrow_offer() public {
@@ -92,15 +92,15 @@ pragma solidity 0.8.23;
 
 //         _copyLimitOrders(alice, bob, nullCopy, fullCopy);
 
-//         assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.05e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), 0.05e18);
 
 //         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, alice));
-//         size.getLoanOfferAPR(alice, 60 days);
+//         size.getUserDefinedLoanOfferAPR(alice, 60 days);
 
 //         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.07e18));
-//         assertEq(size.getLoanOfferAPR(alice, 60 days), 0.07e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), 0.07e18);
 
-//         assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.05e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), 0.05e18);
 //     }
 
 //     function test_CopyLimitOrders_copyLimitOrders_reset_copy() public {
@@ -109,15 +109,15 @@ pragma solidity 0.8.23;
 
 //         _copyLimitOrders(alice, bob, fullCopy, fullCopy);
 
-//         assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.05e18);
-//         assertEq(size.getLoanOfferAPR(alice, 60 days), 0.08e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), 0.05e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), 0.08e18);
 
 //         _copyLimitOrders(alice, address(0), nullCopy, nullCopy);
 
 //         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, alice));
-//         size.getBorrowOfferAPR(alice, 30 days);
+//         size.getUserDefinedBorrowOfferAPR(alice, 30 days);
 //         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, alice));
-//         size.getLoanOfferAPR(alice, 60 days);
+//         size.getUserDefinedLoanOfferAPR(alice, 60 days);
 //     }
 
 //     function test_CopyLimitOrders_copyLimitOrders_copy_limit_orders_tenor_boundaries() public {
@@ -140,13 +140,13 @@ pragma solidity 0.8.23;
 
 //         _copyLimitOrders(alice, bob, copyLoanOffer, copyBorrowOffer);
 
-//         assertEq(size.getLoanOfferAPR(bob, 3 days), 0.03e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(bob, 3 days), 0.03e18);
 //         vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 3 days, 4 days, 6 days));
-//         size.getLoanOfferAPR(alice, 3 days);
+//         size.getUserDefinedLoanOfferAPR(alice, 3 days);
 
-//         assertEq(size.getBorrowOfferAPR(bob, 15 days), 0.07e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(bob, 15 days), 0.07e18);
 //         vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 15 days, 2 days, 10 days));
-//         size.getBorrowOfferAPR(alice, 15 days);
+//         size.getUserDefinedBorrowOfferAPR(alice, 15 days);
 //     }
 
 //     function test_CopyLimitOrders_copyLimitOrders_copy_limit_orders_apr_boundaries() public {
@@ -180,17 +180,17 @@ pragma solidity 0.8.23;
 
 //         _copyLimitOrders(alice, bob, copyLoanOffer, copyBorrowOffer);
 
-//         assertEq(size.getLoanOfferAPR(bob, 4 days), 0.04e18);
-//         assertEq(size.getLoanOfferAPR(alice, 4 days), 0.1e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(bob, 4 days), 0.04e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 4 days), 0.1e18);
 
-//         assertEq(size.getLoanOfferAPR(bob, 6 days), 0.12e18);
-//         assertEq(size.getLoanOfferAPR(alice, 6 days), 0.11e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(bob, 6 days), 0.12e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 6 days), 0.11e18);
 
-//         assertEq(size.getBorrowOfferAPR(bob, 2 days), 0.04e18);
-//         assertEq(size.getBorrowOfferAPR(alice, 2 days), 0.05e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(bob, 2 days), 0.04e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 2 days), 0.05e18);
 
-//         assertEq(size.getBorrowOfferAPR(bob, 10 days), 0.2e18);
-//         assertEq(size.getBorrowOfferAPR(alice, 10 days), 0.12e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(bob, 10 days), 0.2e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 10 days), 0.12e18);
 //     }
 
 //     function testFuzz_CopyLimitOrders_copyLimitOrders_invariants(
@@ -242,15 +242,15 @@ pragma solidity 0.8.23;
 
 //         _copyLimitOrders(alice, bob, copyLoanOffer, nullCopy);
 
-//         assertEq(size.getLoanOfferAPR(alice, 3 days), 0.1e18);
-//         assertEq(size.getLoanOfferAPR(alice, 5 days), 0.1e18);
-//         assertEq(size.getLoanOfferAPR(alice, 7 days), 0.14e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 3 days), 0.1e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 5 days), 0.1e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 7 days), 0.14e18);
 
 //         vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 1 days, 3 days, 7 days));
-//         size.getLoanOfferAPR(alice, 1 days);
+//         size.getUserDefinedLoanOfferAPR(alice, 1 days);
 
 //         vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 10 days, 3 days, 7 days));
-//         size.getLoanOfferAPR(alice, 10 days);
+//         size.getUserDefinedLoanOfferAPR(alice, 10 days);
 //     }
 
 //     function test_CopyLimitOrders_copyLimitOrders_borrow_offer_scenario() public {
@@ -267,16 +267,16 @@ pragma solidity 0.8.23;
 
 //         _copyLimitOrders(alice, bob, nullCopy, copyBorrowOffer);
 
-//         assertEq(size.getBorrowOfferAPR(alice, 3 days), 0.06e18);
-//         assertEq(size.getBorrowOfferAPR(alice, 5 days), 0.1e18);
-//         assertEq(size.getBorrowOfferAPR(alice, 10 days), 0.1e18);
-//         assertEq(size.getBorrowOfferAPR(alice, 15 days), 0.1e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 3 days), 0.06e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 5 days), 0.1e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 10 days), 0.1e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 15 days), 0.1e18);
 
 //         vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 1 days, 3 days, 15 days));
-//         size.getBorrowOfferAPR(alice, 1 days);
+//         size.getUserDefinedBorrowOfferAPR(alice, 1 days);
 
 //         vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 20 days, 3 days, 15 days));
-//         size.getBorrowOfferAPR(alice, 20 days);
+//         size.getUserDefinedBorrowOfferAPR(alice, 20 days);
 //     }
 
 //     function test_CopyLimitOrders_copyLimitOrders_copy_offer_precedence() public {
@@ -285,20 +285,20 @@ pragma solidity 0.8.23;
 
 //         _copyLimitOrders(alice, bob, fullCopy, fullCopy);
 
-//         assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.05e18);
-//         assertEq(size.getLoanOfferAPR(alice, 60 days), 0.08e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), 0.05e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), 0.08e18);
 
 //         _sellCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.1e18));
 //         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.15e18));
 
-//         assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.05e18);
-//         assertEq(size.getLoanOfferAPR(alice, 60 days), 0.08e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), 0.05e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), 0.08e18);
 
 //         _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.06e18));
 //         _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.09e18));
 
-//         assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.06e18);
-//         assertEq(size.getLoanOfferAPR(alice, 60 days), 0.09e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), 0.06e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), 0.09e18);
 //     }
 
 //     function test_CopyLimitOrders_copyLimitOrders_deletes_single_copy() public {
@@ -307,19 +307,19 @@ pragma solidity 0.8.23;
 
 //         _copyLimitOrders(alice, bob, fullCopy, fullCopy);
 
-//         assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.05e18);
-//         assertEq(size.getLoanOfferAPR(alice, 60 days), 0.08e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), 0.05e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), 0.08e18);
 
 //         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.1e18));
 //         _copyLimitOrders(alice, bob, nullCopy, fullCopy);
 
-//         assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.05e18);
-//         assertEq(size.getLoanOfferAPR(alice, 60 days), 0.1e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), 0.05e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), 0.1e18);
 
 //         _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.06e18));
 
-//         assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.06e18);
-//         assertEq(size.getLoanOfferAPR(alice, 60 days), 0.1e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), 0.06e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), 0.1e18);
 //     }
 
 //     function test_CopyLimitOrders_copyLimitOrders_copy_offer_precedence_with_offset() public {
@@ -347,11 +347,11 @@ pragma solidity 0.8.23;
 
 //         _copyLimitOrders(alice, bob, copyLoanOffer, copyBorrowOffer);
 
-//         assertEq(size.getLoanOfferAPR(alice, 30 days), 0.1e18);
-//         assertEq(size.getLoanOfferAPR(alice, 60 days), 0.11e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 30 days), 0.1e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), 0.11e18);
 
-//         assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.06e18);
-//         assertEq(size.getBorrowOfferAPR(alice, 60 days), 0.12e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), 0.06e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 60 days), 0.12e18);
 //     }
 
 //     function test_CopyLimitOrders_copyLimitOrders_can_leave_inverted_curves_with_offsetAPR() public {
@@ -368,17 +368,17 @@ pragma solidity 0.8.23;
 
 //         _copyLimitOrders(alice, bob, loanCopy, fullCopy);
 
-//         assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.03e18);
-//         assertEq(size.getLoanOfferAPR(alice, 30 days), 0.04e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), 0.03e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 30 days), 0.04e18);
 
-//         assertTrue(size.getLoanOfferAPR(alice, 30 days) > size.getBorrowOfferAPR(alice, 30 days));
+//         assertTrue(size.getUserDefinedLoanOfferAPR(alice, 30 days) > size.getUserDefinedBorrowOfferAPR(alice, 30 days));
 
 //         _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.04e18));
 
-//         assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.04e18);
-//         assertEq(size.getLoanOfferAPR(alice, 30 days), 0.04e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), 0.04e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 30 days), 0.04e18);
 
-//         assertTrue(!(size.getLoanOfferAPR(alice, 30 days) > size.getBorrowOfferAPR(alice, 30 days)));
+//         assertTrue(!(size.getUserDefinedLoanOfferAPR(alice, 30 days) > size.getUserDefinedBorrowOfferAPR(alice, 30 days)));
 //     }
 
 //     function test_CopyLimitOrders_copyLimitOrders_can_leave_inverted_curves_but_market_orders_revert() public {
@@ -397,8 +397,8 @@ pragma solidity 0.8.23;
 //         _deposit(alice, usdc, 3000e6);
 //         _copyLimitOrders(alice, bob, loanCopy, fullCopy);
 
-//         assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.03e18);
-//         assertEq(size.getLoanOfferAPR(alice, 30 days), 0.04e18);
+//         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), 0.03e18);
+//         assertEq(size.getUserDefinedLoanOfferAPR(alice, 30 days), 0.04e18);
 
 //         _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.04e18));
 

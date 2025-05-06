@@ -24,6 +24,7 @@ import {AccountingLibrary} from "@src/market/libraries/AccountingLibrary.sol";
 import {RiskLibrary} from "@src/market/libraries/RiskLibrary.sol";
 
 import {ISizeView} from "@src/market/interfaces/ISizeView.sol";
+import {ISizeViewV1_8} from "@src/market/interfaces/v1.8/ISizeViewV1_8.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {LimitOrder, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
 
@@ -165,28 +166,28 @@ abstract contract SizeView is SizeStorage, ISizeView {
         );
     }
 
-    /// @inheritdoc ISizeView
+    /// @inheritdoc ISizeViewV1_8
     function getUserDefinedBorrowOfferAPR(address borrower, uint256 tenor) external view returns (uint256) {
         return state.getUserDefinedBorrowOfferAPR(borrower, tenor);
     }
 
-    /// @inheritdoc ISizeView
+    /// @inheritdoc ISizeViewV1_8
     function getUserDefinedLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256) {
         return state.getUserDefinedLoanOfferAPR(lender, tenor);
     }
 
-    /// @inheritdoc ISizeView
+    /// @inheritdoc ISizeViewV1_8
     function getBorrowOfferAPR(address borrower, uint256 collectionId, address rateProvider, uint256 tenor)
-        public
+        external
         view
         returns (uint256)
     {
         return state.getBorrowOfferAPR(borrower, collectionId, rateProvider, tenor);
     }
 
-    /// @inheritdoc ISizeView
+    /// @inheritdoc ISizeViewV1_8
     function getLoanOfferAPR(address lender, uint256 collectionId, address rateProvider, uint256 tenor)
-        public
+        external
         view
         returns (uint256)
     {

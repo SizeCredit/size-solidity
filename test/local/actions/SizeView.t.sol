@@ -6,24 +6,24 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract SizeViewTest is BaseTest {
-    function test_SizeView_getBorrowOfferAPR_validation() public {
+    function test_SizeView_getUserDefinedBorrowOfferAPR_validation() public {
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, alice));
-        size.getBorrowOfferAPR(alice, block.timestamp);
+        size.getUserDefinedBorrowOfferAPR(alice, block.timestamp);
 
         _sellCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.marketCurve());
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_TENOR.selector));
-        size.getBorrowOfferAPR(alice, 0);
+        size.getUserDefinedBorrowOfferAPR(alice, 0);
     }
 
-    function test_SizeView_getLoanOfferAPR_validation() public {
+    function test_SizeView_getUserDefinedLoanOfferAPR_validation() public {
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, alice));
-        size.getLoanOfferAPR(alice, block.timestamp);
+        size.getUserDefinedLoanOfferAPR(alice, block.timestamp);
 
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_TENOR.selector));
-        size.getLoanOfferAPR(alice, 0);
+        size.getUserDefinedLoanOfferAPR(alice, 0);
     }
 
     function test_SizeView_getLoanStatus() public {

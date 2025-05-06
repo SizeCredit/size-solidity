@@ -24,7 +24,8 @@ import {
 } from "@src/market/libraries/actions/Initialize.sol";
 import {
     SellCreditMarketOnBehalfOfParams,
-    SellCreditMarketParams
+    SellCreditMarketParams,
+    SellCreditMarketWithCollectionParams
 } from "@src/market/libraries/actions/SellCreditMarket.sol";
 import {
     SetUserConfigurationOnBehalfOfParams,
@@ -131,14 +132,18 @@ contract CallMarketTest is BaseTest {
                     ISizeV1_7.sellCreditMarketOnBehalfOf,
                     (
                         SellCreditMarketOnBehalfOfParams({
-                            params: SellCreditMarketParams({
-                                lender: alice,
-                                creditPositionId: RESERVED_ID,
-                                amount: usdcAmount,
-                                tenor: tenor,
-                                deadline: block.timestamp,
-                                maxAPR: type(uint256).max,
-                                exactAmountIn: false
+                            withCollectionParams: SellCreditMarketWithCollectionParams({
+                                params: SellCreditMarketParams({
+                                    lender: alice,
+                                    creditPositionId: RESERVED_ID,
+                                    amount: usdcAmount,
+                                    tenor: tenor,
+                                    deadline: block.timestamp,
+                                    maxAPR: type(uint256).max,
+                                    exactAmountIn: false
+                                }),
+                                collectionId: RESERVED_ID,
+                                rateProvider: address(0)
                             }),
                             onBehalfOf: bob,
                             recipient: bob
@@ -170,14 +175,18 @@ contract CallMarketTest is BaseTest {
                     ISizeV1_7.sellCreditMarketOnBehalfOf,
                     (
                         SellCreditMarketOnBehalfOfParams({
-                            params: SellCreditMarketParams({
-                                lender: alice,
-                                creditPositionId: RESERVED_ID,
-                                amount: usdcAmount,
-                                tenor: tenor,
-                                deadline: block.timestamp,
-                                maxAPR: type(uint256).max,
-                                exactAmountIn: false
+                            withCollectionParams: SellCreditMarketWithCollectionParams({
+                                params: SellCreditMarketParams({
+                                    lender: alice,
+                                    creditPositionId: RESERVED_ID,
+                                    amount: usdcAmount,
+                                    tenor: tenor,
+                                    deadline: block.timestamp,
+                                    maxAPR: type(uint256).max,
+                                    exactAmountIn: false
+                                }),
+                                collectionId: RESERVED_ID,
+                                rateProvider: address(0)
                             }),
                             onBehalfOf: bob,
                             recipient: bob
@@ -267,8 +276,8 @@ contract CallMarketTest is BaseTest {
     //     vm.startPrank(bob);
     //     sizeFactory.multicall(datas);
 
-    //     assertEq(size1.getLoanOfferAPR(bob, 365 days), 0.03e18);
-    //     assertEq(size2.getLoanOfferAPR(bob, 365 days), 0.04e18);
+    //     assertEq(size1.getUserDefinedLoanOfferAPR(bob, 365 days), 0.03e18);
+    //     assertEq(size2.getUserDefinedLoanOfferAPR(bob, 365 days), 0.04e18);
     // }
 
     // function test_CallMarket_user_can_execute_ideal_flow() public {
@@ -378,7 +387,7 @@ contract CallMarketTest is BaseTest {
     //     sizeFactory.multicall(datas);
 
     //     assertEq(_state().candy.borrowTokenBalance, depositAmount);
-    //     assertEq(size1.getLoanOfferAPR(candy, 365 days), 0.03e18);
-    //     assertEq(size2.getLoanOfferAPR(candy, 365 days), 0.04e18);
+    //     assertEq(size1.getUserDefinedLoanOfferAPR(candy, 365 days), 0.03e18);
+    //     assertEq(size2.getUserDefinedLoanOfferAPR(candy, 365 days), 0.04e18);
     // }
 }

@@ -6,21 +6,24 @@ import {UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
 import {DataView, UserView} from "@src/market/SizeViewData.sol";
 import {CreditPosition, DebtPosition, LoanStatus} from "@src/market/libraries/LoanLibrary.sol";
 import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
-import {BuyCreditMarket, BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
+import {BuyCreditMarket, BuyCreditMarketWithCollectionParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/market/libraries/actions/Initialize.sol";
-import {SellCreditMarket, SellCreditMarketParams} from "@src/market/libraries/actions/SellCreditMarket.sol";
+import {
+    SellCreditMarket, SellCreditMarketWithCollectionParams
+} from "@src/market/libraries/actions/SellCreditMarket.sol";
 
 import {ISizeViewV1_7} from "@src/market/interfaces/v1.7/ISizeViewV1_7.sol";
-
+import {ISizeViewV1_8} from "@src/market/interfaces/v1.8/ISizeViewV1_8.sol";
 /// @title ISizeView
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice View methods for the Size protocol
-interface ISizeView is ISizeViewV1_7 {
+
+interface ISizeView is ISizeViewV1_7, ISizeViewV1_8 {
     /// @notice Get the collateral ratio of a user
     /// @param user The address of the user
     /// @return The collateral ratio of the user
@@ -101,18 +104,6 @@ interface ISizeView is ISizeViewV1_7 {
     /// @return The count of debt positions and credit positions
     function getPositionsCount() external view returns (uint256, uint256);
 
-    /// @notice Get the APR for a user-defined borrow offer
-    /// @param borrower The address of the borrower
-    /// @param tenor The tenor of the loan
-    /// @return apr The APR
-    function getUserDefinedBorrowOfferAPR(address borrower, uint256 tenor) external view returns (uint256);
-
-    /// @notice Get the APR for a user-defined loan offer
-    /// @param lender The address of the lender
-    /// @param tenor The tenor of the loan
-    /// @return apr The APR
-    function getUserDefinedLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256);
-
     /// @notice Get the assigned collateral for a debt position
     /// @param debtPositionId The ID of the debt position
     /// @return The assigned collateral amount
@@ -125,17 +116,17 @@ interface ISizeView is ISizeViewV1_7 {
     function getSwapFee(uint256 cash, uint256 tenor) external view returns (uint256);
 
     /// @notice Gets the swap data for buying credit as a market order
-    /// @param params The input parameters for buying credit as a market order
+    /// @param withCollectionParams The input parameters for buying credit as a market order
     /// @return swapData The swap data for buying credit as a market order
-    function getBuyCreditMarketSwapData(BuyCreditMarketParams memory params)
+    function getBuyCreditMarketSwapData(BuyCreditMarketWithCollectionParams memory withCollectionParams)
         external
         view
         returns (BuyCreditMarket.SwapDataBuyCreditMarket memory);
 
     /// @notice Returns the swap data for selling credit as a market order
-    /// @param params The input parameters for selling credit as a market order
+    /// @param withCollectionParams The input parameters for selling credit as a market order
     /// @return swapData The swap data for selling credit as a market order
-    function getSellCreditMarketSwapData(SellCreditMarketParams memory params)
+    function getSellCreditMarketSwapData(SellCreditMarketWithCollectionParams memory withCollectionParams)
         external
         view
         returns (SellCreditMarket.SwapDataSellCreditMarket memory);
