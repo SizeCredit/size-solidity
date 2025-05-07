@@ -18,8 +18,16 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
     using EnumerableSet for EnumerableSet.AddressSet;
     using OfferLibrary for CopyLimitOrder;
 
+    /*//////////////////////////////////////////////////////////////
+                            ERRORS
+    //////////////////////////////////////////////////////////////*/
+
     error InvalidCollectionMarketRateProvider(uint256 collectionId, address market, address rateProvider);
     error InvalidTenor(uint256 tenor, uint256 minTenor, uint256 maxTenor);
+
+    /*//////////////////////////////////////////////////////////////
+                            COLLECTION VIEW
+    //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ICollectionsManagerView
     function isValidCollectionId(uint256 collectionId) public view returns (bool) {
@@ -40,11 +48,26 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
     }
 
     /// @inheritdoc ICollectionsManagerView
-    function isCopyingCollectionRateProviderForMarket(
+    function getCollectionMarketRateProviders(uint256 collectionId, ISize market)
+        external
+        view
+        returns (address[] memory)
+    {
+        if (!isValidCollectionId(collectionId)) {
+            revert InvalidCollectionId(collectionId);
+        }
+        if (!collections[collectionId][market].exists) {
+            revert MarketNotInCollection(collectionId, address(market));
+        }
+        return collections[collectionId][market].rateProviders.values();
+    }
+
+    /// @inheritdoc ICollectionsManagerView
+    function isCopyingCollectionMarketRateProvider(
         address user,
         uint256 collectionId,
-        address rateProvider,
-        ISize market
+        ISize market,
+        address rateProvider
     ) public view returns (bool) {
         if (!isValidCollectionId(collectionId)) {
             return false;
@@ -95,8 +118,8 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         if (collectionId == RESERVED_ID && rateProvider == address(0)) {
             return getUserDefinedLimitOrderAPR(user, market, tenor, isLoanOffer);
         }
-        // else if the user is not copying the collection rate provider for that market, revert
-        else if (!isCopyingCollectionRateProviderForMarket(user, collectionId, rateProvider, market)) {
+        // else if the user is not copying the collection market rate provider, revert
+        else if (!isCopyingCollectionMarketRateProvider(user, collectionId, market, rateProvider)) {
             revert InvalidCollectionMarketRateProvider(collectionId, address(market), rateProvider);
         }
         // else, return the yield curve for that collection, market and rate provider
@@ -130,7 +153,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
     }
 
     /*//////////////////////////////////////////////////////////////
-                            COLLECTION VIEW
+                            COPY LIMIT ORDER VIEW
     //////////////////////////////////////////////////////////////*/
 
     /// @dev Reverts if the collection id is invalid or the market is not in the collection
@@ -167,19 +190,5 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         return isLoanOffer
             ? collections[collectionId][market].copyLoanOffer
             : collections[collectionId][market].copyBorrowOffer;
-    }
-
-    function getCollectionMarketRateProviders(uint256 collectionId, ISize market)
-        external
-        view
-        returns (address[] memory)
-    {
-        if (!isValidCollectionId(collectionId)) {
-            revert InvalidCollectionId(collectionId);
-        }
-        if (!collections[collectionId][market].exists) {
-            revert MarketNotInCollection(collectionId, address(market));
-        }
-        return collections[collectionId][market].rateProviders.values();
     }
 }

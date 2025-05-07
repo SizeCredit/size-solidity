@@ -38,8 +38,8 @@ contract CollectionsManager is
     }
 
     function initialize(ISizeFactory _sizeFactory) external initializer {
-        __ERC721Enumerable_init();
         __ERC721_init("Size Collections", "SIZE_COLLECTIONS");
+        __ERC721Enumerable_init();
         __Multicall_init();
         __UUPSUpgradeable_init();
 

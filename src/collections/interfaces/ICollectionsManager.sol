@@ -4,7 +4,6 @@ pragma solidity 0.8.23;
 import {ICollectionsManagerCuratorActions} from "@src/collections/interfaces/ICollectionsManagerCuratorActions.sol";
 import {ICollectionsManagerUserActions} from "@src/collections/interfaces/ICollectionsManagerUserActions.sol";
 import {ICollectionsManagerView} from "@src/collections/interfaces/ICollectionsManagerView.sol";
-import {ISize} from "@src/market/interfaces/ISize.sol";
 
 /// @title ICollectionsManager
 /// @custom:security-contact security@size.credit

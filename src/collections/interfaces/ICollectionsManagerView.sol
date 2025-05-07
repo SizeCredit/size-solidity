@@ -28,27 +28,56 @@ interface ICollectionsManagerView {
     /// @dev Should not revert
     function collectionContainsMarket(uint256 collectionId, ISize market) external view returns (bool);
 
-    /// @notice Check if a user is copying a collection rate provider for a market
+    /// @notice Get the rate providers for a collection market
+    /// @param collectionId The collection ID to get the rate providers for
+    /// @param market The market to get the rate providers for
+    /// @return The rate providers for the collection market
+    function getCollectionMarketRateProviders(uint256 collectionId, ISize market)
+        external
+        view
+        returns (address[] memory);
+
+    /// @notice Check if a user is copying a collection market rate provider
     /// @param user The user to check
     /// @param collectionId The collection ID to check
-    /// @param rateProvider The rate provider to check
     /// @param market The market to check
-    /// @return True if the user is copying the collection rate provider for the market, false otherwise
+    /// @param rateProvider The rate provider to check
+    /// @return True if the user is copying the collection market rate provider, false otherwise
     /// @dev Should not revert
-    function isCopyingCollectionRateProviderForMarket(
+    function isCopyingCollectionMarketRateProvider(
         address user,
         uint256 collectionId,
-        address rateProvider,
-        ISize market
+        ISize market,
+        address rateProvider
     ) external view returns (bool);
 
+    /// @notice Get the subscribed collections for a user
+    /// @param user The user to get the subscribed collections for
+    /// @return collectionIds The subscribed collections for the user
+    /// @dev Should not revert
     function getSubscribedCollections(address user) external view returns (uint256[] memory collectionIds);
 
+    /// @notice Get the loan offer APR for a user, collection, market, rate provider and tenor
+    /// @param user The user to get the loan offer APR for
+    /// @param collectionId The collection ID to get the loan offer APR for
+    /// @param market The market to get the loan offer APR for
+    /// @param rateProvider The rate provider to get the loan offer APR for
+    /// @param tenor The tenor to get the loan offer APR for
+    /// @return apr The loan offer APR
+    /// @dev If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
     function getLoanOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
         external
         view
         returns (uint256 apr);
 
+    /// @notice Get the borrow offer APR for a user, collection, market, rate provider and tenor
+    /// @param user The user to get the borrow offer APR for
+    /// @param collectionId The collection ID to get the borrow offer APR for
+    /// @param market The market to get the borrow offer APR for
+    /// @param rateProvider The rate provider to get the borrow offer APR for
+    /// @param tenor The tenor to get the borrow offer APR for
+    /// @return apr The borrow offer APR
+    /// @dev If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
     function getBorrowOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
         external
         view
