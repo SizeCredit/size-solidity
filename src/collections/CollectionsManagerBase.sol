@@ -10,7 +10,7 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
 
 struct MarketInformation {
-    bool exists;
+    bool initialized;
     CopyLimitOrder copyLoanOffer;
     CopyLimitOrder copyBorrowOffer;
     EnumerableSet.AddressSet rateProviders;

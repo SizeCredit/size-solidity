@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {CollectionsManagerBase} from "@src/collections/CollectionsManagerBase.sol";
 import {ICollectionsManagerView} from "@src/collections/interfaces/ICollectionsManagerView.sol";
@@ -44,7 +45,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         if (!isValidCollectionId(collectionId)) {
             return false;
         }
-        return collections[collectionId][market].exists;
+        return collections[collectionId][market].initialized;
     }
 
     /// @inheritdoc ICollectionsManagerView
@@ -56,7 +57,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         if (!isValidCollectionId(collectionId)) {
             revert InvalidCollectionId(collectionId);
         }
-        if (!collections[collectionId][market].exists) {
+        if (!collections[collectionId][market].initialized) {
             revert MarketNotInCollection(collectionId, address(market));
         }
         return collections[collectionId][market].rateProviders.values();
@@ -75,7 +76,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         if (!userToCollectionIds[user].contains(collectionId)) {
             return false;
         }
-        if (!collections[collectionId][market].exists) {
+        if (!collections[collectionId][market].initialized) {
             return false;
         }
         return collections[collectionId][market].rateProviders.contains(rateProvider);
@@ -129,8 +130,10 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
             if (tenor < copyLimitOrder.minTenor || tenor > copyLimitOrder.maxTenor) {
                 revert InvalidTenor(tenor, copyLimitOrder.minTenor, copyLimitOrder.maxTenor);
             } else {
+                uint256 baseAPR = market.getUserDefinedLoanOfferAPR(rateProvider, tenor);
+                // apply offset APR
+                apr = SafeCast.toUint256(SafeCast.toInt256(baseAPR) + copyLimitOrder.offsetAPR);
                 // validate min/max APR
-                apr = market.getUserDefinedLoanOfferAPR(rateProvider, tenor);
                 if (apr < copyLimitOrder.minAPR) {
                     apr = copyLimitOrder.minAPR;
                 } else if (apr > copyLimitOrder.maxAPR) {
@@ -184,7 +187,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         if (!isValidCollectionId(collectionId)) {
             revert InvalidCollectionId(collectionId);
         }
-        if (!collections[collectionId][market].exists) {
+        if (!collections[collectionId][market].initialized) {
             revert MarketNotInCollection(collectionId, address(market));
         }
         return isLoanOffer

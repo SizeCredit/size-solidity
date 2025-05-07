@@ -101,7 +101,7 @@ abstract contract CollectionsManagerCuratorActions is
                 revert Errors.INVALID_APR_RANGE(copyBorrowOffers[i].minAPR, copyBorrowOffers[i].maxAPR);
             }
 
-            collections[collectionId][markets[i]].exists = true;
+            collections[collectionId][markets[i]].initialized = true;
             collections[collectionId][markets[i]].copyLoanOffer = copyLoanOffers[i];
             collections[collectionId][markets[i]].copyBorrowOffer = copyBorrowOffers[i];
 
@@ -126,7 +126,7 @@ abstract contract CollectionsManagerCuratorActions is
         external
         onlyCollectionCurator(collectionId)
     {
-        if (!collections[collectionId][market].exists) {
+        if (!collections[collectionId][market].initialized) {
             revert MarketNotInCollection(collectionId, address(market));
         }
 
@@ -142,7 +142,7 @@ abstract contract CollectionsManagerCuratorActions is
         external
         onlyCollectionCurator(collectionId)
     {
-        if (!collections[collectionId][market].exists) {
+        if (!collections[collectionId][market].initialized) {
             revert MarketNotInCollection(collectionId, address(market));
         }
 
