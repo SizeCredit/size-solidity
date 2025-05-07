@@ -509,4 +509,23 @@ contract BaseTest is Test, Deploy, AssertsHelper {
     function _isUserUnderwater(address user) internal view returns (bool) {
         return size.collateralRatio(user) < size.riskConfig().crLiquidation;
     }
+
+    function _subscribeToCollection(address user, uint256 collectionId) internal {
+        uint256[] memory collectionIds = new uint256[](1);
+        collectionIds[0] = collectionId;
+        vm.prank(user);
+        sizeFactory.subscribeToCollections(collectionIds);
+    }
+
+    function _unsubscribeFromCollection(address user, uint256 collectionId) internal {
+        uint256[] memory collectionIds = new uint256[](1);
+        collectionIds[0] = collectionId;
+        vm.prank(user);
+        sizeFactory.unsubscribeFromCollections(collectionIds);
+    }
+
+    function _createCollection(address user) internal returns (uint256 collectionId) {
+        vm.prank(user);
+        collectionId = collectionsManager.createCollection();
+    }
 }

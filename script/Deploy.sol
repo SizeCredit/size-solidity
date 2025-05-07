@@ -76,6 +76,7 @@ abstract contract Deploy {
     IERC20Metadata internal borrowToken;
 
     SizeFactory internal sizeFactory;
+    CollectionsManager internal collectionsManager;
 
     bool internal shouldDeploySizeFactory = true;
 
@@ -106,7 +107,7 @@ abstract contract Deploy {
                 address(new ERC1967Proxy(address(new SizeFactory()), abi.encodeCall(SizeFactory.initialize, (owner))))
             );
 
-            CollectionsManager collectionsManager = CollectionsManager(
+            collectionsManager = CollectionsManager(
                 address(
                     new ERC1967Proxy(
                         address(new CollectionsManager()),
@@ -196,7 +197,7 @@ abstract contract Deploy {
                 address(new ERC1967Proxy(address(new SizeFactory()), abi.encodeCall(SizeFactory.initialize, (owner))))
             );
 
-            CollectionsManager collectionsManager = CollectionsManager(
+            collectionsManager = CollectionsManager(
                 address(
                     new ERC1967Proxy(
                         address(new CollectionsManager()),
