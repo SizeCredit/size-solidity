@@ -64,7 +64,7 @@ interface ICollectionsManagerView {
     /// @param rateProvider The rate provider to get the loan offer APR for
     /// @param tenor The tenor to get the loan offer APR for
     /// @return apr The loan offer APR
-    /// @dev If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
+    /// @dev If collectionId is RESERVED_ID, selects the user-defined yield curve
     function getLoanOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
         external
         view
@@ -77,7 +77,7 @@ interface ICollectionsManagerView {
     /// @param rateProvider The rate provider to get the borrow offer APR for
     /// @param tenor The tenor to get the borrow offer APR for
     /// @return apr The borrow offer APR
-    /// @dev If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
+    /// @dev If collectionId is RESERVED_ID, selects the user-defined yield curve
     function getBorrowOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
         external
         view

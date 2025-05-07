@@ -106,8 +106,8 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall, ISizeV1_7, ISizeV1_8 {
     ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
     ///     - uint256 maxAPR: The maximum APR the caller is willing to accept
     ///     - bool exactAmountIn: this flag indicates if the amount argument represents either credit (true) or cash (false)
-    ///     - uint256 collectionId: The collection id. If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
-    ///     - address rateProvider: The rate provider. If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
+    ///     - uint256 collectionId: The collection id. If collectionId is RESERVED_ID, selects the user-defined yield curve
+    ///     - address rateProvider: The rate provider. If collectionId is RESERVED_ID, selects the user-defined yield curve
     function sellCreditMarket(SellCreditMarketParams calldata params) external payable;
 
     /// @notice Repay a debt position by transferring the amount due of borrow tokens to the protocol, which are deposited to the Variable Pool for the lenders to claim

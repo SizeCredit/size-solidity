@@ -39,10 +39,10 @@ struct SellCreditMarketWithCollectionParams {
     // The parameters for selling credit as a market order
     SellCreditMarketParams params;
     // The collection Id (introduced in v1.8)
-    // If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
+    // If collectionId is RESERVED_ID, selects the user-defined yield curve
     uint256 collectionId;
     // The rate provider (introduced in v1.8)
-    // If collectionId is RESERVED_ID and rateProvider is address(0), selects the user-defined yield curve
+    // If collectionId is RESERVED_ID, selects the user-defined yield curve
     address rateProvider;
 }
 

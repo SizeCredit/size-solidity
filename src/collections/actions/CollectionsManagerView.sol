@@ -115,8 +115,8 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         uint256 tenor,
         bool isLoanOffer
     ) private view returns (uint256 apr) {
-        // if collectionId is RESERVED_ID and rateProvider is address(0), return the user-defined yield curve and ignore the user-defined CopyLimitOrder params
-        if (collectionId == RESERVED_ID && rateProvider == address(0)) {
+        // if collectionId is RESERVED_ID, return the user-defined yield curve and ignore the user-defined CopyLimitOrder params
+        if (collectionId == RESERVED_ID) {
             return getUserDefinedLimitOrderAPR(user, market, tenor, isLoanOffer);
         }
         // else if the user is not copying the collection market rate provider, revert
