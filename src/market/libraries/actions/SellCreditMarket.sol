@@ -47,7 +47,7 @@ struct SellCreditMarketWithCollectionParams {
 }
 
 struct SellCreditMarketOnBehalfOfParams {
-    // The parameters for selling credit as a market order
+    // The parameters for selling credit as a market order using a collection and rate provider
     SellCreditMarketWithCollectionParams withCollectionParams;
     // The account to receive the debt
     address onBehalfOf;

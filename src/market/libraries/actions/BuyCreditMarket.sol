@@ -45,7 +45,7 @@ struct BuyCreditMarketWithCollectionParams {
 }
 
 struct BuyCreditMarketOnBehalfOfParams {
-    // The parameters for the buy credit market
+    // The parameters for the buy credit market order using a collection and rate provider
     BuyCreditMarketWithCollectionParams withCollectionParams;
     // The account to transfer the cash from
     address onBehalfOf;
