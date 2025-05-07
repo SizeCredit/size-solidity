@@ -29,9 +29,9 @@ struct User {
 struct UserCopyLimitOrders {
     // deprecated in v1.8
     address ___deprecated_copyAddress;
-    // the loan offer copy parameters (null means no copy)
+    // the loan offer copy parameters
     CopyLimitOrder copyLoanOffer;
-    // the borrow offer copy parameters (null means no copy)
+    // the borrow offer copy parameters
     CopyLimitOrder copyBorrowOffer;
 }
 

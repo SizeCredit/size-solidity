@@ -10,9 +10,9 @@ import {CopyLimitOrder, OfferLibrary} from "@src/market/libraries/OfferLibrary.s
 
 // updated in v1.8, removed `address copyAddress` from params
 struct CopyLimitOrdersParams {
-    // the loan offer copy parameters (null means no copy)
+    // the loan offer copy parameters
     CopyLimitOrder copyLoanOffer;
-    // the borrow offer copy parameters (null means no copy)
+    // the borrow offer copy parameters
     CopyLimitOrder copyBorrowOffer;
 }
 
