@@ -46,19 +46,11 @@ abstract contract CollectionsManagerCuratorActions is
     );
 
     /*//////////////////////////////////////////////////////////////
-                            ERRORS
-    //////////////////////////////////////////////////////////////*/
-
-    error CollectionCuratorMismatch(uint256 collectionId, address expectedCurator, address curator);
-
-    /*//////////////////////////////////////////////////////////////
                             MODIFIERS
     //////////////////////////////////////////////////////////////*/
 
-    modifier onlyCollectionCurator(uint256 collectionId) {
-        if (ownerOf(collectionId) != msg.sender) {
-            revert CollectionCuratorMismatch(collectionId, ownerOf(collectionId), msg.sender);
-        }
+    modifier onlyCollectionCuratorAuthorized(uint256 collectionId) {
+        _checkAuthorized(ownerOf(collectionId), msg.sender, collectionId);
         _;
     }
 
@@ -78,7 +70,7 @@ abstract contract CollectionsManagerCuratorActions is
         ISize[] memory markets,
         CopyLimitOrderConfig[] memory copyLoanOffers,
         CopyLimitOrderConfig[] memory copyBorrowOffers
-    ) external onlyCollectionCurator(collectionId) {
+    ) external onlyCollectionCuratorAuthorized(collectionId) {
         if (markets.length != copyLoanOffers.length || markets.length != copyBorrowOffers.length) {
             revert Errors.ARRAY_LENGTHS_MISMATCH();
         }
@@ -113,7 +105,7 @@ abstract contract CollectionsManagerCuratorActions is
     /// @inheritdoc ICollectionsManagerCuratorActions
     function removeMarketsFromCollection(uint256 collectionId, ISize[] memory markets)
         external
-        onlyCollectionCurator(collectionId)
+        onlyCollectionCuratorAuthorized(collectionId)
     {
         for (uint256 i = 0; i < markets.length; i++) {
             delete collections[collectionId][markets[i]];
@@ -124,7 +116,7 @@ abstract contract CollectionsManagerCuratorActions is
     /// @inheritdoc ICollectionsManagerCuratorActions
     function addRateProvidersToCollectionMarket(uint256 collectionId, ISize market, address[] memory rateProviders)
         external
-        onlyCollectionCurator(collectionId)
+        onlyCollectionCuratorAuthorized(collectionId)
     {
         if (!collections[collectionId][market].initialized) {
             revert MarketNotInCollection(collectionId, address(market));
@@ -140,7 +132,7 @@ abstract contract CollectionsManagerCuratorActions is
     /// @inheritdoc ICollectionsManagerCuratorActions
     function removeRateProvidersFromCollectionMarket(uint256 collectionId, ISize market, address[] memory rateProviders)
         external
-        onlyCollectionCurator(collectionId)
+        onlyCollectionCuratorAuthorized(collectionId)
     {
         if (!collections[collectionId][market].initialized) {
             revert MarketNotInCollection(collectionId, address(market));
