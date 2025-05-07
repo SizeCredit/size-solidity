@@ -21,7 +21,7 @@ struct LimitOrder {
     YieldCurve curveRelativeTime;
 }
 
-struct CopyLimitOrder {
+struct CopyLimitOrderConfig {
     // the minimum tenor of the copied offer
     uint256 minTenor;
     // the maximum tenor of the copied offer
@@ -50,7 +50,7 @@ library OfferLibrary {
     /// @notice Check if the copy limit order is null
     /// @param self The copy limit order
     /// @return True if the copy limit order is null, false otherwise
-    function isNull(CopyLimitOrder memory self) internal pure returns (bool) {
+    function isNull(CopyLimitOrderConfig memory self) internal pure returns (bool) {
         return self.minTenor == 0 && self.maxTenor == 0 && self.minAPR == 0 && self.maxAPR == 0 && self.offsetAPR == 0;
     }
 

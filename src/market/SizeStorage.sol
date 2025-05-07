@@ -6,7 +6,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {IWETH} from "@src/market/interfaces/IWETH.sol";
 
 import {CreditPosition, DebtPosition} from "@src/market/libraries/LoanLibrary.sol";
-import {CopyLimitOrder, LimitOrder} from "@src/market/libraries/OfferLibrary.sol";
+import {CopyLimitOrderConfig, LimitOrder} from "@src/market/libraries/OfferLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
@@ -30,9 +30,9 @@ struct UserCopyLimitOrders {
     // deprecated in v1.8
     address ___deprecated_copyAddress;
     // the loan offer copy parameters
-    CopyLimitOrder copyLoanOffer;
+    CopyLimitOrderConfig copyLoanOfferConfig;
     // the borrow offer copy parameters
-    CopyLimitOrder copyBorrowOffer;
+    CopyLimitOrderConfig copyBorrowOfferConfig;
 }
 
 struct FeeConfig {

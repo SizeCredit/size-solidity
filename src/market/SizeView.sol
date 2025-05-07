@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {SizeStorage, State, User, UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
 
-import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
+import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 import {VariablePoolBorrowRateParams} from "@src/market/libraries/YieldCurveLibrary.sol";
 
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
@@ -119,13 +119,13 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     /// @inheritdoc ISizeView
-    function getCopyLoanOffer(address user) external view returns (CopyLimitOrder memory) {
-        return state.data.usersCopyLimitOrders[user].copyLoanOffer;
+    function getCopyLoanOffer(address user) external view returns (CopyLimitOrderConfig memory) {
+        return state.data.usersCopyLimitOrders[user].copyLoanOfferConfig;
     }
 
     /// @inheritdoc ISizeView
-    function getCopyBorrowOffer(address user) external view returns (CopyLimitOrder memory) {
-        return state.data.usersCopyLimitOrders[user].copyBorrowOffer;
+    function getCopyBorrowOffer(address user) external view returns (CopyLimitOrderConfig memory) {
+        return state.data.usersCopyLimitOrders[user].copyBorrowOfferConfig;
     }
 
     /// @inheritdoc ISizeView

@@ -5,7 +5,7 @@ import {ERC721EnumerableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
+import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 
 import {CollectionsManagerBase} from "@src/collections/CollectionsManagerBase.sol";
 
@@ -36,8 +36,8 @@ abstract contract CollectionsManagerCuratorActions is
     event AddMarketToCollection(
         uint256 indexed collectionId,
         address indexed market,
-        CopyLimitOrder copyLoanOffer,
-        CopyLimitOrder copyBorrowOffer
+        CopyLimitOrderConfig copyLoanOfferConfig,
+        CopyLimitOrderConfig copyBorrowOfferConfig
     );
     event RemoveMarketFromCollection(uint256 indexed collectionId, address indexed market);
     event AddRateProviderToMarket(uint256 indexed collectionId, address indexed market, address indexed rateProvider);
@@ -76,8 +76,8 @@ abstract contract CollectionsManagerCuratorActions is
     function addMarketsToCollection(
         uint256 collectionId,
         ISize[] memory markets,
-        CopyLimitOrder[] memory copyLoanOffers,
-        CopyLimitOrder[] memory copyBorrowOffers
+        CopyLimitOrderConfig[] memory copyLoanOffers,
+        CopyLimitOrderConfig[] memory copyBorrowOffers
     ) external onlyCollectionCurator(collectionId) {
         if (markets.length != copyLoanOffers.length || markets.length != copyBorrowOffers.length) {
             revert Errors.ARRAY_LENGTHS_MISMATCH();
@@ -102,8 +102,8 @@ abstract contract CollectionsManagerCuratorActions is
             }
 
             collections[collectionId][markets[i]].initialized = true;
-            collections[collectionId][markets[i]].copyLoanOffer = copyLoanOffers[i];
-            collections[collectionId][markets[i]].copyBorrowOffer = copyBorrowOffers[i];
+            collections[collectionId][markets[i]].copyLoanOfferConfig = copyLoanOffers[i];
+            collections[collectionId][markets[i]].copyBorrowOfferConfig = copyBorrowOffers[i];
 
             emit AddMarketToCollection(collectionId, address(markets[i]), copyLoanOffers[i], copyBorrowOffers[i]);
         }

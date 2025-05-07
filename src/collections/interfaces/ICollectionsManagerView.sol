@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {ISize} from "@src/market/interfaces/ISize.sol";
-import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
+import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 
 /// @title ICollectionsManagerView
 /// @custom:security-contact security@size.credit

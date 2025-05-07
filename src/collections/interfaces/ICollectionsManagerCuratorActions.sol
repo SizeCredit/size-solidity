@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {ISize} from "@src/market/interfaces/ISize.sol";
-import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
+import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 /// @title ICollectionsManagerCuratorActions
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
@@ -21,8 +21,8 @@ interface ICollectionsManagerCuratorActions {
     function addMarketsToCollection(
         uint256 collectionId,
         ISize[] memory markets,
-        CopyLimitOrder[] memory copyLoanOffers,
-        CopyLimitOrder[] memory copyBorrowOffers
+        CopyLimitOrderConfig[] memory copyLoanOffers,
+        CopyLimitOrderConfig[] memory copyBorrowOffers
     ) external;
 
     /// @notice Removes markets from a collection

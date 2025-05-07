@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {Errors} from "@src/market/libraries/Errors.sol";
 
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
-import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
+import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 
 import {UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
 import {OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
@@ -17,9 +17,14 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract CopyLimitOrdersTest is BaseTest {
-    CopyLimitOrder private nullCopy;
-    CopyLimitOrder private fullCopy =
-        CopyLimitOrder({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: type(uint256).max, offsetAPR: 0});
+    CopyLimitOrderConfig private nullCopy;
+    CopyLimitOrderConfig private fullCopy = CopyLimitOrderConfig({
+        minTenor: 0,
+        maxTenor: type(uint256).max,
+        minAPR: 0,
+        maxAPR: type(uint256).max,
+        offsetAPR: 0
+    });
 
     uint256 private constant MIN = 0;
     uint256 private constant MAX = 255;
@@ -36,14 +41,14 @@ contract CopyLimitOrdersTest is BaseTest {
 
         _copyLimitOrders(
             alice,
-            CopyLimitOrder({
+            CopyLimitOrderConfig({
                 minTenor: 0,
                 maxTenor: type(uint256).max,
                 minAPR: 0,
                 maxAPR: type(uint256).max,
                 offsetAPR: 0
             }),
-            CopyLimitOrder({
+            CopyLimitOrderConfig({
                 minTenor: 0,
                 maxTenor: type(uint256).max,
                 minAPR: 0,
@@ -55,18 +60,18 @@ contract CopyLimitOrdersTest is BaseTest {
         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), borrowOfferAPR);
         assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), loanOfferAPR);
 
-        CopyLimitOrder memory copyLoanOffer = size.getCopyLoanOffer(alice);
-        CopyLimitOrder memory copyBorrowOffer = size.getCopyBorrowOffer(alice);
-        assertEq(copyLoanOffer.minTenor, fullCopy.minTenor);
-        assertEq(copyLoanOffer.maxTenor, fullCopy.maxTenor);
-        assertEq(copyLoanOffer.minAPR, fullCopy.minAPR);
-        assertEq(copyLoanOffer.maxAPR, fullCopy.maxAPR);
-        assertEq(copyLoanOffer.offsetAPR, fullCopy.offsetAPR);
-        assertEq(copyBorrowOffer.minTenor, fullCopy.minTenor);
-        assertEq(copyBorrowOffer.maxTenor, fullCopy.maxTenor);
-        assertEq(copyBorrowOffer.minAPR, fullCopy.minAPR);
-        assertEq(copyBorrowOffer.maxAPR, fullCopy.maxAPR);
-        assertEq(copyBorrowOffer.offsetAPR, fullCopy.offsetAPR);
+        CopyLimitOrderConfig memory copyLoanOfferConfig = size.getCopyLoanOffer(alice);
+        CopyLimitOrderConfig memory copyBorrowOfferConfig = size.getCopyBorrowOffer(alice);
+        assertEq(copyLoanOfferConfig.minTenor, fullCopy.minTenor);
+        assertEq(copyLoanOfferConfig.maxTenor, fullCopy.maxTenor);
+        assertEq(copyLoanOfferConfig.minAPR, fullCopy.minAPR);
+        assertEq(copyLoanOfferConfig.maxAPR, fullCopy.maxAPR);
+        assertEq(copyLoanOfferConfig.offsetAPR, fullCopy.offsetAPR);
+        assertEq(copyBorrowOfferConfig.minTenor, fullCopy.minTenor);
+        assertEq(copyBorrowOfferConfig.maxTenor, fullCopy.maxTenor);
+        assertEq(copyBorrowOfferConfig.minAPR, fullCopy.minAPR);
+        assertEq(copyBorrowOfferConfig.maxAPR, fullCopy.maxAPR);
+        assertEq(copyBorrowOfferConfig.offsetAPR, fullCopy.offsetAPR);
     }
 
     function test_CopyLimitOrders_copyLimitOrders_copy_only_loan_offer() public {
@@ -132,13 +137,13 @@ contract CopyLimitOrdersTest is BaseTest {
             YieldCurveHelper.customCurve(uint256(1 days), uint256(0.02e18), uint256(15 days), uint256(0.07e18))
         );
 
-        CopyLimitOrder memory copyLoanOffer =
-            CopyLimitOrder({minTenor: 4 days, maxTenor: 6 days, minAPR: 0.05e18, maxAPR: 0.1e18, offsetAPR: 0});
+        CopyLimitOrderConfig memory copyLoanOfferConfig =
+            CopyLimitOrderConfig({minTenor: 4 days, maxTenor: 6 days, minAPR: 0.05e18, maxAPR: 0.1e18, offsetAPR: 0});
 
-        CopyLimitOrder memory copyBorrowOffer =
-            CopyLimitOrder({minTenor: 2 days, maxTenor: 10 days, minAPR: 0.01e18, maxAPR: 0.03e18, offsetAPR: 0});
+        CopyLimitOrderConfig memory copyBorrowOfferConfig =
+            CopyLimitOrderConfig({minTenor: 2 days, maxTenor: 10 days, minAPR: 0.01e18, maxAPR: 0.03e18, offsetAPR: 0});
 
-        _copyLimitOrders(alice, copyLoanOffer, copyBorrowOffer);
+        _copyLimitOrders(alice, copyLoanOfferConfig, copyBorrowOfferConfig);
 
         assertEq(size.getUserDefinedLoanOfferAPR(bob, 3 days), 0.03e18);
         vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 3 days, 4 days, 6 days));
@@ -172,13 +177,13 @@ contract CopyLimitOrdersTest is BaseTest {
             YieldCurveHelper.customCurve(uint256(1 days), uint256(0.02e18), uint256(15 days), uint256(0.3e18))
         );
 
-        CopyLimitOrder memory copyLoanOffer =
-            CopyLimitOrder({minTenor: 4 days, maxTenor: 6 days, minAPR: 0.1e18, maxAPR: 0.11e18, offsetAPR: 0});
+        CopyLimitOrderConfig memory copyLoanOfferConfig =
+            CopyLimitOrderConfig({minTenor: 4 days, maxTenor: 6 days, minAPR: 0.1e18, maxAPR: 0.11e18, offsetAPR: 0});
 
-        CopyLimitOrder memory copyBorrowOffer =
-            CopyLimitOrder({minTenor: 2 days, maxTenor: 10 days, minAPR: 0.05e18, maxAPR: 0.12e18, offsetAPR: 0});
+        CopyLimitOrderConfig memory copyBorrowOfferConfig =
+            CopyLimitOrderConfig({minTenor: 2 days, maxTenor: 10 days, minAPR: 0.05e18, maxAPR: 0.12e18, offsetAPR: 0});
 
-        _copyLimitOrders(alice, copyLoanOffer, copyBorrowOffer);
+        _copyLimitOrders(alice, copyLoanOfferConfig, copyBorrowOfferConfig);
 
         assertEq(size.getUserDefinedLoanOfferAPR(bob, 4 days), 0.04e18);
         assertEq(size.getUserDefinedLoanOfferAPR(alice, 4 days), 0.1e18);
@@ -194,25 +199,28 @@ contract CopyLimitOrdersTest is BaseTest {
     }
 
     function testFuzz_CopyLimitOrders_copyLimitOrders_invariants(
-        CopyLimitOrder memory copyLoanOffer,
-        CopyLimitOrder memory copyBorrowOffer
+        CopyLimitOrderConfig memory copyLoanOfferConfig,
+        CopyLimitOrderConfig memory copyBorrowOfferConfig
     ) public {
-        copyLoanOffer.minTenor = bound(copyLoanOffer.minTenor, MIN, MAX);
-        copyLoanOffer.maxTenor = bound(copyLoanOffer.maxTenor, MIN, MAX);
-        copyLoanOffer.minAPR = bound(copyLoanOffer.minAPR, MIN, MAX);
-        copyLoanOffer.maxAPR = bound(copyLoanOffer.maxAPR, MIN, MAX);
-        copyLoanOffer.offsetAPR = bound(copyLoanOffer.offsetAPR, -int256(MAX), int256(MAX));
-        copyBorrowOffer.minTenor = bound(copyBorrowOffer.minTenor, MIN, MAX);
-        copyBorrowOffer.maxTenor = bound(copyBorrowOffer.maxTenor, MIN, MAX);
-        copyBorrowOffer.minAPR = bound(copyBorrowOffer.minAPR, MIN, MAX);
-        copyBorrowOffer.maxAPR = bound(copyBorrowOffer.maxAPR, MIN, MAX);
-        copyBorrowOffer.offsetAPR = bound(copyBorrowOffer.offsetAPR, -int256(MAX), int256(MAX));
+        copyLoanOfferConfig.minTenor = bound(copyLoanOfferConfig.minTenor, MIN, MAX);
+        copyLoanOfferConfig.maxTenor = bound(copyLoanOfferConfig.maxTenor, MIN, MAX);
+        copyLoanOfferConfig.minAPR = bound(copyLoanOfferConfig.minAPR, MIN, MAX);
+        copyLoanOfferConfig.maxAPR = bound(copyLoanOfferConfig.maxAPR, MIN, MAX);
+        copyLoanOfferConfig.offsetAPR = bound(copyLoanOfferConfig.offsetAPR, -int256(MAX), int256(MAX));
+        copyBorrowOfferConfig.minTenor = bound(copyBorrowOfferConfig.minTenor, MIN, MAX);
+        copyBorrowOfferConfig.maxTenor = bound(copyBorrowOfferConfig.maxTenor, MIN, MAX);
+        copyBorrowOfferConfig.minAPR = bound(copyBorrowOfferConfig.minAPR, MIN, MAX);
+        copyBorrowOfferConfig.maxAPR = bound(copyBorrowOfferConfig.maxAPR, MIN, MAX);
+        copyBorrowOfferConfig.offsetAPR = bound(copyBorrowOfferConfig.offsetAPR, -int256(MAX), int256(MAX));
 
         vm.prank(alice);
         try size.copyLimitOrders(
-            CopyLimitOrdersParams({copyLoanOffer: copyLoanOffer, copyBorrowOffer: copyBorrowOffer})
+            CopyLimitOrdersParams({
+                copyLoanOfferConfig: copyLoanOfferConfig,
+                copyBorrowOfferConfig: copyBorrowOfferConfig
+            })
         ) {
-            assertTrue(!OfferLibrary.isNull(copyLoanOffer) || !OfferLibrary.isNull(copyBorrowOffer));
+            assertTrue(!OfferLibrary.isNull(copyLoanOfferConfig) || !OfferLibrary.isNull(copyBorrowOfferConfig));
         } catch (bytes memory) {}
     }
 
@@ -225,7 +233,7 @@ contract CopyLimitOrdersTest is BaseTest {
             )
         );
 
-        CopyLimitOrder memory copyLoanOffer = CopyLimitOrder({
+        CopyLimitOrderConfig memory copyLoanOfferConfig = CopyLimitOrderConfig({
             minTenor: 3 days,
             maxTenor: 7 days,
             minAPR: 0.1e18,
@@ -233,7 +241,7 @@ contract CopyLimitOrdersTest is BaseTest {
             offsetAPR: 0
         });
 
-        _copyLimitOrders(alice, copyLoanOffer, nullCopy);
+        _copyLimitOrders(alice, copyLoanOfferConfig, nullCopy);
 
         assertEq(size.getUserDefinedLoanOfferAPR(alice, 3 days), 0.1e18);
         assertEq(size.getUserDefinedLoanOfferAPR(alice, 5 days), 0.1e18);
@@ -255,10 +263,10 @@ contract CopyLimitOrdersTest is BaseTest {
             )
         );
 
-        CopyLimitOrder memory copyBorrowOffer =
-            CopyLimitOrder({minTenor: 3 days, maxTenor: 15 days, minAPR: 0, maxAPR: 0.1e18, offsetAPR: 0});
+        CopyLimitOrderConfig memory copyBorrowOfferConfig =
+            CopyLimitOrderConfig({minTenor: 3 days, maxTenor: 15 days, minAPR: 0, maxAPR: 0.1e18, offsetAPR: 0});
 
-        _copyLimitOrders(alice, nullCopy, copyBorrowOffer);
+        _copyLimitOrders(alice, nullCopy, copyBorrowOfferConfig);
 
         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 3 days), 0.06e18);
         assertEq(size.getUserDefinedBorrowOfferAPR(alice, 5 days), 0.1e18);
@@ -327,7 +335,7 @@ contract CopyLimitOrdersTest is BaseTest {
             YieldCurveHelper.customCurve(uint256(30 days), uint256(0.07e18), uint256(60 days), uint256(0.18e18))
         );
 
-        CopyLimitOrder memory copyLoanOffer = CopyLimitOrder({
+        CopyLimitOrderConfig memory copyLoanOfferConfig = CopyLimitOrderConfig({
             minTenor: 0,
             maxTenor: type(uint256).max,
             minAPR: 0.1e18,
@@ -335,10 +343,15 @@ contract CopyLimitOrdersTest is BaseTest {
             offsetAPR: 0.03e18
         });
 
-        CopyLimitOrder memory copyBorrowOffer =
-            CopyLimitOrder({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: 0.12e18, offsetAPR: -0.01e18});
+        CopyLimitOrderConfig memory copyBorrowOfferConfig = CopyLimitOrderConfig({
+            minTenor: 0,
+            maxTenor: type(uint256).max,
+            minAPR: 0,
+            maxAPR: 0.12e18,
+            offsetAPR: -0.01e18
+        });
 
-        _copyLimitOrders(alice, copyLoanOffer, copyBorrowOffer);
+        _copyLimitOrders(alice, copyLoanOfferConfig, copyBorrowOfferConfig);
 
         assertEq(size.getUserDefinedLoanOfferAPR(alice, 30 days), 0.1e18);
         assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), 0.11e18);
@@ -351,7 +364,7 @@ contract CopyLimitOrdersTest is BaseTest {
         _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.03e18));
         _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
 
-        CopyLimitOrder memory loanCopy = CopyLimitOrder({
+        CopyLimitOrderConfig memory loanCopy = CopyLimitOrderConfig({
             minTenor: 0,
             maxTenor: type(uint256).max,
             minAPR: 0,
@@ -380,7 +393,7 @@ contract CopyLimitOrdersTest is BaseTest {
         _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.03e18));
         _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
 
-        CopyLimitOrder memory loanCopy = CopyLimitOrder({
+        CopyLimitOrderConfig memory loanCopy = CopyLimitOrderConfig({
             minTenor: 0,
             maxTenor: type(uint256).max,
             minAPR: 0,
@@ -444,8 +457,8 @@ contract CopyLimitOrdersTest is BaseTest {
             YieldCurveHelper.customCurve(uint256(1 days), uint256(0.15e18), uint256(15 days), uint256(0.17e18))
         );
 
-        CopyLimitOrder memory borrowCopy =
-            CopyLimitOrder({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: 0.1e18, offsetAPR: 0});
+        CopyLimitOrderConfig memory borrowCopy =
+            CopyLimitOrderConfig({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: 0.1e18, offsetAPR: 0});
 
         _copyLimitOrders(alice, fullCopy, borrowCopy);
 
@@ -485,8 +498,8 @@ contract CopyLimitOrdersTest is BaseTest {
             YieldCurveHelper.customCurve(uint256(1 days), uint256(0.15e18), uint256(15 days), uint256(0.17e18))
         );
 
-        CopyLimitOrder memory borrowCopy =
-            CopyLimitOrder({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: 0.1e18, offsetAPR: 0});
+        CopyLimitOrderConfig memory borrowCopy =
+            CopyLimitOrderConfig({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: 0.1e18, offsetAPR: 0});
 
         _copyLimitOrders(alice, fullCopy, borrowCopy);
 

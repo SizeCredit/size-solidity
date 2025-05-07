@@ -8,7 +8,7 @@ import {ICollectionsManagerView} from "@src/collections/interfaces/ICollectionsM
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
 import {ISize} from "@src/market/interfaces/ISize.sol";
-import {CopyLimitOrder, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
+import {CopyLimitOrderConfig, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
 
 /// @title CollectionsManagerView
 /// @custom:security-contact security@size.credit
@@ -17,7 +17,7 @@ import {CopyLimitOrder, OfferLibrary} from "@src/market/libraries/OfferLibrary.s
 abstract contract CollectionsManagerView is ICollectionsManagerView, CollectionsManagerBase {
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableSet for EnumerableSet.AddressSet;
-    using OfferLibrary for CopyLimitOrder;
+    using OfferLibrary for CopyLimitOrderConfig;
 
     /*//////////////////////////////////////////////////////////////
                             ERRORS
@@ -115,7 +115,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         uint256 tenor,
         bool isLoanOffer
     ) private view returns (uint256 apr) {
-        // if collectionId is RESERVED_ID, return the user-defined yield curve and ignore the user-defined CopyLimitOrder params
+        // if collectionId is RESERVED_ID, return the user-defined yield curve and ignore the user-defined CopyLimitOrderConfig params
         if (collectionId == RESERVED_ID) {
             return getUserDefinedLimitOrderAPR(user, market, tenor, isLoanOffer);
         }
@@ -126,7 +126,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         // else, return the yield curve for that collection, market and rate provider
         else {
             // validate min/max tenor
-            CopyLimitOrder memory copyLimitOrder = getCopyLimitOrder(user, collectionId, market, isLoanOffer);
+            CopyLimitOrderConfig memory copyLimitOrder = getCopyLimitOrder(user, collectionId, market, isLoanOffer);
             if (tenor < copyLimitOrder.minTenor || tenor > copyLimitOrder.maxTenor) {
                 revert InvalidTenor(tenor, copyLimitOrder.minTenor, copyLimitOrder.maxTenor);
             } else {
@@ -163,7 +163,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
     function getCopyLimitOrder(address user, uint256 collectionId, ISize market, bool isLoanOffer)
         private
         view
-        returns (CopyLimitOrder memory copyLimitOrder)
+        returns (CopyLimitOrderConfig memory copyLimitOrder)
     {
         copyLimitOrder = getUserCopyLimitOrder(user, market, isLoanOffer);
         if (copyLimitOrder.isNull()) {
@@ -174,7 +174,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
     function getUserCopyLimitOrder(address user, ISize market, bool isLoanOffer)
         public
         view
-        returns (CopyLimitOrder memory copyLimitOrder)
+        returns (CopyLimitOrderConfig memory copyLimitOrder)
     {
         return isLoanOffer ? market.getCopyLoanOffer(user) : market.getCopyBorrowOffer(user);
     }
@@ -182,7 +182,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
     function getCollectionMarketCopyLimitOrder(uint256 collectionId, ISize market, bool isLoanOffer)
         public
         view
-        returns (CopyLimitOrder memory copyLimitOrder)
+        returns (CopyLimitOrderConfig memory copyLimitOrder)
     {
         if (!isValidCollectionId(collectionId)) {
             revert InvalidCollectionId(collectionId);
@@ -191,7 +191,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
             revert MarketNotInCollection(collectionId, address(market));
         }
         return isLoanOffer
-            ? collections[collectionId][market].copyLoanOffer
-            : collections[collectionId][market].copyBorrowOffer;
+            ? collections[collectionId][market].copyLoanOfferConfig
+            : collections[collectionId][market].copyBorrowOfferConfig;
     }
 }

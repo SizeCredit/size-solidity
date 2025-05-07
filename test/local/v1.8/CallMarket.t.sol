@@ -44,8 +44,8 @@ contract CallMarketTest is BaseTest {
     SizeMock size2;
     PriceFeedMock priceFeed2;
     IERC20Metadata collateral2;
-    // CopyLimitOrder fullCopy =
-    //     CopyLimitOrder({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: type(uint256).max, offsetAPR: 0});
+    // CopyLimitOrderConfig fullCopy =
+    //     CopyLimitOrderConfig({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: type(uint256).max, offsetAPR: 0});
 
     function setUp() public override {
         super.setUp();
@@ -242,8 +242,8 @@ contract CallMarketTest is BaseTest {
     //                     CopyLimitOrdersOnBehalfOfParams({
     //                         params: CopyLimitOrdersParams({
     //                             copyAddress: alice,
-    //                             copyLoanOffer: fullCopy,
-    //                             copyBorrowOffer: fullCopy
+    //                             copyLoanOfferConfig: fullCopy,
+    //                             copyBorrowOfferConfig: fullCopy
     //                         }),
     //                         onBehalfOf: bob
     //                     })
@@ -261,8 +261,8 @@ contract CallMarketTest is BaseTest {
     //                     CopyLimitOrdersOnBehalfOfParams({
     //                         params: CopyLimitOrdersParams({
     //                             copyAddress: alice,
-    //                             copyLoanOffer: fullCopy,
-    //                             copyBorrowOffer: fullCopy
+    //                             copyLoanOfferConfig: fullCopy,
+    //                             copyBorrowOfferConfig: fullCopy
     //                         }),
     //                         onBehalfOf: bob
     //                     })
@@ -350,8 +350,8 @@ contract CallMarketTest is BaseTest {
     //                     CopyLimitOrdersOnBehalfOfParams({
     //                         params: CopyLimitOrdersParams({
     //                             copyAddress: alice,
-    //                             copyLoanOffer: fullCopy,
-    //                             copyBorrowOffer: fullCopy
+    //                             copyLoanOfferConfig: fullCopy,
+    //                             copyBorrowOfferConfig: fullCopy
     //                         }),
     //                         onBehalfOf: candy
     //                     })
@@ -369,8 +369,8 @@ contract CallMarketTest is BaseTest {
     //                     CopyLimitOrdersOnBehalfOfParams({
     //                         params: CopyLimitOrdersParams({
     //                             copyAddress: alice,
-    //                             copyLoanOffer: fullCopy,
-    //                             copyBorrowOffer: fullCopy
+    //                             copyLoanOfferConfig: fullCopy,
+    //                             copyBorrowOfferConfig: fullCopy
     //                         }),
     //                         onBehalfOf: candy
     //                     })
