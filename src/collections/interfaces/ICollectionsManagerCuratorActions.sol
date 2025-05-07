@@ -16,13 +16,13 @@ interface ICollectionsManagerCuratorActions {
     /// @notice Adds markets to a collection
     /// @param collectionId The collection ID
     /// @param markets The markets to add
-    /// @param copyLoanOffers The copy limit order parameters for loan offers
-    /// @param copyBorrowOffers The copy limit order parameters for borrow offers
+    /// @param copyLoanOfferConfigs The copy limit order parameters for loan offers
+    /// @param copyBorrowOfferConfigs The copy limit order parameters for borrow offers
     function addMarketsToCollection(
         uint256 collectionId,
         ISize[] memory markets,
-        CopyLimitOrderConfig[] memory copyLoanOffers,
-        CopyLimitOrderConfig[] memory copyBorrowOffers
+        CopyLimitOrderConfig[] memory copyLoanOfferConfigs,
+        CopyLimitOrderConfig[] memory copyBorrowOfferConfigs
     ) external;
 
     /// @notice Removes markets from a collection

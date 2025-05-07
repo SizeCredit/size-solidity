@@ -68,10 +68,10 @@ abstract contract CollectionsManagerCuratorActions is
     function addMarketsToCollection(
         uint256 collectionId,
         ISize[] memory markets,
-        CopyLimitOrderConfig[] memory copyLoanOffers,
-        CopyLimitOrderConfig[] memory copyBorrowOffers
+        CopyLimitOrderConfig[] memory copyLoanOfferConfigs,
+        CopyLimitOrderConfig[] memory copyBorrowOfferConfigs
     ) external onlyCollectionCuratorAuthorized(collectionId) {
-        if (markets.length != copyLoanOffers.length || markets.length != copyBorrowOffers.length) {
+        if (markets.length != copyLoanOfferConfigs.length || markets.length != copyBorrowOfferConfigs.length) {
             revert Errors.ARRAY_LENGTHS_MISMATCH();
         }
 
@@ -80,24 +80,24 @@ abstract contract CollectionsManagerCuratorActions is
             if (!sizeFactory.isMarket(address(markets[i]))) {
                 revert Errors.INVALID_MARKET(address(markets[i]));
             }
-            if (copyLoanOffers[i].minTenor > copyLoanOffers[i].maxTenor) {
-                revert Errors.INVALID_TENOR_RANGE(copyLoanOffers[i].minTenor, copyLoanOffers[i].maxTenor);
+            if (copyLoanOfferConfigs[i].minTenor > copyLoanOfferConfigs[i].maxTenor) {
+                revert Errors.INVALID_TENOR_RANGE(copyLoanOfferConfigs[i].minTenor, copyLoanOfferConfigs[i].maxTenor);
             }
-            if (copyLoanOffers[i].minAPR > copyLoanOffers[i].maxAPR) {
-                revert Errors.INVALID_APR_RANGE(copyLoanOffers[i].minAPR, copyLoanOffers[i].maxAPR);
+            if (copyLoanOfferConfigs[i].minAPR > copyLoanOfferConfigs[i].maxAPR) {
+                revert Errors.INVALID_APR_RANGE(copyLoanOfferConfigs[i].minAPR, copyLoanOfferConfigs[i].maxAPR);
             }
-            if (copyBorrowOffers[i].minTenor > copyBorrowOffers[i].maxTenor) {
-                revert Errors.INVALID_TENOR_RANGE(copyBorrowOffers[i].minTenor, copyBorrowOffers[i].maxTenor);
+            if (copyBorrowOfferConfigs[i].minTenor > copyBorrowOfferConfigs[i].maxTenor) {
+                revert Errors.INVALID_TENOR_RANGE(copyBorrowOfferConfigs[i].minTenor, copyBorrowOfferConfigs[i].maxTenor);
             }
-            if (copyBorrowOffers[i].minAPR > copyBorrowOffers[i].maxAPR) {
-                revert Errors.INVALID_APR_RANGE(copyBorrowOffers[i].minAPR, copyBorrowOffers[i].maxAPR);
+            if (copyBorrowOfferConfigs[i].minAPR > copyBorrowOfferConfigs[i].maxAPR) {
+                revert Errors.INVALID_APR_RANGE(copyBorrowOfferConfigs[i].minAPR, copyBorrowOfferConfigs[i].maxAPR);
             }
 
             collections[collectionId][markets[i]].initialized = true;
-            collections[collectionId][markets[i]].copyLoanOfferConfig = copyLoanOffers[i];
-            collections[collectionId][markets[i]].copyBorrowOfferConfig = copyBorrowOffers[i];
+            collections[collectionId][markets[i]].copyLoanOfferConfig = copyLoanOfferConfigs[i];
+            collections[collectionId][markets[i]].copyBorrowOfferConfig = copyBorrowOfferConfigs[i];
 
-            emit AddMarketToCollection(collectionId, address(markets[i]), copyLoanOffers[i], copyBorrowOffers[i]);
+            emit AddMarketToCollection(collectionId, address(markets[i]), copyLoanOfferConfigs[i], copyBorrowOfferConfigs[i]);
         }
         // slither-disable-end calls-loop
     }
