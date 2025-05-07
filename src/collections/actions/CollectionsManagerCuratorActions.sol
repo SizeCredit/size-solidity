@@ -83,6 +83,7 @@ abstract contract CollectionsManagerCuratorActions is
             revert Errors.ARRAY_LENGTHS_MISMATCH();
         }
 
+        // slither-disable-start calls-loop
         for (uint256 i = 0; i < markets.length; i++) {
             if (!sizeFactory.isMarket(address(markets[i]))) {
                 revert Errors.INVALID_MARKET(address(markets[i]));
@@ -106,6 +107,7 @@ abstract contract CollectionsManagerCuratorActions is
 
             emit AddMarketToCollection(collectionId, address(markets[i]), copyLoanOffers[i], copyBorrowOffers[i]);
         }
+        // slither-disable-end calls-loop
     }
 
     /// @inheritdoc ICollectionsManagerCuratorActions
@@ -129,6 +131,7 @@ abstract contract CollectionsManagerCuratorActions is
         }
 
         for (uint256 i = 0; i < rateProviders.length; i++) {
+            // slither-disable-next-line unused-return
             collections[collectionId][market].rateProviders.add(rateProviders[i]);
             emit AddRateProviderToMarket(collectionId, address(market), rateProviders[i]);
         }
@@ -144,6 +147,7 @@ abstract contract CollectionsManagerCuratorActions is
         }
 
         for (uint256 i = 0; i < rateProviders.length; i++) {
+            // slither-disable-next-line unused-return
             collections[collectionId][market].rateProviders.remove(rateProviders[i]);
             emit RemoveRateProviderFromMarket(collectionId, address(market), rateProviders[i]);
         }

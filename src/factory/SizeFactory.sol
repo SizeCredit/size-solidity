@@ -94,37 +94,43 @@ contract SizeFactory is
         collectionsManager = _collectionsManager;
         emit CollectionsManagerSet(address(0), address(_collectionsManager));
 
-        YieldCurve memory nullCurve;
+        // slither-disable-start uninitialized-local
+        BuyCreditLimitParams memory nullBuyCreditLimitParams;
+        SellCreditLimitParams memory nullSellCreditLimitParams;
+        // slither-disable-ebd uninitialized-local
+
+        // slither-disable-start calls-loop
+        // slither-disable-start reentrancy-benign
         for (uint256 i = 0; i < users.length; i++) {
             collectionsManager.subscribeUserToCollections(users[i], collectionIds);
-            bool authorizationSet = false;
-            for (uint256 j = 0; j < markets.length(); j++) {
-                ISize market = ISize(markets.at(j));
-                bool marketContainsCollection = collectionsManager.collectionContainsMarket(collectionIds[i], market);
-                if (marketContainsCollection) {
-                    if (!authorizationSet) {
-                        Action[] memory actions = new Action[](2);
-                        actions[0] = Action.BUY_CREDIT_LIMIT;
-                        actions[1] = Action.SELL_CREDIT_LIMIT;
-                        _setAuthorization(address(this), users[i], Authorization.getActionsBitmap(actions));
-                        authorizationSet = true;
+            for (uint256 j = 0; j < collectionIds.length; j++) {
+                bool authorizationSetForUser = false;
+                for (uint256 k = 0; k < markets.length(); k++) {
+                    ISize market = ISize(markets.at(k));
+                    if (collectionsManager.collectionContainsMarket(collectionIds[j], market)) {
+                        if (!authorizationSetForUser) {
+                            Action[] memory actions = new Action[](2);
+                            actions[0] = Action.BUY_CREDIT_LIMIT;
+                            actions[1] = Action.SELL_CREDIT_LIMIT;
+                            _setAuthorization(address(this), users[i], Authorization.getActionsBitmap(actions));
+                            authorizationSetForUser = true;
+                        }
+
+                        market.buyCreditLimitOnBehalfOf(
+                            BuyCreditLimitOnBehalfOfParams({params: nullBuyCreditLimitParams, onBehalfOf: users[i]})
+                        );
+                        market.sellCreditLimitOnBehalfOf(
+                            SellCreditLimitOnBehalfOfParams({params: nullSellCreditLimitParams, onBehalfOf: users[i]})
+                        );
                     }
-                    market.buyCreditLimitOnBehalfOf(
-                        BuyCreditLimitOnBehalfOfParams({
-                            params: BuyCreditLimitParams({maxDueDate: 0, curveRelativeTime: nullCurve}),
-                            onBehalfOf: users[i]
-                        })
-                    );
-                    market.sellCreditLimitOnBehalfOf(
-                        SellCreditLimitOnBehalfOfParams({
-                            params: SellCreditLimitParams({maxDueDate: 0, curveRelativeTime: nullCurve}),
-                            onBehalfOf: users[i]
-                        })
-                    );
+                }
+                if (authorizationSetForUser) {
+                    _setAuthorization(address(this), users[i], Authorization.nullActionsBitmap());
                 }
             }
-            _setAuthorization(address(this), users[i], Authorization.nullActionsBitmap());
         }
+        // slither-disable-end reentrancy-benign
+        // slither-disable-end calls-loop
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
