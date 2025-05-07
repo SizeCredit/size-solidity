@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {Test} from "forge-std/Test.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
 import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
@@ -527,5 +528,41 @@ contract BaseTest is Test, Deploy, AssertsHelper {
     function _createCollection(address user) internal returns (uint256 collectionId) {
         vm.prank(user);
         collectionId = collectionsManager.createCollection();
+    }
+
+    function _addMarketToCollection(address user, uint256 collectionId, ISize market) internal {
+        ISize[] memory markets = new ISize[](1);
+        markets[0] = market;
+        CopyLimitOrderConfig[] memory fullCopies = new CopyLimitOrderConfig[](1);
+        fullCopies[0] = CopyLimitOrderConfig({
+            minTenor: 0,
+            maxTenor: type(uint256).max,
+            minAPR: 0,
+            maxAPR: type(uint256).max,
+            offsetAPR: 0
+        });
+        vm.prank(user);
+        collectionsManager.addMarketsToCollection(collectionId, markets, fullCopies, fullCopies);
+    }
+
+    function _addRateProviderToCollectionMarket(address user, uint256 collectionId, ISize market, address rateProvider)
+        internal
+    {
+        address[] memory rateProviders = new address[](1);
+        rateProviders[0] = rateProvider;
+        vm.prank(user);
+        collectionsManager.addRateProvidersToCollectionMarket(collectionId, market, rateProviders);
+    }
+
+    function _removeRateProviderFromCollectionMarket(
+        address user,
+        uint256 collectionId,
+        ISize market,
+        address rateProvider
+    ) internal {
+        address[] memory rateProviders = new address[](1);
+        rateProviders[0] = rateProvider;
+        vm.prank(user);
+        collectionsManager.removeRateProvidersFromCollectionMarket(collectionId, market, rateProviders);
     }
 }

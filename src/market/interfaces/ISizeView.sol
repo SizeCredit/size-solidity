@@ -5,7 +5,6 @@ import {UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
 
 import {DataView, UserView} from "@src/market/SizeViewData.sol";
 import {CreditPosition, DebtPosition, LoanStatus} from "@src/market/libraries/LoanLibrary.sol";
-import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 import {BuyCreditMarket, BuyCreditMarketWithCollectionParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {
     InitializeFeeConfigParams,
@@ -59,16 +58,6 @@ interface ISizeView is ISizeViewV1_7, ISizeViewV1_8 {
     /// @param user The address of the user
     /// @return The user view
     function getUserView(address user) external view returns (UserView memory);
-
-    /// @notice Get the user copy loan offer for a given user
-    /// @param user The address of the user
-    /// @return The user copy loan offer
-    function getCopyLoanOffer(address user) external view returns (CopyLimitOrderConfig memory);
-
-    /// @notice Get the user copy borrow offer for a given user
-    /// @param user The address of the user
-    /// @return The user copy borrow offer
-    function getCopyBorrowOffer(address user) external view returns (CopyLimitOrderConfig memory);
 
     /// @notice Get the user vault for a given user
     /// @param user The address of the user

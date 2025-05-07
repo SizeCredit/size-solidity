@@ -23,4 +23,17 @@ contract CollectionsManagerUserActionsTest is BaseTest {
 
         assertEq(sizeFactory.collectionsManager().isSubscribedToCollection(bob, collectionId), false);
     }
+
+    function test_CollectionsManagerUserActions_getSubscribedCollections() public {
+        uint256 collectionId = _createCollection(alice);
+        uint256 collectionId2 = _createCollection(bob);
+
+        _subscribeToCollection(candy, collectionId);
+        _subscribeToCollection(candy, collectionId2);
+
+        uint256[] memory collectionIds = collectionsManager.getSubscribedCollections(candy);
+        assertEq(collectionIds.length, 2);
+        assertEq(collectionIds[0], collectionId);
+        assertEq(collectionIds[1], collectionId2);
+    }
 }

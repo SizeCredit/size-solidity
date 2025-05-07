@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {SizeStorage, State, User, UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
+import {SizeStorage, State, User} from "@src/market/SizeStorage.sol";
 
 import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 import {VariablePoolBorrowRateParams} from "@src/market/libraries/YieldCurveLibrary.sol";
@@ -118,13 +118,13 @@ abstract contract SizeView is SizeStorage, ISizeView {
         });
     }
 
-    /// @inheritdoc ISizeView
-    function getCopyLoanOffer(address user) external view returns (CopyLimitOrderConfig memory) {
+    /// @inheritdoc ISizeViewV1_8
+    function getUserDefinedCopyLoanOfferConfig(address user) external view returns (CopyLimitOrderConfig memory) {
         return state.data.usersCopyLimitOrders[user].copyLoanOfferConfig;
     }
 
-    /// @inheritdoc ISizeView
-    function getCopyBorrowOffer(address user) external view returns (CopyLimitOrderConfig memory) {
+    /// @inheritdoc ISizeViewV1_8
+    function getUserDefinedCopyBorrowOfferConfig(address user) external view returns (CopyLimitOrderConfig memory) {
         return state.data.usersCopyLimitOrders[user].copyBorrowOfferConfig;
     }
 
@@ -167,13 +167,31 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     /// @inheritdoc ISizeViewV1_8
+    function getUserDefinedLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256) {
+        return state.getUserDefinedLoanOfferAPR(lender, tenor);
+    }
+
+    /// @inheritdoc ISizeViewV1_8
     function getUserDefinedBorrowOfferAPR(address borrower, uint256 tenor) external view returns (uint256) {
         return state.getUserDefinedBorrowOfferAPR(borrower, tenor);
     }
 
     /// @inheritdoc ISizeViewV1_8
-    function getUserDefinedLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256) {
-        return state.getUserDefinedLoanOfferAPR(lender, tenor);
+    function getLoanOfferAPR(address user, uint256 collectionId, address rateProvider, uint256 tenor)
+        external
+        view
+        returns (uint256)
+    {
+        return state.getLoanOfferAPR(user, collectionId, rateProvider, tenor);
+    }
+
+    /// @inheritdoc ISizeViewV1_8
+    function getBorrowOfferAPR(address user, uint256 collectionId, address rateProvider, uint256 tenor)
+        external
+        view
+        returns (uint256)
+    {
+        return state.getBorrowOfferAPR(user, collectionId, rateProvider, tenor);
     }
 
     /// @inheritdoc ISizeView

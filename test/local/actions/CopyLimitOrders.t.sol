@@ -56,8 +56,8 @@ contract CopyLimitOrdersTest is BaseTest {
             })
         );
 
-        CopyLimitOrderConfig memory copyLoanOfferConfig = size.getCopyLoanOffer(alice);
-        CopyLimitOrderConfig memory copyBorrowOfferConfig = size.getCopyBorrowOffer(alice);
+        CopyLimitOrderConfig memory copyLoanOfferConfig = size.getUserDefinedCopyLoanOfferConfig(alice);
+        CopyLimitOrderConfig memory copyBorrowOfferConfig = size.getUserDefinedCopyBorrowOfferConfig(alice);
         assertEq(copyLoanOfferConfig.minTenor, fullCopy.minTenor);
         assertEq(copyLoanOfferConfig.maxTenor, fullCopy.maxTenor);
         assertEq(copyLoanOfferConfig.minAPR, fullCopy.minAPR);
@@ -77,8 +77,8 @@ contract CopyLimitOrdersTest is BaseTest {
         _copyLimitOrders(alice, fullCopy, fullCopy);
         _copyLimitOrders(alice, nullCopy, nullCopy);
 
-        CopyLimitOrderConfig memory copyLoanOfferConfig = size.getCopyLoanOffer(alice);
-        CopyLimitOrderConfig memory copyBorrowOfferConfig = size.getCopyBorrowOffer(alice);
+        CopyLimitOrderConfig memory copyLoanOfferConfig = size.getUserDefinedCopyLoanOfferConfig(alice);
+        CopyLimitOrderConfig memory copyBorrowOfferConfig = size.getUserDefinedCopyBorrowOfferConfig(alice);
         assertEq(copyLoanOfferConfig.minTenor, 0);
         assertEq(copyLoanOfferConfig.maxTenor, 0);
         assertEq(copyLoanOfferConfig.minAPR, 0);

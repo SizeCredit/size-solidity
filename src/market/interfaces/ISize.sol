@@ -207,5 +207,7 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall, ISizeV1_7, ISizeV1_8 {
     ///       - uint256 maxAPR: The maximum APR of the borrow offer to copy (type(uint256).max means use copy yield curve APR upper bound)
     ///       - int256 offsetAPR: The offset APR relative to the copied borrow offer
     /// @dev Does not erase the user's loan offer and borrow offer
+    ///      To specify "no copy", pass a null CopyLimitOrderConfig except for offsetAPR, since a completely null CopyLimitOrderConfig
+    ///        will default to the curator-defined CopyLimitOrderConfig for that market.
     function copyLimitOrders(CopyLimitOrdersParams calldata params) external payable;
 }

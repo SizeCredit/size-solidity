@@ -115,7 +115,8 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         uint256 tenor,
         bool isLoanOffer
     ) private view returns (uint256 apr) {
-        // if collectionId is RESERVED_ID, return the user-defined yield curve and ignore the user-defined CopyLimitOrderConfig params
+        // if collectionId is RESERVED_ID, return the user-defined yield curve
+        //   and ignore the user-defined CopyLimitOrderConfig params
         if (collectionId == RESERVED_ID) {
             return getUserDefinedLimitOrderAPR(user, market, tenor, isLoanOffer);
         }
@@ -130,7 +131,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
             if (tenor < copyLimitOrder.minTenor || tenor > copyLimitOrder.maxTenor) {
                 revert InvalidTenor(tenor, copyLimitOrder.minTenor, copyLimitOrder.maxTenor);
             } else {
-                uint256 baseAPR = market.getUserDefinedLoanOfferAPR(rateProvider, tenor);
+                uint256 baseAPR = getUserDefinedLimitOrderAPR(rateProvider, market, tenor, isLoanOffer);
                 // apply offset APR
                 apr = SafeCast.toUint256(SafeCast.toInt256(baseAPR) + copyLimitOrder.offsetAPR);
                 // validate min/max APR
@@ -161,22 +162,24 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
 
     /// @dev Reverts if the collection id is invalid or the market is not in the collection
     function getCopyLimitOrder(address user, uint256 collectionId, ISize market, bool isLoanOffer)
-        private
+        public
         view
         returns (CopyLimitOrderConfig memory copyLimitOrder)
     {
-        copyLimitOrder = getUserCopyLimitOrder(user, market, isLoanOffer);
+        copyLimitOrder = getUserDefinedCopyLimitOrderConfig(user, market, isLoanOffer);
         if (copyLimitOrder.isNull()) {
             copyLimitOrder = getCollectionMarketCopyLimitOrder(collectionId, market, isLoanOffer);
         }
     }
 
-    function getUserCopyLimitOrder(address user, ISize market, bool isLoanOffer)
+    function getUserDefinedCopyLimitOrderConfig(address user, ISize market, bool isLoanOffer)
         public
         view
         returns (CopyLimitOrderConfig memory copyLimitOrder)
     {
-        return isLoanOffer ? market.getCopyLoanOffer(user) : market.getCopyBorrowOffer(user);
+        return isLoanOffer
+            ? market.getUserDefinedCopyLoanOfferConfig(user)
+            : market.getUserDefinedCopyBorrowOfferConfig(user);
     }
 
     function getCollectionMarketCopyLimitOrder(uint256 collectionId, ISize market, bool isLoanOffer)
