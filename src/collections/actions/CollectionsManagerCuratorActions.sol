@@ -30,22 +30,6 @@ abstract contract CollectionsManagerCuratorActions is
     using EnumerableSet for EnumerableSet.AddressSet;
 
     /*//////////////////////////////////////////////////////////////
-                            EVENTS
-    //////////////////////////////////////////////////////////////*/
-
-    event AddMarketToCollection(
-        uint256 indexed collectionId,
-        address indexed market,
-        CopyLimitOrderConfig copyLoanOfferConfig,
-        CopyLimitOrderConfig copyBorrowOfferConfig
-    );
-    event RemoveMarketFromCollection(uint256 indexed collectionId, address indexed market);
-    event AddRateProviderToMarket(uint256 indexed collectionId, address indexed market, address indexed rateProvider);
-    event RemoveRateProviderFromMarket(
-        uint256 indexed collectionId, address indexed market, address indexed rateProvider
-    );
-
-    /*//////////////////////////////////////////////////////////////
                             MODIFIERS
     //////////////////////////////////////////////////////////////*/
 
@@ -87,7 +71,9 @@ abstract contract CollectionsManagerCuratorActions is
                 revert Errors.INVALID_APR_RANGE(copyLoanOfferConfigs[i].minAPR, copyLoanOfferConfigs[i].maxAPR);
             }
             if (copyBorrowOfferConfigs[i].minTenor > copyBorrowOfferConfigs[i].maxTenor) {
-                revert Errors.INVALID_TENOR_RANGE(copyBorrowOfferConfigs[i].minTenor, copyBorrowOfferConfigs[i].maxTenor);
+                revert Errors.INVALID_TENOR_RANGE(
+                    copyBorrowOfferConfigs[i].minTenor, copyBorrowOfferConfigs[i].maxTenor
+                );
             }
             if (copyBorrowOfferConfigs[i].minAPR > copyBorrowOfferConfigs[i].maxAPR) {
                 revert Errors.INVALID_APR_RANGE(copyBorrowOfferConfigs[i].minAPR, copyBorrowOfferConfigs[i].maxAPR);
@@ -97,7 +83,9 @@ abstract contract CollectionsManagerCuratorActions is
             collections[collectionId][markets[i]].copyLoanOfferConfig = copyLoanOfferConfigs[i];
             collections[collectionId][markets[i]].copyBorrowOfferConfig = copyBorrowOfferConfigs[i];
 
-            emit AddMarketToCollection(collectionId, address(markets[i]), copyLoanOfferConfigs[i], copyBorrowOfferConfigs[i]);
+            emit AddMarketToCollection(
+                collectionId, address(markets[i]), copyLoanOfferConfigs[i], copyBorrowOfferConfigs[i]
+            );
         }
         // slither-disable-end calls-loop
     }

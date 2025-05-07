@@ -13,13 +13,6 @@ abstract contract CollectionsManagerUserActions is ICollectionsManagerUserAction
     using EnumerableSet for EnumerableSet.UintSet;
 
     /*//////////////////////////////////////////////////////////////
-                            EVENTS
-    //////////////////////////////////////////////////////////////*/
-
-    event SubscribedToCollection(address indexed user, uint256 indexed collectionId);
-    event UnsubscribedFromCollection(address indexed user, uint256 indexed collectionId);
-
-    /*//////////////////////////////////////////////////////////////
                             USER ACTIONS
     //////////////////////////////////////////////////////////////*/
 

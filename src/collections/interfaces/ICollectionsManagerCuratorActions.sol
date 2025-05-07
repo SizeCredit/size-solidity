@@ -8,6 +8,26 @@ import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 /// @author Size (https://size.credit/)
 
 interface ICollectionsManagerCuratorActions {
+    /*//////////////////////////////////////////////////////////////
+                            EVENTS
+    //////////////////////////////////////////////////////////////*/
+
+    event AddMarketToCollection(
+        uint256 indexed collectionId,
+        address indexed market,
+        CopyLimitOrderConfig copyLoanOfferConfig,
+        CopyLimitOrderConfig copyBorrowOfferConfig
+    );
+    event RemoveMarketFromCollection(uint256 indexed collectionId, address indexed market);
+    event AddRateProviderToMarket(uint256 indexed collectionId, address indexed market, address indexed rateProvider);
+    event RemoveRateProviderFromMarket(
+        uint256 indexed collectionId, address indexed market, address indexed rateProvider
+    );
+
+    /*//////////////////////////////////////////////////////////////
+                            ACTIONS
+    //////////////////////////////////////////////////////////////*/
+
     /// @notice Creates a new collection
     /// @return collectionId The collection ID
     /// @dev Mints a ERC721EnumerableUpgradeable NFT collection to the curator. Can be used to transfer ownership of the collection to another curator.

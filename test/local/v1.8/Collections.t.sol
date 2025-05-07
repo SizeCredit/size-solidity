@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {CollectionsManagerView} from "@src/collections/actions/CollectionsManagerView.sol";
+import {ICollectionsManagerView} from "@src/collections/interfaces/ICollectionsManagerView.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 
@@ -63,7 +63,7 @@ contract CollectionsTest is BaseTest {
         _copyLimitOrders(alice, fullCopy, noCopy);
         _subscribeToCollection(alice, collectionId);
 
-        vm.expectRevert(abi.encodeWithSelector(CollectionsManagerView.InvalidTenor.selector, 30 days, 0, 0));
+        vm.expectRevert(abi.encodeWithSelector(ICollectionsManagerView.InvalidTenor.selector, 30 days, 0, 0));
         size.getBorrowOfferAPR(alice, collectionId, bob, 30 days);
 
         assertEq(size.getLoanOfferAPR(alice, collectionId, bob, 60 days), 0.08e18);
@@ -85,7 +85,7 @@ contract CollectionsTest is BaseTest {
         _copyLimitOrders(alice, noCopy, fullCopy);
         _subscribeToCollection(alice, collectionId);
 
-        vm.expectRevert(abi.encodeWithSelector(CollectionsManagerView.InvalidTenor.selector, 60 days, 0, 0));
+        vm.expectRevert(abi.encodeWithSelector(ICollectionsManagerView.InvalidTenor.selector, 60 days, 0, 0));
         size.getLoanOfferAPR(alice, collectionId, bob, 60 days);
 
         assertEq(size.getBorrowOfferAPR(alice, collectionId, bob, 30 days), 0.05e18);
@@ -114,7 +114,7 @@ contract CollectionsTest is BaseTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                CollectionsManagerView.InvalidCollectionMarketRateProvider.selector,
+                ICollectionsManagerView.InvalidCollectionMarketRateProvider.selector,
                 collectionId,
                 address(size),
                 address(bob)
@@ -123,7 +123,7 @@ contract CollectionsTest is BaseTest {
         size.getBorrowOfferAPR(alice, collectionId, bob, 30 days);
         vm.expectRevert(
             abi.encodeWithSelector(
-                CollectionsManagerView.InvalidCollectionMarketRateProvider.selector,
+                ICollectionsManagerView.InvalidCollectionMarketRateProvider.selector,
                 collectionId,
                 address(size),
                 address(bob)

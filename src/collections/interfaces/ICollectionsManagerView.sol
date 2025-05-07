@@ -8,6 +8,17 @@ import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 interface ICollectionsManagerView {
+    /*//////////////////////////////////////////////////////////////
+                            ERRORS
+    //////////////////////////////////////////////////////////////*/
+
+    error InvalidCollectionMarketRateProvider(uint256 collectionId, address market, address rateProvider);
+    error InvalidTenor(uint256 tenor, uint256 minTenor, uint256 maxTenor);
+
+    /*//////////////////////////////////////////////////////////////
+                            VIEW
+    //////////////////////////////////////////////////////////////*/
+
     /// @notice Check if a collection ID is valid
     /// @param collectionId The collection ID to check
     /// @return True if the collection ID is valid, false otherwise

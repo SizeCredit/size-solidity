@@ -20,13 +20,6 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
     using OfferLibrary for CopyLimitOrderConfig;
 
     /*//////////////////////////////////////////////////////////////
-                            ERRORS
-    //////////////////////////////////////////////////////////////*/
-
-    error InvalidCollectionMarketRateProvider(uint256 collectionId, address market, address rateProvider);
-    error InvalidTenor(uint256 tenor, uint256 minTenor, uint256 maxTenor);
-
-    /*//////////////////////////////////////////////////////////////
                             COLLECTION VIEW
     //////////////////////////////////////////////////////////////*/
 
