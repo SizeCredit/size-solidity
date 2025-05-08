@@ -25,6 +25,21 @@ import {
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
+import {
+    InitializeDataParams,
+    InitializeFeeConfigParams,
+    InitializeOracleParams,
+    InitializeRiskConfigParams
+} from "@src/market/libraries/actions/Initialize.sol";
+
+import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
+
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {DataView} from "@src/market/SizeViewData.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
+import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
+import {SizeMock} from "@test/mocks/SizeMock.sol";
+
 contract CollectionsTest is BaseTest {
     CopyLimitOrderConfig private nullCopy;
     CopyLimitOrderConfig private noCopy =
@@ -37,8 +52,42 @@ contract CollectionsTest is BaseTest {
         offsetAPR: 0
     });
 
-    uint256 private constant MIN = 0;
-    uint256 private constant MAX = 255;
+    SizeMock size1;
+    SizeMock size2;
+    PriceFeedMock priceFeed2;
+    IERC20Metadata collateral2;
+
+    function setUp() public override {
+        super.setUp();
+        collateral2 = IERC20Metadata(address(new ERC20Mock()));
+        priceFeed2 = new PriceFeedMock(address(this));
+        priceFeed2.setPrice(1e18);
+
+        ISize market = sizeFactory.getMarket(0);
+        InitializeFeeConfigParams memory feeConfigParams = market.feeConfig();
+
+        InitializeRiskConfigParams memory riskConfigParams = market.riskConfig();
+        riskConfigParams.crOpening = 1.12e18;
+        riskConfigParams.crLiquidation = 1.09e18;
+
+        InitializeOracleParams memory oracleParams = market.oracle();
+        oracleParams.priceFeed = address(priceFeed2);
+
+        DataView memory dataView = market.data();
+        InitializeDataParams memory dataParams = InitializeDataParams({
+            weth: address(weth),
+            underlyingCollateralToken: address(collateral2),
+            underlyingBorrowToken: address(dataView.underlyingBorrowToken),
+            variablePool: address(dataView.variablePool),
+            borrowTokenVault: address(dataView.borrowTokenVault),
+            sizeFactory: address(sizeFactory)
+        });
+        size2 = SizeMock(address(sizeFactory.createMarket(feeConfigParams, riskConfigParams, oracleParams, dataParams)));
+        size1 = size;
+
+        vm.label(address(size1), "Size1");
+        vm.label(address(size2), "Size2");
+    }
 
     function test_Collections_subscribeToCollection_check_APR() public {
         _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
@@ -652,5 +701,19 @@ contract CollectionsTest is BaseTest {
         uint256 debtPositionId = 0;
         uint256 futureValue = 10e6 + uint256(10e6 * 0.075e18 * 5 days) / 365 days / 1e18 + 1;
         assertEq(size.getDebtPosition(debtPositionId).futureValue, futureValue);
+    }
+
+    function test_Collections_isCopyingCollectionMarketRateProvider() public {
+        _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
+
+        uint256 collectionId = _createCollection(james);
+        _addMarketToCollection(james, collectionId, size1);
+        _addRateProviderToCollectionMarket(james, collectionId, size1, bob);
+
+        _subscribeToCollection(alice, collectionId);
+
+        assertEq(collectionsManager.isCopyingCollectionMarketRateProvider(alice, collectionId + 1, size1, bob), false);
+        assertEq(collectionsManager.isCopyingCollectionMarketRateProvider(alice, collectionId, size2, bob), false);
+        assertEq(collectionsManager.isCopyingCollectionMarketRateProvider(alice, collectionId, size1, bob), true);
     }
 }
