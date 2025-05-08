@@ -2,6 +2,8 @@
 pragma solidity 0.8.23;
 
 import {IERC721Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
+
+import {CollectionsManagerBase} from "@src/collections/CollectionsManagerBase.sol";
 import {CollectionsManagerCuratorActions} from "@src/collections/actions/CollectionsManagerCuratorActions.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
@@ -12,6 +14,7 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
         uint256 collectionId = _createCollection(alice);
         assertEq(collectionsManager.isValidCollectionId(collectionId), true);
         assertEq(collectionsManager.ownerOf(collectionId), alice);
+        assertEq(collectionsManager.tokenURI(collectionId), "https://size.credit/collections/1/1");
     }
 
     function test_CollectionsManagerCuratorActions_transfer_collection() public {
@@ -65,6 +68,8 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
         collectionsManager.addMarketsToCollection(collectionId, markets, fullCopies, fullCopies);
 
         assertEq(collectionsManager.collectionContainsMarket(collectionId, size), true);
+
+        assertEq(collectionsManager.collectionContainsMarket(type(uint256).max, size), false);
     }
 
     function test_CollectionsManagerCuratorActions_addMarketsToCollection_curator() public {
@@ -113,6 +118,11 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
     function test_CollectionsManagerCuratorActions_addRateProvidersToCollectionMarket() public {
         uint256 collectionId = _createCollection(alice);
 
+        vm.expectRevert(
+            abi.encodeWithSelector(CollectionsManagerBase.MarketNotInCollection.selector, collectionId, address(size))
+        );
+        collectionsManager.getCollectionMarketRateProviders(collectionId, size);
+
         CopyLimitOrderConfig[] memory fullCopies = new CopyLimitOrderConfig[](1);
         fullCopies[0] = CopyLimitOrderConfig({
             minTenor: 0,
@@ -137,6 +147,9 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
         assertEq(ans.length, 2);
         assertEq(ans[0], bob);
         assertEq(ans[1], candy);
+
+        vm.expectRevert(abi.encodeWithSelector(CollectionsManagerBase.InvalidCollectionId.selector, collectionId + 1));
+        collectionsManager.getCollectionMarketRateProviders(collectionId + 1, size);
     }
 
     function test_CollectionsManagerCuratorActions_removeRateProvidersFromCollectionMarket() public {

@@ -11,6 +11,8 @@ import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
 import {DataView} from "@src/market/SizeViewData.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {ISizeV1_7} from "@src/market/interfaces/v1.7/ISizeV1_7.sol";
+
+import {Errors} from "@src/market/libraries/Errors.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 import {Adapter} from "@src/market/token/libraries/AdapterLibrary.sol";
 
@@ -217,6 +219,15 @@ contract CallMarketTest is BaseTest {
         sizeFactory.multicall(datas);
 
         assertEq(usdc.balanceOf(bob), usdcBalanceBefore + usdcAmount * 2);
+    }
+
+    function test_CallMarket_cannot_call_invalid_market() public {
+        vm.startPrank(bob);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_MARKET.selector, address(alice)));
+        sizeFactory.callMarket(
+            ISize(address(alice)),
+            abi.encodeCall(ISize.withdraw, (WithdrawParams({token: address(usdc), amount: 100e6, to: bob})))
+        );
     }
 
     // function test_CallMarket_can_copy_limit_orders_from_multiple_markets() public {

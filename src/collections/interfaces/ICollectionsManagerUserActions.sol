@@ -19,10 +19,12 @@ interface ICollectionsManagerUserActions {
     /// @notice Subscribe a user to collections
     /// @param user The user to subscribe
     /// @param collectionIds The collection IDs to subscribe the user to
+    /// @dev Only callable by the SizeFactory
     function subscribeUserToCollections(address user, uint256[] memory collectionIds) external;
 
     /// @notice Unsubscribe a user from collections
     /// @param user The user to unsubscribe
     /// @param collectionIds The collection IDs to unsubscribe the user from
+    /// @dev Only callable by the SizeFactory
     function unsubscribeUserFromCollections(address user, uint256[] memory collectionIds) external;
 }
