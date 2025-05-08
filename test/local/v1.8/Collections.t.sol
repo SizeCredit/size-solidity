@@ -289,26 +289,31 @@ contract CollectionsTest is BaseTest {
         size.getBorrowOfferAPR(alice, collectionId, bob, 20 days);
     }
 
-    function test_Collections_copyLimitOrders_copy_offer_precedence() public {
+    function test_Collections_subscribeToCollection_market_order_chooses_rate_provider() public {
         _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
         _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.08e18));
 
-        _copyLimitOrders(alice, fullCopy, fullCopy);
+        uint256 collectionId = _createCollection(james);
+        _addMarketToCollection(james, collectionId, size);
+        _addRateProviderToCollectionMarket(james, collectionId, size, bob);
 
-        assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), 0.05e18);
-        assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), 0.08e18);
+        _copyLimitOrders(alice, fullCopy, fullCopy);
+        _subscribeToCollection(alice, collectionId);
+
+        assertEq(size.getBorrowOfferAPR(alice, collectionId, bob, 30 days), 0.05e18);
+        assertEq(size.getLoanOfferAPR(alice, collectionId, bob, 60 days), 0.08e18);
 
         _sellCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.1e18));
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.15e18));
 
-        assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), 0.05e18);
-        assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), 0.08e18);
+        assertEq(size.getBorrowOfferAPR(alice, collectionId, bob, 30 days), 0.05e18);
+        assertEq(size.getLoanOfferAPR(alice, collectionId, bob, 60 days), 0.08e18);
 
         _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.06e18));
         _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.09e18));
 
-        assertEq(size.getUserDefinedBorrowOfferAPR(alice, 30 days), 0.06e18);
-        assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), 0.09e18);
+        assertEq(size.getBorrowOfferAPR(alice, collectionId, bob, 30 days), 0.06e18);
+        assertEq(size.getLoanOfferAPR(alice, collectionId, bob, 60 days), 0.09e18);
     }
 
     function test_Collections_copyLimitOrders_deletes_single_copy() public {
