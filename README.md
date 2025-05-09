@@ -90,7 +90,7 @@ After v1.7, the `SizeFactory` also holds the access control for all Size markets
 
 #### Copy trading
 
-Since Size v1.6.1, users can copy other users' limit orders.
+In Size v1.6.1, a `copyLimitOrders` function was introduced so that users could copy other users' limit orders. The feature behaved like the following:
 
 - Users can copy borrow/loan offers from other users
 - Users can copy both or a single offer from a single address
@@ -107,6 +107,8 @@ Notes
 1. Copying another account's limit orders introduces the risk of them placing suboptimal rates and executing market orders against delegators, incurring monetary losses. Only trusted addresses should be copied.
 2. The max/min params from the `copyLimitOrder` method are not global max/min for the user-defined limit orders; they are specific to copy offers. Once the copy address offer is no longer valid, max/min guards for mismatched curves will not be applied. The only reason to stop market orders is in the event of "self arbitrage," i.e., for a given tenor, when the borrow curve >= lending curve, since these users could be drained by an attacker by borrowing high and lending low in a single transaction.
 3. The offset APR parameters are not validated and can cause market orders reverts depending on the final APR result
+
+After v1.8, the `CollectionsManager` core contract was introduced and some of this behavior changed.
 
 #### Authorization
 
@@ -154,34 +156,27 @@ Since there can be an unlimited number of whitelisted vaults, the amount of unde
 Since Size v1.8, collections of markets, curators and rate providers are core entities of the ecosystem. This builds up on `copyLimitOrders`, but with more functionality:
 
 - A *collection* is a set of markets grouped under a curator.
-- Curators define which *rate providers* (RPs) supply the yield curves for each market in their collection.
-- Collections are defined on-chain. Updates made by curators are automatically reflected across all subscribed users without backend or user intervention.
+- A *Curator* defines *rate providers* (RPs) for each market, which sets yield curves and competes in pricing credit.
+- Collections are defined on-chain. Updates made by curators are automatically reflected across all subscribed users without backend or user intervention, since users' yield curves are just pointers.
 - When a curator updates the RP for a market, all users subscribed to that collection inherit the new configuration.
-- Delegation logic remains under the control of curators, not rate providers, ensuring curators can update or reassign markets freely.
-- Each market may support multiple rate providers. When overlapping offers exist, the protocol uses the best available rate (e.g., lowest APR for a borrower).
-- Curators can define safeguard parameters for each market:
-  - min/max APR
-  - min/max tenor
-- These safeguards apply when the user has not defined their own.
-- Users may subscribe to multiple collections simultaneously. When multiple collections provide rates for the same market, the best rate is selected automatically.
+- Delegation logic remains under the control of curators, not rate providers, ensuring curators can update or reassign markets freely. In a sense, a curator "owns" the liquidity of users subscribing to their collections. If a RP is not performing well, they can be replaced without compromise to the curator.
+- Each market may support multiple rate providers. When overlapping offers exist, market order "takers" can pick the best available rate to them (e.g., lowest loan offer APR during a sell credit market order).
+- Curators can define copy limit order configurations, which includes safeguard parameters for each market (min/max APR, min/max tenor), in addition to an offset APR, which is applied at end of the yield curve linear interpolation.
+- These copy limit order configurations apply when the user has not defined their own.
 - Users can also define their own yield curves and safeguards at the market level. If set, these take precedence over curator defaults.
-- If users want to rely exclusively on curator-defined curves, they must explicitly unset their own configurations.
+- If users want to rely exclusively on curator-defined curves, they must explicitly unset their own limit orders (changed behavior from v1.6).
 - Users now support multiple yield curves per market, one per collection they are subscribed to, plus an optional personal configuration.
 - Curators can transfer ownership of their collections.
-- Both curators and users can define an *offset APR* per market. The user's offset takes precedence over the curator's.
 
 ##### Breaking changes
 
-- Copy trading behavior was updated: rate providers' limit orders no longer take precedence over a user's own yield curve. If a user has set a curve, it will override any curator-defined or copied configuration.
+- Copy trading behavior was updated: rate providers' limit orders no longer take precedence over a user's own yield curve.
 - During reinitialization:
   - All users who previously used the `copyLimitOrder` feature are now subscribed to a new collection that mirrors the rate provider they had copied.
   - Their existing limit orders are cleared, since these may now be used by the taker side of a market order.
-  - By default, market orders now select the user-defined yield curve. Since migrated users will have no personal curve set, market orders will revert unless integrators pass an explicit collection parameter.
-- To indicate "no copy," users should pass a `CopyLimitOrderConfig` with all fields set to null *except* `offsetAPR`. Passing zero min/max bounds will cause reverts—even if the curator has configured valid bounds.
-
-The following methods were deprecated:
-
-- TODO
+  - By default, market orders now select the user-defined yield curve (TODO: confirm this behavior). Since migrated users will have no personal curve set, market orders will revert unless integrators pass an explicit collection parameter.
+- To indicate "no copy," users should pass a `CopyLimitOrderConfig` with all fields set to null except `offsetAPR`. Passing zero min/max bounds will cause reverts—even if the curator has configured valid bounds.
+- For the sake of clarity, `getLoanOfferAPR` and `getBorrowOfferAPR` on the `SizeView` contract were renamed to `getUserDefinedLoanOfferAPR` and `getUserDefinedBorrowOfferAPR` to be explicit about whether the yield curve is from a rate provider or from the user themselves.
 
 ## Test
 
