@@ -120,7 +120,8 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         // else, return the yield curve for that collection, market and rate provider
         else {
             // validate min/max tenor
-            CopyLimitOrderConfig memory copyLimitOrder = getCopyLimitOrder(user, collectionId, market, isLoanOffer);
+            CopyLimitOrderConfig memory copyLimitOrder =
+                getCopyLimitOrderConfig(user, collectionId, market, isLoanOffer);
             if (tenor < copyLimitOrder.minTenor || tenor > copyLimitOrder.maxTenor) {
                 revert InvalidTenor(tenor, copyLimitOrder.minTenor, copyLimitOrder.maxTenor);
             } else {
@@ -154,19 +155,19 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
     //////////////////////////////////////////////////////////////*/
 
     /// @dev Reverts if the collection id is invalid or the market is not in the collection
-    function getCopyLimitOrder(address user, uint256 collectionId, ISize market, bool isLoanOffer)
-        public
+    function getCopyLimitOrderConfig(address user, uint256 collectionId, ISize market, bool isLoanOffer)
+        private
         view
         returns (CopyLimitOrderConfig memory copyLimitOrder)
     {
         copyLimitOrder = getUserDefinedCopyLimitOrderConfig(user, market, isLoanOffer);
         if (copyLimitOrder.isNull()) {
-            copyLimitOrder = getCollectionMarketCopyLimitOrder(collectionId, market, isLoanOffer);
+            copyLimitOrder = getCollectionMarketCopyLimitOrderConfig(collectionId, market, isLoanOffer);
         }
     }
 
     function getUserDefinedCopyLimitOrderConfig(address user, ISize market, bool isLoanOffer)
-        public
+        private
         view
         returns (CopyLimitOrderConfig memory copyLimitOrder)
     {
@@ -175,8 +176,8 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
             : market.getUserDefinedCopyBorrowOfferConfig(user);
     }
 
-    function getCollectionMarketCopyLimitOrder(uint256 collectionId, ISize market, bool isLoanOffer)
-        public
+    function getCollectionMarketCopyLimitOrderConfig(uint256 collectionId, ISize market, bool isLoanOffer)
+        private
         view
         returns (CopyLimitOrderConfig memory copyLimitOrder)
     {
@@ -189,5 +190,21 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         return isLoanOffer
             ? collections[collectionId][market].copyLoanOfferConfig
             : collections[collectionId][market].copyBorrowOfferConfig;
+    }
+
+    function getCollectionMarketCopyLoanOfferConfig(uint256 collectionId, ISize market)
+        public
+        view
+        returns (CopyLimitOrderConfig memory copyLimitOrder)
+    {
+        return getCollectionMarketCopyLimitOrderConfig(collectionId, market, true);
+    }
+
+    function getCollectionMarketCopyBorrowOfferConfig(uint256 collectionId, ISize market)
+        public
+        view
+        returns (CopyLimitOrderConfig memory copyLimitOrder)
+    {
+        return getCollectionMarketCopyLimitOrderConfig(collectionId, market, false);
     }
 }

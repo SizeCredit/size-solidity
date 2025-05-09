@@ -6,6 +6,8 @@ import {IERC721Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.s
 import {CollectionsManagerBase} from "@src/collections/CollectionsManagerBase.sol";
 import {CollectionsManagerCuratorActions} from "@src/collections/actions/CollectionsManagerCuratorActions.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
+
+import {Errors} from "@src/market/libraries/Errors.sol";
 import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
@@ -72,6 +74,72 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
         assertEq(collectionsManager.collectionContainsMarket(type(uint256).max, size), false);
     }
 
+    function test_CollectionsManagerCuratorActions_addMarketsToCollection_input_validation() public {
+        uint256 collectionId = _createCollection(alice);
+
+        CopyLimitOrderConfig[] memory copyLoanOfferConfigs = new CopyLimitOrderConfig[](1);
+        copyLoanOfferConfigs[0] = CopyLimitOrderConfig({
+            minTenor: 0,
+            maxTenor: type(uint256).max,
+            minAPR: 0,
+            maxAPR: type(uint256).max,
+            offsetAPR: 0
+        });
+        CopyLimitOrderConfig[] memory copyBorrowOfferConfigs = new CopyLimitOrderConfig[](1);
+        copyBorrowOfferConfigs[0] = CopyLimitOrderConfig({
+            minTenor: 0,
+            maxTenor: type(uint256).max,
+            minAPR: 0,
+            maxAPR: type(uint256).max,
+            offsetAPR: 0
+        });
+        ISize[] memory markets = new ISize[](2);
+        markets[0] = size;
+
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(Errors.ARRAY_LENGTHS_MISMATCH.selector));
+        collectionsManager.addMarketsToCollection(collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs);
+
+        markets = new ISize[](1);
+        markets[0] = ISize(address(0));
+
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_MARKET.selector, address(0)));
+        collectionsManager.addMarketsToCollection(collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs);
+
+        markets[0] = size;
+
+        copyLoanOfferConfigs[0].minTenor = 4;
+        copyLoanOfferConfigs[0].maxTenor = 3;
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_TENOR_RANGE.selector, 4, 3));
+        vm.prank(alice);
+        collectionsManager.addMarketsToCollection(collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs);
+
+        copyLoanOfferConfigs[0].minTenor = 0;
+        copyLoanOfferConfigs[0].maxTenor = type(uint256).max;
+        copyLoanOfferConfigs[0].minAPR = 7;
+        copyLoanOfferConfigs[0].maxAPR = 5;
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_APR_RANGE.selector, 7, 5));
+        vm.prank(alice);
+        collectionsManager.addMarketsToCollection(collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs);
+
+        copyLoanOfferConfigs[0].minAPR = 0;
+        copyLoanOfferConfigs[0].maxAPR = type(uint256).max;
+        copyBorrowOfferConfigs[0].minTenor = 4;
+        copyBorrowOfferConfigs[0].maxTenor = 3;
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_TENOR_RANGE.selector, 4, 3));
+        vm.prank(alice);
+        collectionsManager.addMarketsToCollection(collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs);
+
+        copyBorrowOfferConfigs[0].minTenor = 0;
+        copyBorrowOfferConfigs[0].maxTenor = type(uint256).max;
+        copyBorrowOfferConfigs[0].minAPR = 7;
+        copyBorrowOfferConfigs[0].maxAPR = 5;
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_APR_RANGE.selector, 7, 5));
+        vm.prank(alice);
+        collectionsManager.addMarketsToCollection(collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs);
+    }
+
     function test_CollectionsManagerCuratorActions_addMarketsToCollection_curator() public {
         uint256 collectionId = _createCollection(alice);
 
@@ -118,11 +186,6 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
     function test_CollectionsManagerCuratorActions_addRateProvidersToCollectionMarket() public {
         uint256 collectionId = _createCollection(alice);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(CollectionsManagerBase.MarketNotInCollection.selector, collectionId, address(size))
-        );
-        collectionsManager.getCollectionMarketRateProviders(collectionId, size);
-
         CopyLimitOrderConfig[] memory fullCopies = new CopyLimitOrderConfig[](1);
         fullCopies[0] = CopyLimitOrderConfig({
             minTenor: 0,
@@ -133,12 +196,30 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
         });
         ISize[] memory markets = new ISize[](1);
         markets[0] = size;
-        vm.prank(alice);
-        collectionsManager.addMarketsToCollection(collectionId, markets, fullCopies, fullCopies);
 
         address[] memory rateProviders = new address[](2);
         rateProviders[0] = bob;
         rateProviders[1] = candy;
+
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(CollectionsManagerBase.MarketNotInCollection.selector, collectionId, address(size))
+        );
+        collectionsManager.addRateProvidersToCollectionMarket(collectionId, size, rateProviders);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(CollectionsManagerBase.MarketNotInCollection.selector, collectionId, address(size))
+        );
+        collectionsManager.getCollectionMarketRateProviders(collectionId, size);
+
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(CollectionsManagerBase.MarketNotInCollection.selector, collectionId, address(size))
+        );
+        collectionsManager.removeRateProvidersFromCollectionMarket(collectionId, size, rateProviders);
+
+        vm.prank(alice);
+        collectionsManager.addMarketsToCollection(collectionId, markets, fullCopies, fullCopies);
 
         vm.prank(alice);
         collectionsManager.addRateProvidersToCollectionMarket(collectionId, size, rateProviders);

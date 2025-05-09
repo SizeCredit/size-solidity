@@ -35,6 +35,8 @@ import {
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
+import {CollectionsManagerBase} from "@src/collections/CollectionsManagerBase.sol";
 import {DataView} from "@src/market/SizeViewData.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
@@ -715,5 +717,30 @@ contract CollectionsTest is BaseTest {
         assertEq(collectionsManager.isCopyingCollectionMarketRateProvider(alice, collectionId + 1, size1, bob), false);
         assertEq(collectionsManager.isCopyingCollectionMarketRateProvider(alice, collectionId, size2, bob), false);
         assertEq(collectionsManager.isCopyingCollectionMarketRateProvider(alice, collectionId, size1, bob), true);
+
+        vm.expectRevert(abi.encodeWithSelector(CollectionsManagerBase.InvalidCollectionId.selector, collectionId + 1));
+        collectionsManager.getCollectionMarketCopyLoanOfferConfig(collectionId + 1, size1);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(CollectionsManagerBase.MarketNotInCollection.selector, collectionId, size2)
+        );
+        collectionsManager.getCollectionMarketCopyLoanOfferConfig(collectionId, size2);
+
+        CopyLimitOrderConfig memory config =
+            collectionsManager.getCollectionMarketCopyLoanOfferConfig(collectionId, size1);
+        assertEq(config.minTenor, 0);
+        assertEq(config.maxTenor, type(uint256).max);
+        assertEq(config.minAPR, 0);
+        assertEq(config.maxAPR, type(uint256).max);
+        assertEq(config.offsetAPR, 0);
+
+        config = collectionsManager.getCollectionMarketCopyBorrowOfferConfig(collectionId, size1);
+        assertEq(config.minTenor, 0);
+        assertEq(config.maxTenor, type(uint256).max);
+        assertEq(config.minAPR, 0);
+        assertEq(config.maxAPR, type(uint256).max);
+        assertEq(config.offsetAPR, 0);
     }
+
+    function test_Collections_subscribeToCollections_can_leave_inverted_curves_O_n_m_check() public {}
 }

@@ -93,4 +93,22 @@ interface ICollectionsManagerView {
         external
         view
         returns (uint256 apr);
+
+    /// @notice Get the copy loan offer config for a collection market
+    /// @param collectionId The collection ID to get the copy loan offer config for
+    /// @param market The market to get the copy loan offer config for
+    /// @return config The copy loan offer config
+    function getCollectionMarketCopyLoanOfferConfig(uint256 collectionId, ISize market)
+        external
+        view
+        returns (CopyLimitOrderConfig memory);
+
+    /// @notice Get the copy borrow offer config for a collection market
+    /// @param collectionId The collection ID to get the copy borrow offer config for
+    /// @param market The market to get the copy borrow offer config for
+    /// @return config The copy borrow offer config
+    function getCollectionMarketCopyBorrowOfferConfig(uint256 collectionId, ISize market)
+        external
+        view
+        returns (CopyLimitOrderConfig memory);
 }
