@@ -48,8 +48,6 @@ interface ICollectionsManagerCuratorActions {
     /// @notice Removes markets from a collection
     /// @param collectionId The collection ID
     /// @param markets The markets to remove
-    /// @dev The `delete` keyword will set the `exists` flag to false. This DOES NOT remove all rate providers from markets in the collection.
-    ///        If a subsequent `addMarketsToCollection` is called, previously added `rateProviders` will still be set.
     function removeMarketsFromCollection(uint256 collectionId, ISize[] memory markets) external;
 
     /// @notice Adds rate providers to a collection market

@@ -96,6 +96,8 @@ abstract contract CollectionsManagerCuratorActions is
         onlyCollectionCuratorAuthorized(collectionId)
     {
         for (uint256 i = 0; i < markets.length; i++) {
+            address[] memory rateProviders = collections[collectionId][markets[i]].rateProviders.values();
+            removeRateProvidersFromCollectionMarket(collectionId, markets[i], rateProviders);
             delete collections[collectionId][markets[i]];
             emit RemoveMarketFromCollection(collectionId, address(markets[i]));
         }
@@ -119,7 +121,7 @@ abstract contract CollectionsManagerCuratorActions is
 
     /// @inheritdoc ICollectionsManagerCuratorActions
     function removeRateProvidersFromCollectionMarket(uint256 collectionId, ISize market, address[] memory rateProviders)
-        external
+        public
         onlyCollectionCuratorAuthorized(collectionId)
     {
         if (!collections[collectionId][market].initialized) {
