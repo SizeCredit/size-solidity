@@ -141,20 +141,16 @@ contract SizeFactory is
             _setAuthorization(address(this), _users[i], Authorization.getActionsBitmap(actions));
             for (uint256 j = 0; j < _collectionMarkets.length; j++) {
                 // slither-disable-next-line uninitialized-local
-                BuyCreditLimitOnBehalfOfParams memory buyCreditLimitOnBehalfOfParams ;
+                BuyCreditLimitOnBehalfOfParams memory buyCreditLimitOnBehalfOfParams;
                 buyCreditLimitOnBehalfOfParams.onBehalfOf = _users[i];
 
-                _collectionMarkets[j].buyCreditLimitOnBehalfOf(
-                    buyCreditLimitOnBehalfOfParams
-                );
+                _collectionMarkets[j].buyCreditLimitOnBehalfOf(buyCreditLimitOnBehalfOfParams);
 
                 // slither-disable-next-line uninitialized-local
                 SellCreditLimitOnBehalfOfParams memory sellCreditLimitOnBehalfOfParams;
                 sellCreditLimitOnBehalfOfParams.onBehalfOf = _users[i];
 
-                _collectionMarkets[j].sellCreditLimitOnBehalfOf(
-                    sellCreditLimitOnBehalfOfParams
-                );
+                _collectionMarkets[j].sellCreditLimitOnBehalfOf(sellCreditLimitOnBehalfOfParams);
             }
             _setAuthorization(address(this), _users[i], Authorization.nullActionsBitmap());
         }
