@@ -167,6 +167,7 @@ Since Size v1.8, collections of markets, curators and rate providers are core en
 - If users want to rely exclusively on curator-defined curves, they must explicitly unset their own limit orders (changed behavior from v1.6).
 - Users now support multiple yield curves per market, one per collection they are subscribed to, plus an optional personal configuration.
 - Curators can transfer ownership of their collections.
+- Since users cn subscribe to many collections, each having many rate providers, the "borrow offer should be lower than loan offer" check now has O(C * R) complexity. Users should be aware not to subscribe to too many collections or collections with too many rate providers, or market orders targeting them might revert due to gas costs.
 
 ##### Breaking changes
 

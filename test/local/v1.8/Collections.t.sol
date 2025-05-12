@@ -549,6 +549,53 @@ contract CollectionsTest is BaseTest {
         );
     }
 
+    function test_Collections_subscribeToCollection_inverted_curves_many_markets() public {
+        size = size2;
+        _sellCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.12e18));
+
+        size = size1;
+        _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.03e18));
+        _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
+
+        CopyLimitOrderConfig memory loanCopy = CopyLimitOrderConfig({
+            minTenor: 0,
+            maxTenor: type(uint256).max,
+            minAPR: 0,
+            maxAPR: type(uint256).max,
+            offsetAPR: -0.01e18
+        });
+
+        _deposit(alice, weth, 1 ether);
+        _deposit(alice, usdc, 3000e6);
+
+        uint256 collectionId = _createCollection(james);
+        _addMarketToCollection(james, collectionId, size);
+        _addRateProviderToCollectionMarket(james, collectionId, size, bob);
+
+        _copyLimitOrders(alice, loanCopy, fullCopy);
+        _subscribeToCollection(alice, collectionId);
+
+        uint256 borrowAPRMarket1 = size.getBorrowOfferAPR(alice, collectionId, bob, 30 days);
+        uint256 loanAPRMarket1 = size.getLoanOfferAPR(alice, collectionId, bob, 30 days);
+        uint256 borrowAPRMarket2 = size2.getBorrowOfferAPR(alice, RESERVED_ID, address(0), 30 days);
+
+        assertEq(borrowAPRMarket1, 0.03e18);
+        assertEq(loanAPRMarket1, 0.04e18);
+
+        _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.04e18));
+
+        borrowAPRMarket1 = size.getBorrowOfferAPR(alice, collectionId, bob, 30 days);
+        loanAPRMarket1 = size.getLoanOfferAPR(alice, collectionId, bob, 30 days);
+        borrowAPRMarket2 = size2.getBorrowOfferAPR(alice, RESERVED_ID, address(0), 30 days);
+
+        assertTrue(!collectionsManager.isBorrowAPRLowerThanLoanOfferAPRs(alice, borrowAPRMarket1, size, 30 days));
+
+        assertTrue(
+            collectionsManager.isBorrowAPRLowerThanLoanOfferAPRs(alice, borrowAPRMarket2, size2, 30 days),
+            "On market 2, offers are OK since there is only one offer"
+        );
+    }
+
     function test_Collections_subscribeToCollection_rateProvider_removes_inverted_curve_then_market_order_succeeds()
         public
     {
