@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
+import {DataView} from "@src/market/SizeViewData.sol";
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
@@ -91,6 +92,11 @@ abstract contract Deploy {
     IERC4626 internal vaultERC7540ControlledAsyncDeposit;
     IERC4626 internal vaultERC7540ControlledAsyncRedeem;
     IERC4626 internal vaultInvalidUnderlying;
+
+    SizeMock internal size1;
+    SizeMock internal size2;
+    PriceFeedMock internal priceFeed2;
+    IERC20Metadata internal collateral2;
 
     uint256 public constant TIMELOCK = 24 hours;
 
@@ -292,5 +298,36 @@ abstract contract Deploy {
         vaultInvalidUnderlying = IERC4626(
             address(new MockERC4626(address(weth), "VaultInvalidUnderlying", "VAULTINVALIDUNDERLYING", true, 0))
         );
+    }
+
+    function _deploySizeMarket2() internal {
+        collateral2 = IERC20Metadata(address(new ERC20Mock()));
+        priceFeed2 = new PriceFeedMock(address(this));
+        priceFeed2.setPrice(1e18);
+
+        ISize market = sizeFactory.getMarket(0);
+        InitializeFeeConfigParams memory feeConfigParams = market.feeConfig();
+
+        InitializeRiskConfigParams memory riskConfigParams = market.riskConfig();
+        riskConfigParams.crOpening = 1.12e18;
+        riskConfigParams.crLiquidation = 1.09e18;
+
+        InitializeOracleParams memory oracleParams = market.oracle();
+        oracleParams.priceFeed = address(priceFeed2);
+
+        DataView memory dataView = market.data();
+        InitializeDataParams memory dataParams = InitializeDataParams({
+            weth: address(weth),
+            underlyingCollateralToken: address(collateral2),
+            underlyingBorrowToken: address(dataView.underlyingBorrowToken),
+            variablePool: address(dataView.variablePool),
+            borrowTokenVault: address(dataView.borrowTokenVault),
+            sizeFactory: address(sizeFactory)
+        });
+        size2 = SizeMock(address(sizeFactory.createMarket(feeConfigParams, riskConfigParams, oracleParams, dataParams)));
+        size1 = size;
+
+        hevm.label(address(size1), "Size1");
+        hevm.label(address(size2), "Size2");
     }
 }

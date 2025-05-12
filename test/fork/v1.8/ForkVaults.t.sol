@@ -20,6 +20,7 @@ import {ProposeSafeTxUpgradeToV1_8Script} from "@script/ProposeSafeTxUpgradeToV1
 
 import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {Size} from "@src/market/Size.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {Adapter} from "@src/market/token/libraries/AdapterLibrary.sol";
 
@@ -48,7 +49,8 @@ contract ForkVaultsTest is ForkTest, Networks {
     function _upgradeToV1_8() internal {
         ProposeSafeTxUpgradeToV1_8Script script = new ProposeSafeTxUpgradeToV1_8Script();
 
-        (address[] memory targets, bytes[] memory datas) = script.getTargetsAndDatas(sizeFactory);
+        (address[] memory targets, bytes[] memory datas) =
+            script.getTargetsAndDatas(sizeFactory, new address[](0), address(0), new ISize[](0));
 
         for (uint256 i = 0; i < targets.length; i++) {
             vm.prank(owner);

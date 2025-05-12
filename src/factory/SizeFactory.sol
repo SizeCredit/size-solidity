@@ -2,9 +2,13 @@
 pragma solidity 0.8.23;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
+import {ERC721EnumerableUpgradeable} from
+    "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+
 import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 
 import {ICollectionsManager} from "@src/collections/interfaces/ICollectionsManager.sol";
 import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
@@ -50,6 +54,8 @@ import {ISizeFactoryV1_7} from "@src/factory/interfaces/ISizeFactoryV1_7.sol";
 import {ISizeFactoryV1_8} from "@src/factory/interfaces/ISizeFactoryV1_8.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
+import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import {CollectionsManager} from "@src/collections/CollectionsManager.sol";
 
 import {BORROW_RATE_UPDATER_ROLE, KEEPER_ROLE, PAUSER_ROLE} from "@src/factory/interfaces/ISizeFactory.sol";
@@ -63,6 +69,7 @@ contract SizeFactory is
     ISizeFactory,
     SizeFactoryOffchainGetters,
     SizeFactoryEvents,
+    ERC721Holder, // required for `reinitialize`
     MulticallUpgradeable,
     AccessControlUpgradeable,
     UUPSUpgradeable
@@ -86,62 +93,77 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactoryV1_8
-    function reinitialize(ICollectionsManager _collectionsManager, address[] memory users, address memory rateProvider)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-        reinitializer(1_08_00)
-    {
-        if (_collectionsManager == address(0)) {
+    function reinitialize(
+        ICollectionsManager _collectionsManager,
+        address[] memory _users,
+        address _rateProvider,
+        ISize[] memory _collectionMarkets
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) reinitializer(1_08_00) {
+        if (address(_collectionsManager) == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
 
         collectionsManager = _collectionsManager;
         emit CollectionsManagerSet(address(0), address(_collectionsManager));
 
-        if (rateProvider == address(0)) {
+        if (_rateProvider == address(0)) {
             // no migration required
             return;
         }
 
-        // slither-disable-start uninitialized-local
-        BuyCreditLimitParams memory nullBuyCreditLimitParams;
-        SellCreditLimitParams memory nullSellCreditLimitParams;
-        // slither-disable-end uninitialized-local
+        uint256[] memory collectionIds = new uint256[](1);
+        collectionIds[0] = collectionsManager.createCollection();
+
+        CopyLimitOrderConfig[] memory fullCopies = new CopyLimitOrderConfig[](_collectionMarkets.length);
+        for (uint256 i = 0; i < _collectionMarkets.length; i++) {
+            if (!isMarket(address(_collectionMarkets[i]))) {
+                revert Errors.INVALID_MARKET(address(_collectionMarkets[i]));
+            }
+
+            fullCopies[i] = CopyLimitOrderConfig({
+                minTenor: 0,
+                maxTenor: type(uint256).max,
+                minAPR: 0,
+                maxAPR: type(uint256).max,
+                offsetAPR: 0
+            });
+        }
+        collectionsManager.addMarketsToCollection(collectionIds[0], _collectionMarkets, fullCopies, fullCopies);
+
+        Action[] memory actions = new Action[](2);
+        actions[0] = Action.BUY_CREDIT_LIMIT;
+        actions[1] = Action.SELL_CREDIT_LIMIT;
 
         // slither-disable-start calls-loop
         // slither-disable-start reentrancy-benign
-        for (uint256 i = 0; i < users.length; i++) {
-            uint256[] memory collectionIds = new uint256[](1);
-            collectionIds[0] = collectionsManager.createCollection(rateProvider);
-            collectionsManager.subscribeUserToCollections(users[i], collectionIds);
-            bool authorizationSetForUser = false;
-            for (uint256 j = 0; j < markets.length(); j++) {
-                ISize market = ISize(markets.at(j));
-                if (collectionsManager.collectionContainsMarket(collectionId, market)) {
-                    if (!authorizationSetForUser) {
-                        Action[] memory actions = new Action[](2);
-                        actions[0] = Action.BUY_CREDIT_LIMIT;
-                        actions[1] = Action.SELL_CREDIT_LIMIT;
-                        _setAuthorization(address(this), users[i], Authorization.getActionsBitmap(actions));
-                        authorizationSetForUser = true;
-                    }
+        for (uint256 i = 0; i < _users.length; i++) {
+            collectionsManager.subscribeUserToCollections(_users[i], collectionIds);
+            _setAuthorization(address(this), _users[i], Authorization.getActionsBitmap(actions));
+            for (uint256 j = 0; j < _collectionMarkets.length; j++) {
+                // slither-disable-next-line uninitialized-local
+                BuyCreditLimitOnBehalfOfParams memory buyCreditLimitOnBehalfOfParams ;
+                buyCreditLimitOnBehalfOfParams.onBehalfOf = _users[i];
 
-                    market.buyCreditLimitOnBehalfOf(
-                        BuyCreditLimitOnBehalfOfParams({params: nullBuyCreditLimitParams, onBehalfOf: users[i]})
-                    );
-                    market.sellCreditLimitOnBehalfOf(
-                        SellCreditLimitOnBehalfOfParams({params: nullSellCreditLimitParams, onBehalfOf: users[i]})
-                    );
-                }
+                _collectionMarkets[j].buyCreditLimitOnBehalfOf(
+                    buyCreditLimitOnBehalfOfParams
+                );
+
+                // slither-disable-next-line uninitialized-local
+                SellCreditLimitOnBehalfOfParams memory sellCreditLimitOnBehalfOfParams;
+                sellCreditLimitOnBehalfOfParams.onBehalfOf = _users[i];
+
+                _collectionMarkets[j].sellCreditLimitOnBehalfOf(
+                    sellCreditLimitOnBehalfOfParams
+                );
             }
-            if (authorizationSetForUser) {
-                _setAuthorization(address(this), users[i], Authorization.nullActionsBitmap());
-            }
+            _setAuthorization(address(this), _users[i], Authorization.nullActionsBitmap());
         }
         // slither-disable-end reentrancy-benign
         // slither-disable-end calls-loop
 
-        collectionsManager.safeTransferFrom(address(this), address(rateProvider), collectionId);
+        ERC721EnumerableUpgradeable(address(_collectionsManager)).safeTransferFrom(
+            address(this), address(_rateProvider), collectionIds[0]
+        );
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}

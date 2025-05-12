@@ -12,12 +12,17 @@ interface ISizeFactoryV1_8 {
     /// @notice Reinitialize the factory
     /// @param users The users to reinitialize the factory for
     /// @param rateProvider The rate provider
+    /// @param collectionMarkets The markets for the collection
     /// @dev Before v1.8, users could copy rate providers directly through `copyLimitOrders`.
     ///        In v1.8, this method was deprecated in favor of collections. The `reinitialize` function serves as a migration path
     ///        for users who are following the only off-chain collection currently offered by Size.
     ///      On mainnet, there are no off-chain collections. On Base, there is only one off-chain collection.
-    function reinitialize(ICollectionsManager _collectionsManager, address[] memory users, address memory rateProvider)
-        external;
+    function reinitialize(
+        ICollectionsManager _collectionsManager,
+        address[] memory users,
+        address rateProvider,
+        ISize[] memory collectionMarkets
+    ) external;
 
     /// @notice Call a market with data. This can be used to batch operations on multiple markets.
     /// @param market The market to call

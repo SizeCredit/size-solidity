@@ -42,43 +42,12 @@ import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 import {SizeMock} from "@test/mocks/SizeMock.sol";
 
 contract CallMarketTest is BaseTest {
-    SizeMock size1;
-    SizeMock size2;
-    PriceFeedMock priceFeed2;
-    IERC20Metadata collateral2;
     // CopyLimitOrderConfig fullCopy =
     //     CopyLimitOrderConfig({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: type(uint256).max, offsetAPR: 0});
 
     function setUp() public override {
         super.setUp();
-        collateral2 = IERC20Metadata(address(new ERC20Mock()));
-        priceFeed2 = new PriceFeedMock(address(this));
-        priceFeed2.setPrice(1e18);
-
-        ISize market = sizeFactory.getMarket(0);
-        InitializeFeeConfigParams memory feeConfigParams = market.feeConfig();
-
-        InitializeRiskConfigParams memory riskConfigParams = market.riskConfig();
-        riskConfigParams.crOpening = 1.12e18;
-        riskConfigParams.crLiquidation = 1.09e18;
-
-        InitializeOracleParams memory oracleParams = market.oracle();
-        oracleParams.priceFeed = address(priceFeed2);
-
-        DataView memory dataView = market.data();
-        InitializeDataParams memory dataParams = InitializeDataParams({
-            weth: address(weth),
-            underlyingCollateralToken: address(collateral2),
-            underlyingBorrowToken: address(dataView.underlyingBorrowToken),
-            variablePool: address(dataView.variablePool),
-            borrowTokenVault: address(dataView.borrowTokenVault),
-            sizeFactory: address(sizeFactory)
-        });
-        size2 = SizeMock(address(sizeFactory.createMarket(feeConfigParams, riskConfigParams, oracleParams, dataParams)));
-        size1 = size;
-
-        vm.label(address(size1), "Size1");
-        vm.label(address(size2), "Size2");
+        _deploySizeMarket2();
     }
 
     function test_CallMarket_can_borrow_from_multiple_markets() public {
@@ -230,6 +199,7 @@ contract CallMarketTest is BaseTest {
         );
     }
 
+    // TODO
     // function test_CallMarket_can_copy_limit_orders_from_multiple_markets() public {
     //     _setPrice(1e18);
     //     _deposit(alice, usdc, 500e6);

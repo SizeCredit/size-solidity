@@ -28,8 +28,12 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
     address signer;
     string derivationPath;
 
-    ISizeFactory private sizeFactory;
-    address private safeAddress;
+    ISizeFactory sizeFactory;
+    address safeAddress;
+
+    address[] users;
+    address rateProvider;
+    ISize[] collectionMarkets;
 
     modifier parseEnv() {
         signer = vm.envAddress("SIGNER");
@@ -45,13 +49,23 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         safeAddress = vm.envAddress("OWNER");
         safe.initialize(safeAddress);
 
+        users = vm.envOr("USERS", ",", new address[](0));
+        rateProvider = vm.envOr("RATE_PROVIDER", address(0));
+        address[] memory collectionMarketsAddresses = vm.envOr("COLLECTION_MARKETS", ",", new address[](0));
+        collectionMarkets = new ISize[](collectionMarketsAddresses.length);
+        for (uint256 i = 0; i < collectionMarketsAddresses.length; i++) {
+            collectionMarkets[i] = ISize(collectionMarketsAddresses[i]);
+        }
+
         _;
     }
 
-    function getTargetsAndDatas(ISizeFactory _sizeFactory)
-        public
-        returns (address[] memory targets, bytes[] memory datas)
-    {
+    function getTargetsAndDatas(
+        ISizeFactory _sizeFactory,
+        address[] memory _users,
+        address _rateProvider,
+        ISize[] memory _collectionMarkets
+    ) public returns (address[] memory targets, bytes[] memory datas) {
         Size sizeV1_8Implementation = new Size();
         SizeFactory sizeFactoryV1_8Implementation = new SizeFactory();
         NonTransferrableRebasingTokenVault borrowTokenVaultV1_8Implementation = new NonTransferrableRebasingTokenVault();
@@ -89,9 +103,8 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
 
         // SizeFactory.upgradeToAndCall(v1_8, multicall[reinitialize, setSizeImplementation, setNonTransferrableRebasingTokenVaultImplementation])
         bytes[] memory multicallDatas = new bytes[](3);
-        address[] memory users = vm.envOr("USERS", ",", new address[](0));
-        address rateProvider = vm.envOr("RATE_PROVIDER", address(0));
-        multicallDatas[0] = abi.encodeCall(SizeFactory.reinitialize, (collectionsManager, users, rateProvider));
+        multicallDatas[0] =
+            abi.encodeCall(SizeFactory.reinitialize, (collectionsManager, _users, _rateProvider, _collectionMarkets));
         multicallDatas[1] = abi.encodeCall(SizeFactory.setSizeImplementation, (address(sizeV1_8Implementation)));
         multicallDatas[2] = abi.encodeCall(
             SizeFactory.setNonTransferrableRebasingTokenVaultImplementation,
@@ -108,7 +121,8 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
     function run() external parseEnv {
         vm.startBroadcast();
 
-        (address[] memory targets, bytes[] memory datas) = getTargetsAndDatas(sizeFactory);
+        (address[] memory targets, bytes[] memory datas) =
+            getTargetsAndDatas(sizeFactory, users, rateProvider, collectionMarkets);
 
         vm.stopBroadcast();
 
