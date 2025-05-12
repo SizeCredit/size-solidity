@@ -94,6 +94,32 @@ interface ICollectionsManagerView {
         view
         returns (uint256 apr);
 
+    /// @notice Check if the borrow APR is lower than the loan offer APRs
+    /// @param user The user
+    /// @param borrowAPR The borrow APR
+    /// @param market The market
+    /// @param tenor The tenor
+    /// @return isLower True if the borrow APR is lower than the loan offer APRs, false otherwise
+    /// @dev Perform this check in O(C * R + 1), where C is the number of subscribed collections, R is the number of rate providers, and 1 is for the user-defined APR check
+    ///      Users should be aware that subscribing to too many collections / rate providers may result in market order reverts due to gas limits
+    function isBorrowAPRLowerThanLoanOfferAPRs(address user, uint256 borrowAPR, ISize market, uint256 tenor)
+        external
+        view
+        returns (bool);
+
+    /// @notice Check if the loan APR is greater than the borrow offer APRs
+    /// @param user The user
+    /// @param loanAPR The loan APR
+    /// @param market The market
+    /// @param tenor The tenor
+    /// @return isGreater True if the loan APR is greater than the borrow offer APRs, false otherwise
+    /// @dev Perform this check in O(C * R + 1), where C is the number of subscribed collections, R is the number of rate providers, and 1 is for the user-defined APR check
+    ///      Users should be aware that subscribing to too many collections / rate providers may result in market order reverts due to gas limits
+    function isLoanAPRGreaterThanBorrowOfferAPRs(address user, uint256 loanAPR, ISize market, uint256 tenor)
+        external
+        view
+        returns (bool);
+
     /// @notice Get the copy loan offer config for a collection market
     /// @param collectionId The collection ID to get the copy loan offer config for
     /// @param market The market to get the copy loan offer config for

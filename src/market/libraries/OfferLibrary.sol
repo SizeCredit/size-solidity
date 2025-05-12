@@ -178,4 +178,20 @@ library OfferLibrary {
         uint256 apr = getBorrowOfferAPR(state, user, collectionId, rateProvider, tenor);
         ratePerTenor = Math.aprToRatePerTenor(apr, tenor);
     }
+
+    function isBorrowAPRLowerThanLoanOfferAPRs(State storage state, address user, uint256 borrowAPR, uint256 tenor)
+        internal
+        view
+        returns (bool)
+    {
+        return state.data.sizeFactory.isBorrowAPRLowerThanLoanOfferAPRs(user, borrowAPR, ISize(address(this)), tenor);
+    }
+
+    function isLoanAPRGreaterThanBorrowOfferAPRs(State storage state, address user, uint256 loanAPR, uint256 tenor)
+        internal
+        view
+        returns (bool)
+    {
+        return state.data.sizeFactory.isLoanAPRGreaterThanBorrowOfferAPRs(user, loanAPR, ISize(address(this)), tenor);
+    }
 }

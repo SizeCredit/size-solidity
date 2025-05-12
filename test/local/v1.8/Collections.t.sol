@@ -504,7 +504,7 @@ contract CollectionsTest is BaseTest {
         _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.04e18));
 
         _deposit(candy, usdc, 2000e6);
-        vm.expectRevert(abi.encodeWithSelector(Errors.MISMATCHED_CURVES.selector, alice, 30 days, 0.04e18, 0.04e18));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVERTED_CURVES.selector, alice, 30 days));
         vm.prank(candy);
         size.buyCreditMarketOnBehalfOf(
             BuyCreditMarketOnBehalfOfParams({
@@ -526,7 +526,7 @@ contract CollectionsTest is BaseTest {
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.MISMATCHED_CURVES.selector, alice, 30 days, 0.04e18, 0.04e18));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVERTED_CURVES.selector, alice, 30 days));
         vm.prank(candy);
         size.sellCreditMarketOnBehalfOf(
             SellCreditMarketOnBehalfOfParams({
@@ -576,7 +576,7 @@ contract CollectionsTest is BaseTest {
         _copyLimitOrders(alice, fullCopy, borrowCopy);
         _subscribeToCollection(alice, collectionId);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.MISMATCHED_CURVES.selector, alice, 5 days, 0.075e18, 0.1e18));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVERTED_CURVES.selector, alice, 5 days));
         vm.prank(candy);
         size.sellCreditMarketOnBehalfOf(
             SellCreditMarketOnBehalfOfParams({
@@ -651,7 +651,7 @@ contract CollectionsTest is BaseTest {
         _copyLimitOrders(alice, fullCopy, borrowCopy);
         _subscribeToCollection(alice, collectionId);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.MISMATCHED_CURVES.selector, alice, 5 days, 0.075e18, 0.1e18));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVERTED_CURVES.selector, alice, 5 days));
         vm.prank(candy);
         size.sellCreditMarketOnBehalfOf(
             SellCreditMarketOnBehalfOfParams({

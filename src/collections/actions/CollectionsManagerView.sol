@@ -84,6 +84,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
                             APR VIEW
     //////////////////////////////////////////////////////////////*/
 
+    /// @inheritdoc ICollectionsManagerView
     function getLoanOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
         external
         view
@@ -92,6 +93,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         return getLimitOrderAPR(user, collectionId, market, rateProvider, tenor, true);
     }
 
+    /// @inheritdoc ICollectionsManagerView
     function getBorrowOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
         external
         view
@@ -107,7 +109,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         address rateProvider,
         uint256 tenor,
         bool isLoanOffer
-    ) private view returns (uint256 apr) {
+    ) public view returns (uint256 apr) {
         // if collectionId is RESERVED_ID, return the user-defined yield curve
         //   and ignore the user-defined CopyLimitOrderConfig params
         if (collectionId == RESERVED_ID) {
@@ -148,6 +150,64 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         } else {
             return market.getUserDefinedBorrowOfferAPR(user, tenor);
         }
+    }
+
+    /// @inheritdoc ICollectionsManagerView
+    function isLoanAPRGreaterThanBorrowOfferAPRs(address user, uint256 loanAPR, ISize market, uint256 tenor)
+        external
+        view
+        returns (bool)
+    {
+        return isAPRLowerThanOfferAPRs(user, loanAPR, market, tenor, true);
+    }
+
+    /// @inheritdoc ICollectionsManagerView
+    function isBorrowAPRLowerThanLoanOfferAPRs(address user, uint256 borrowAPR, ISize market, uint256 tenor)
+        external
+        view
+        returns (bool)
+    {
+        return isAPRLowerThanOfferAPRs(user, borrowAPR, market, tenor, false);
+    }
+
+    function isAPRLowerThanOfferAPRs(address user, uint256 apr, ISize market, uint256 tenor, bool aprIsLoanAPR)
+        private
+        view
+        returns (bool)
+    {
+        // collections check
+        EnumerableSet.UintSet storage collectionIds = userToCollectionIds[user];
+        for (uint256 i = 0; i < collectionIds.length(); i++) {
+            uint256 collectionId = collectionIds.at(i);
+            if (!collections[collectionId][market].initialized) {
+                continue;
+            }
+            EnumerableSet.AddressSet storage rateProviders = collections[collectionId][market].rateProviders;
+            for (uint256 j = 0; j < rateProviders.length(); j++) {
+                address rateProvider = rateProviders.at(j);
+                try this.getLimitOrderAPR(user, collectionId, market, rateProvider, tenor, !aprIsLoanAPR) returns (
+                    uint256 otherAPR
+                ) {
+                    if ((aprIsLoanAPR && otherAPR >= apr) || (!aprIsLoanAPR && apr >= otherAPR)) {
+                        return false;
+                    }
+                } catch (bytes memory) {
+                    // N/A
+                }
+            }
+        }
+        // user-defined check
+        try this.getLimitOrderAPR(user, RESERVED_ID, market, address(0), tenor, !aprIsLoanAPR) returns (
+            uint256 otherAPR
+        ) {
+            if ((aprIsLoanAPR && otherAPR >= apr) || (!aprIsLoanAPR && apr >= otherAPR)) {
+                return false;
+            }
+        } catch (bytes memory) {
+            // N/A
+        }
+
+        return true;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -192,6 +252,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
             : collections[collectionId][market].copyBorrowOfferConfig;
     }
 
+    /// @inheritdoc ICollectionsManagerView
     function getCollectionMarketCopyLoanOfferConfig(uint256 collectionId, ISize market)
         public
         view
@@ -200,6 +261,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         return getCollectionMarketCopyLimitOrderConfig(collectionId, market, true);
     }
 
+    /// @inheritdoc ICollectionsManagerView
     function getCollectionMarketCopyBorrowOfferConfig(uint256 collectionId, ISize market)
         public
         view

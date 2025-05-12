@@ -61,4 +61,26 @@ interface ISizeFactoryV1_8 {
         external
         view
         returns (uint256);
+
+    /// @notice Check if the borrow APR is lower than the loan offer APRs
+    /// @param user The user
+    /// @param borrowAPR The borrow APR
+    /// @param market The market
+    /// @param tenor The tenor
+    /// @return isLower True if the borrow APR is lower than the loan offer APRs, false otherwise
+    function isBorrowAPRLowerThanLoanOfferAPRs(address user, uint256 borrowAPR, ISize market, uint256 tenor)
+        external
+        view
+        returns (bool);
+
+    /// @notice Check if the loan APR is greater than the borrow offer APRs
+    /// @param user The user
+    /// @param loanAPR The loan APR
+    /// @param market The market
+    /// @param tenor The tenor
+    /// @return isGreater True if the loan APR is greater than the borrow offer APRs, false otherwise
+    function isLoanAPRGreaterThanBorrowOfferAPRs(address user, uint256 loanAPR, ISize market, uint256 tenor)
+        external
+        view
+        returns (bool);
 }

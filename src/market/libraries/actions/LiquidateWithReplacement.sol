@@ -96,14 +96,8 @@ library LiquidateWithReplacement {
         // N/A
 
         // validate inverted curve
-        try state.getLoanOfferAPR(
-            params.borrower, withCollectionParams.collectionId, withCollectionParams.rateProvider, tenor
-        ) returns (uint256 loanAPR) {
-            if (borrowAPR >= loanAPR) {
-                revert Errors.MISMATCHED_CURVES(params.borrower, tenor, loanAPR, borrowAPR);
-            }
-        } catch (bytes memory) {
-            // N/A
+        if (!state.isBorrowAPRLowerThanLoanOfferAPRs(params.borrower, borrowAPR, tenor)) {
+            revert Errors.INVERTED_CURVES(params.borrower, tenor);
         }
 
         // validate collectionId

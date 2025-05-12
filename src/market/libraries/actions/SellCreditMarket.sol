@@ -155,14 +155,8 @@ library SellCreditMarket {
         // N/A
 
         // validate inverted curve
-        try state.getBorrowOfferAPR(
-            params.lender, withCollectionParams.collectionId, withCollectionParams.rateProvider, tenor
-        ) returns (uint256 borrowAPR) {
-            if (borrowAPR >= loanAPR) {
-                revert Errors.MISMATCHED_CURVES(params.lender, tenor, loanAPR, borrowAPR);
-            }
-        } catch (bytes memory) {
-            // N/A
+        if (!state.isLoanAPRGreaterThanBorrowOfferAPRs(params.lender, loanAPR, tenor)) {
+            revert Errors.INVERTED_CURVES(params.lender, tenor);
         }
 
         // validate collectionId

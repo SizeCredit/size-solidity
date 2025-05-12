@@ -281,4 +281,20 @@ contract SizeFactory is
     {
         return collectionsManager.getBorrowOfferAPR(user, collectionId, market, rateProvider, tenor);
     }
+
+    function isBorrowAPRLowerThanLoanOfferAPRs(address user, uint256 borrowAPR, ISize market, uint256 tenor)
+        external
+        view
+        returns (bool)
+    {
+        return collectionsManager.isBorrowAPRLowerThanLoanOfferAPRs(user, borrowAPR, market, tenor);
+    }
+
+    function isLoanAPRGreaterThanBorrowOfferAPRs(address user, uint256 loanAPR, ISize market, uint256 tenor)
+        external
+        view
+        returns (bool)
+    {
+        return collectionsManager.isLoanAPRGreaterThanBorrowOfferAPRs(user, loanAPR, market, tenor);
+    }
 }
