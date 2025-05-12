@@ -6,6 +6,7 @@ import {ERC721EnumerableUpgradeable} from
 
 import {ICollectionsManager} from "@src/collections/interfaces/ICollectionsManager.sol";
 import {Action} from "@src/factory/libraries/Authorization.sol";
+import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
@@ -41,6 +42,7 @@ contract SizeFactoryReinitializeV1_8Test is BaseTest {
     }
 
     function test_SizeFactoryReinitializeV1_8_full() public {
+        _buyCreditLimit(james, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
         address[] memory users = new address[](3);
         users[0] = alice;
         users[1] = bob;
@@ -51,11 +53,15 @@ contract SizeFactoryReinitializeV1_8Test is BaseTest {
 
         sizeFactory.reinitialize(collectionsManager, users, rateProvider, collectionMarkets);
 
+        uint256 collectionId = 0;
+
         assertEq(address(sizeFactory.collectionsManager()), address(collectionsManager));
-        assertEq(ERC721EnumerableUpgradeable(address(collectionsManager)).ownerOf(0), james);
+        assertEq(ERC721EnumerableUpgradeable(address(collectionsManager)).ownerOf(collectionId), james);
 
         for (uint256 i = 0; i < users.length; i++) {
             assertEq(collectionsManager.getSubscribedCollections(users[i]).length, 1);
+            assertEq(size.getLoanOfferAPR(users[i], collectionId, rateProvider, 365 days), 0.03e18);
+
             assertEq(sizeFactory.isAuthorized(address(sizeFactory), users[i], Action.BUY_CREDIT_LIMIT), false);
             assertEq(sizeFactory.isAuthorized(address(sizeFactory), users[i], Action.SELL_CREDIT_LIMIT), false);
         }

@@ -114,11 +114,11 @@ contract SizeFactory is
         uint256[] memory collectionIds = new uint256[](1);
         collectionIds[0] = collectionsManager.createCollection();
 
+        CopyLimitOrderConfig[] memory noCopies = new CopyLimitOrderConfig[](_collectionMarkets.length);
         CopyLimitOrderConfig[] memory fullCopies = new CopyLimitOrderConfig[](_collectionMarkets.length);
         for (uint256 i = 0; i < _collectionMarkets.length; i++) {
-            if (!isMarket(address(_collectionMarkets[i]))) {
-                revert Errors.INVALID_MARKET(address(_collectionMarkets[i]));
-            }
+            noCopies[i] =
+                CopyLimitOrderConfig({minTenor: 0, maxTenor: 0, minAPR: 0, maxAPR: 0, offsetAPR: type(int256).min});
 
             fullCopies[i] = CopyLimitOrderConfig({
                 minTenor: 0,
@@ -128,7 +128,14 @@ contract SizeFactory is
                 offsetAPR: 0
             });
         }
-        collectionsManager.addMarketsToCollection(collectionIds[0], _collectionMarkets, fullCopies, fullCopies);
+        collectionsManager.addMarketsToCollection(collectionIds[0], _collectionMarkets, fullCopies, noCopies);
+        address[] memory rateProviders = new address[](1);
+        rateProviders[0] = _rateProvider;
+        for (uint256 i = 0; i < _collectionMarkets.length; i++) {
+            collectionsManager.addRateProvidersToCollectionMarket(
+                collectionIds[0], _collectionMarkets[i], rateProviders
+            );
+        }
 
         Action[] memory actions = new Action[](2);
         actions[0] = Action.BUY_CREDIT_LIMIT;

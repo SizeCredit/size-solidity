@@ -5,8 +5,6 @@ import {Contract, Networks} from "@script/Networks.sol";
 import {ForkTest} from "@test/fork/ForkTest.sol";
 import {console} from "forge-std/console.sol";
 
-import {IAToken} from "@aave/interfaces/IAToken.sol";
-import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {SizeMock} from "@test/mocks/SizeMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
@@ -18,35 +16,92 @@ import {Errors} from "@src/market/libraries/Errors.sol";
 
 import {ProposeSafeTxUpgradeToV1_8Script} from "@script/ProposeSafeTxUpgradeToV1_8.s.sol";
 
+import {ERC721ReceiverMock} from "@openzeppelin/contracts/mocks/token/ERC721ReceiverMock.sol";
+import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {Size} from "@src/market/Size.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
-import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
-import {Adapter} from "@src/market/token/libraries/AdapterLibrary.sol";
+
+import {
+    SellCreditMarketOnBehalfOfParams,
+    SellCreditMarketParams,
+    SellCreditMarketWithCollectionParams
+} from "@src/market/libraries/actions/SellCreditMarket.sol";
+
+import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
 contract ForkCollectionsTest is ForkTest, Networks {
-    function setUp() public override(ForkTest) {
-        vm.createSelectFork("mainnet");
-        // 2025-04-28 14h30 UTC
-        vm.rollFork(22368140);
+    address[] users;
+    ISize[] collectionMarkets;
+    address rateProvider;
 
-        sizeFactory = importSizeFactory("mainnet-size-factory");
+    uint256[][] usersPreviousLoanAPRsPerCollectionMarket;
+
+    uint256 tenor = 30 days;
+    uint256 collectionId = 0;
+
+    function setUp() public override(ForkTest) {
+        vm.createSelectFork("base_archive");
+        // 2025-05-12 16h50 UTC
+        vm.rollFork(30139655);
+
+        sizeFactory = importSizeFactory("base-production-size-factory");
         size = SizeMock(address(sizeFactory.getMarket(0)));
         usdc = USDC(address(size.data().underlyingBorrowToken));
         weth = WETH(payable(address(size.data().underlyingCollateralToken)));
         variablePool = size.data().variablePool;
         owner = Networks.contracts[block.chainid][Contract.SIZE_GOVERNANCE];
 
+        users = new address[](2);
+        users[0] = 0x87CDad83a779D785A729a91dBb9FE0DB8be14b3b;
+        users[1] = 0x000000f840D8A851718d7DC470bFf1ed09F69107;
+
+        collectionMarkets = new ISize[](4);
+        rateProvider = 0x39EB0e1039732d8d2380B682Bc00Ad07b864F176;
+        ERC721ReceiverMock erc721Receiver =
+            new ERC721ReceiverMock(IERC721Receiver.onERC721Received.selector, ERC721ReceiverMock.RevertType.None);
+        vm.etch(rateProvider, address(erc721Receiver).code);
+        ISize[] memory markets = sizeFactory.getMarkets();
+        uint256 j = 0;
+        for (uint256 i = 0; i < markets.length; i++) {
+            string memory symbol = markets[i].data().underlyingCollateralToken.symbol();
+            if (
+                Strings.equal(symbol, "WETH") || Strings.equal(symbol, "cbBTC") || Strings.equal(symbol, "cbETH")
+                    || Strings.equal(symbol, "wstETH")
+            ) {
+                collectionMarkets[j++] = markets[i];
+            }
+        }
+        assertEq(j, 4);
+
+        _getPreviousState();
+
         _upgradeToV1_8();
 
         _labels();
+    }
+
+    function _getPreviousState() internal {
+        usersPreviousLoanAPRsPerCollectionMarket = new uint256[][](users.length);
+        for (uint256 i = 0; i < users.length; i++) {
+            usersPreviousLoanAPRsPerCollectionMarket[i] = new uint256[](collectionMarkets.length);
+            for (uint256 j = 0; j < collectionMarkets.length; j++) {
+                ISize collectionMarket = collectionMarkets[j];
+                (bool success, bytes memory data) = address(collectionMarket).call(
+                    abi.encodeWithSignature("getLoanOfferAPR(address,uint256)", users[i], tenor)
+                );
+                assertEq(success, true);
+                usersPreviousLoanAPRsPerCollectionMarket[i][j] = abi.decode(data, (uint256));
+            }
+        }
     }
 
     function _upgradeToV1_8() internal {
         ProposeSafeTxUpgradeToV1_8Script script = new ProposeSafeTxUpgradeToV1_8Script();
 
         (address[] memory targets, bytes[] memory datas) =
-            script.getTargetsAndDatas(sizeFactory, new address[](0), address(0), new ISize[](0));
+            script.getTargetsAndDatas(sizeFactory, users, rateProvider, collectionMarkets);
 
         for (uint256 i = 0; i < targets.length; i++) {
             vm.prank(owner);
@@ -55,8 +110,60 @@ contract ForkCollectionsTest is ForkTest, Networks {
         }
     }
 
-    function testFork_ForkCollections_users_subscribing_to_existing_RP_now_have_1_collection() public {}
+    function testFork_ForkCollections_users_subscribing_to_existing_RP_now_have_1_collection() public view {
+        for (uint256 i = 0; i < users.length; i++) {
+            for (uint256 j = 0; j < collectionMarkets.length; j++) {
+                ISize collectionMarket = collectionMarkets[j];
+                uint256 loanAPR = collectionMarket.getLoanOfferAPR(users[i], collectionId, rateProvider, tenor);
+                assertEq(loanAPR, usersPreviousLoanAPRsPerCollectionMarket[i][j]);
+            }
+        }
+    }
 
     function testFork_ForkCollections_market_orders_on_users_subscribing_to_existing_RP_now_fail_if_no_collection_is_passed(
-    ) public {}
+    ) public {
+        _deposit(alice, weth, 100e18);
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, users[0]));
+        size.sellCreditMarketOnBehalfOf(
+            SellCreditMarketOnBehalfOfParams({
+                withCollectionParams: SellCreditMarketWithCollectionParams({
+                    params: SellCreditMarketParams({
+                        lender: users[0],
+                        creditPositionId: RESERVED_ID,
+                        amount: 10e6,
+                        tenor: tenor,
+                        maxAPR: type(uint256).max,
+                        deadline: block.timestamp,
+                        exactAmountIn: false
+                    }),
+                    collectionId: RESERVED_ID,
+                    rateProvider: address(0)
+                }),
+                onBehalfOf: alice,
+                recipient: alice
+            })
+        );
+
+        vm.prank(alice);
+        size.sellCreditMarketOnBehalfOf(
+            SellCreditMarketOnBehalfOfParams({
+                withCollectionParams: SellCreditMarketWithCollectionParams({
+                    params: SellCreditMarketParams({
+                        lender: users[0],
+                        creditPositionId: RESERVED_ID,
+                        amount: 10e6,
+                        tenor: tenor,
+                        maxAPR: type(uint256).max,
+                        deadline: block.timestamp,
+                        exactAmountIn: false
+                    }),
+                    collectionId: collectionId,
+                    rateProvider: rateProvider
+                }),
+                onBehalfOf: alice,
+                recipient: alice
+            })
+        );
+    }
 }

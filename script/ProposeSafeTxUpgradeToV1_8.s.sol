@@ -111,7 +111,7 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
             (address(borrowTokenVaultV1_8Implementation))
         );
 
-        targets[markets.length + 1] = address(sizeFactory);
+        targets[markets.length + 1] = address(_sizeFactory);
         datas[markets.length + 1] = abi.encodeCall(
             UUPSUpgradeable.upgradeToAndCall,
             (address(sizeFactoryV1_8Implementation), abi.encodeCall(MulticallUpgradeable.multicall, (multicallDatas)))
