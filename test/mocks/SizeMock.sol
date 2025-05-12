@@ -4,6 +4,8 @@ pragma solidity 0.8.23;
 import {Size} from "@src/market/Size.sol";
 import {State} from "@src/market/SizeStorage.sol";
 import {Math, PERCENT, YEAR} from "@src/market/libraries/Math.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
+import {AccountingLibrary} from "@src/market/libraries/AccountingLibrary.sol";
 
 import {
     CREDIT_POSITION_ID_START,
@@ -18,6 +20,7 @@ contract SizeMock is Size {
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
+    using AccountingLibrary for State;
 
     // https://github.com/foundry-rs/foundry/issues/4615
     bool public IS_TEST = true;
@@ -99,4 +102,18 @@ contract SizeMock is Size {
     function getAPR(uint256 cash, uint256 credit, uint256 tenor) external pure returns (uint256) {
         return Math.mulDivDown(credit - cash, YEAR * PERCENT, cash * tenor);
     }
+
+
+    function getSwapFee(uint256 cash, uint256 tenor) public view returns (uint256) {
+        if (tenor == 0) {
+            revert Errors.NULL_TENOR();
+        }
+        return state.getSwapFee(cash, tenor);
+    }
+
+    function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256) {
+        DebtPosition memory debtPosition = state.getDebtPosition(debtPositionId);
+        return state.getDebtPositionAssignedCollateral(debtPosition);
+    }
+
 }

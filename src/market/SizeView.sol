@@ -195,20 +195,6 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     /// @inheritdoc ISizeView
-    function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256) {
-        DebtPosition memory debtPosition = state.getDebtPosition(debtPositionId);
-        return state.getDebtPositionAssignedCollateral(debtPosition);
-    }
-
-    /// @inheritdoc ISizeView
-    function getSwapFee(uint256 cash, uint256 tenor) public view returns (uint256) {
-        if (tenor == 0) {
-            revert Errors.NULL_TENOR();
-        }
-        return state.getSwapFee(cash, tenor);
-    }
-
-    /// @inheritdoc ISizeView
     function getBuyCreditMarketSwapData(BuyCreditMarketWithCollectionParams memory withCollectionParams)
         external
         view

@@ -93,17 +93,6 @@ interface ISizeView is ISizeViewV1_7, ISizeViewV1_8 {
     /// @return The count of debt positions and credit positions
     function getPositionsCount() external view returns (uint256, uint256);
 
-    /// @notice Get the assigned collateral for a debt position
-    /// @param debtPositionId The ID of the debt position
-    /// @return The assigned collateral amount
-    function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256);
-
-    /// @notice Get the swap fee for a given cash and tenor
-    /// @param cash The cash amount
-    /// @param tenor The tenor of the loan
-    /// @return The swap fee
-    function getSwapFee(uint256 cash, uint256 tenor) external view returns (uint256);
-
     /// @notice Gets the swap data for buying credit as a market order
     /// @param withCollectionParams The input parameters for buying credit as a market order
     /// @return swapData The swap data for buying credit as a market order

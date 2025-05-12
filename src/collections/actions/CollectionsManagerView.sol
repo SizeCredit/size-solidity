@@ -177,6 +177,8 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
     {
         // collections check
         EnumerableSet.UintSet storage collectionIds = userToCollectionIds[user];
+        // slither-disable-start calls-loop
+        // slither-disable-start var-read-using-this
         for (uint256 i = 0; i < collectionIds.length(); i++) {
             uint256 collectionId = collectionIds.at(i);
             if (!collections[collectionId][market].initialized) {
@@ -196,6 +198,8 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
                 }
             }
         }
+        // slither-disable-end calls-loop
+
         // user-defined check
         try this.getLimitOrderAPR(user, RESERVED_ID, market, address(0), tenor, !aprIsLoanAPR) returns (
             uint256 otherAPR
@@ -206,6 +210,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         } catch (bytes memory) {
             // N/A
         }
+        // slither-disable-end var-read-using-this
 
         return true;
     }
