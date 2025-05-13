@@ -488,22 +488,22 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         PoolMock(address(variablePool)).setLiquidityIndex(token, index);
     }
 
-    function _setVaultAdapter(IERC4626 v, bytes32 description) internal {
-        return _setVaultAdapter(address(v), description);
+    function _setVaultAdapter(IERC4626 v, bytes32 id) internal {
+        return _setVaultAdapter(address(v), id);
     }
 
-    function _setVaultAdapter(address v, bytes32 description) internal {
+    function _setVaultAdapter(address v, bytes32 id) internal {
         NonTransferrableRebasingTokenVault borrowTokenVault =
             NonTransferrableRebasingTokenVault(address(size.data().borrowTokenVault));
         vm.prank(address(this));
-        borrowTokenVault.setVaultAdapter(v, description);
+        borrowTokenVault.setVaultAdapter(v, id);
     }
 
-    function _setAdapter(bytes32 description, address adapter) internal {
+    function _setAdapter(bytes32 id, address adapter) internal {
         NonTransferrableRebasingTokenVault borrowTokenVault =
             NonTransferrableRebasingTokenVault(address(size.data().borrowTokenVault));
         vm.prank(address(this));
-        borrowTokenVault.setAdapter(description, adapter);
+        borrowTokenVault.setAdapter(id, adapter);
     }
 
     function _setLiquidityIndex(uint256 index) internal {

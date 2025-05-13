@@ -63,19 +63,19 @@ contract NonTransferrableRebasingTokenVault is
     // v1.8
     mapping(address user => address vault) public vaultOf;
     mapping(address vault => uint256 dust) public vaultDust;
-    EnumerableMap.AddressToBytes32Map internal vaultToDescriptionMap;
-    EnumerableMap.Bytes32ToAddressMap internal descriptionToAdapterMap;
-    EnumerableMap.AddressToBytes32Map internal adapterToDescriptionMap;
+    EnumerableMap.AddressToBytes32Map internal vaultToIdMap;
+    EnumerableMap.Bytes32ToAddressMap internal IdToAdapterMap;
+    EnumerableMap.AddressToBytes32Map internal adapterToIdMap;
 
     /*//////////////////////////////////////////////////////////////
                             EVENTS
     //////////////////////////////////////////////////////////////*/
 
     event VaultSet(address indexed user, address indexed previousVault, address indexed newVault);
-    event VaultAdapterSet(address indexed vault, bytes32 indexed description);
+    event VaultAdapterSet(address indexed vault, bytes32 indexed id);
     event VaultRemoved(address indexed vault);
-    event AdapterSet(bytes32 indexed description, address indexed adapter);
-    event AdapterRemoved(bytes32 indexed description);
+    event AdapterSet(bytes32 indexed id, address indexed adapter);
+    event AdapterRemoved(bytes32 indexed id);
 
     /*//////////////////////////////////////////////////////////////
                             ERRORS
@@ -96,7 +96,7 @@ contract NonTransferrableRebasingTokenVault is
     }
 
     modifier onlyAdapter() {
-        if (!adapterToDescriptionMap.contains(msg.sender)) {
+        if (!adapterToIdMap.contains(msg.sender)) {
             revert Errors.UNAUTHORIZED(msg.sender);
         }
         _;
@@ -158,26 +158,26 @@ contract NonTransferrableRebasingTokenVault is
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    /// @notice Sets the adapter with description
-    function setAdapter(bytes32 description, address adapter) external onlyOwner {
-        _setAdapter(description, adapter);
+    /// @notice Sets the adapter with id
+    function setAdapter(bytes32 id, address adapter) external onlyOwner {
+        _setAdapter(id, adapter);
     }
 
     /// @notice Removes the adapter
     /// @dev Removing an adapter will brick the vault (TODO test this)
-    function removeAdapter(bytes32 description) external onlyOwner {
-        _removeAdapter(description);
+    function removeAdapter(bytes32 id) external onlyOwner {
+        _removeAdapter(id);
     }
 
     /// @notice Sets the adapter for a vault
     /// @dev Setting a wrong adapter may brick the vault (`IAdapter` functions may revert or return incorrect values)
-    function setVaultAdapter(address vault, bytes32 description) external onlyOwner {
-        _setVaultAdapter(vault, description);
+    function setVaultAdapter(address vault, bytes32 id) external onlyOwner {
+        _setVaultAdapter(vault, id);
     }
 
     /// @notice Removes a vault from the whitelist
     /// @dev Removing a vault will brick the vault (all `IAdapter` functions will revert,
-    ///        and `vaultToDescriptionMap.at()` will not return the vault, so `totalSupply()` will ignore it)
+    ///        and `vaultToIdMap.at()` will not return the vault, so `totalSupply()` will ignore it)
     function removeVault(address vault) external onlyOwner {
         _removeVault(vault);
     }
@@ -230,9 +230,9 @@ contract NonTransferrableRebasingTokenVault is
     // slither-disable-next-line calls-loop
     function totalSupply() public view returns (uint256) {
         uint256 assets = 0;
-        for (uint256 i = 0; i < vaultToDescriptionMap.length(); i++) {
+        for (uint256 i = 0; i < vaultToIdMap.length(); i++) {
             // slither-disable-next-line unused-return
-            (address vault,) = vaultToDescriptionMap.at(i);
+            (address vault,) = vaultToIdMap.at(i);
             IAdapter adapter = getVaultAdapter(vault);
             assets += adapter.totalSupply(vault);
         }
@@ -254,7 +254,7 @@ contract NonTransferrableRebasingTokenVault is
         if (user == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-        if (vaultToDescriptionMap.contains(vault) && vaultOf[user] != vault) {
+        if (vaultToIdMap.contains(vault) && vaultOf[user] != vault) {
             _transferFrom(vaultOf[user], vault, user, user, balanceOf(user));
 
             emit VaultSet(user, vaultOf[user], vault);
@@ -342,39 +342,39 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @notice Returns true if the vault is whitelisted
     function isWhitelistedVault(address vault) public view returns (bool) {
-        return vaultToDescriptionMap.contains(vault);
+        return vaultToIdMap.contains(vault);
     }
 
     /// @notice Returns the number of whitelisted vaults
     function getWhitelistedVaultsCount() public view returns (uint256) {
-        return vaultToDescriptionMap.length();
+        return vaultToIdMap.length();
     }
 
     /// @notice Returns the whitelisted vault at the given index
     function getWhitelistedVault(uint256 index) public view returns (address, bytes32) {
-        return vaultToDescriptionMap.at(index);
+        return vaultToIdMap.at(index);
     }
 
     /// @notice Returns all whitelisted vaults
     function getWhitelistedVaults()
         public
         view
-        returns (address[] memory vaults, address[] memory adapters, bytes32[] memory descriptions)
+        returns (address[] memory vaults, address[] memory adapters, bytes32[] memory ids)
     {
-        vaults = new address[](vaultToDescriptionMap.length());
-        adapters = new address[](vaultToDescriptionMap.length());
-        descriptions = new bytes32[](vaultToDescriptionMap.length());
-        for (uint256 i = 0; i < vaultToDescriptionMap.length(); i++) {
-            (address vault, bytes32 description) = vaultToDescriptionMap.at(i);
+        vaults = new address[](vaultToIdMap.length());
+        adapters = new address[](vaultToIdMap.length());
+        ids = new bytes32[](vaultToIdMap.length());
+        for (uint256 i = 0; i < vaultToIdMap.length(); i++) {
+            (address vault, bytes32 id) = vaultToIdMap.at(i);
             vaults[i] = vault;
-            adapters[i] = descriptionToAdapterMap.get(description);
-            descriptions[i] = description;
+            adapters[i] = IdToAdapterMap.get(id);
+            ids[i] = id;
         }
     }
 
     function getVaultAdapter(address vault) public view returns (IAdapter) {
-        bytes32 description = vaultToDescriptionMap.get(vault);
-        return IAdapter(descriptionToAdapterMap.get(description));
+        bytes32 id = vaultToIdMap.get(vault);
+        return IAdapter(IdToAdapterMap.get(id));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -382,42 +382,42 @@ contract NonTransferrableRebasingTokenVault is
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Sets the adapter
-    function _setAdapter(bytes32 description, address adapter) private {
+    function _setAdapter(bytes32 id, address adapter) private {
         if (address(adapter) == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
 
-        descriptionToAdapterMap.set(description, adapter);
-        adapterToDescriptionMap.set(adapter, description);
-        emit AdapterSet(description, adapter);
+        IdToAdapterMap.set(id, adapter);
+        adapterToIdMap.set(adapter, id);
+        emit AdapterSet(id, adapter);
     }
 
     /// @notice Removes the adapter
-    function _removeAdapter(bytes32 description) private {
-        address adapter = descriptionToAdapterMap.get(description);
-        descriptionToAdapterMap.remove(description);
-        adapterToDescriptionMap.remove(adapter);
+    function _removeAdapter(bytes32 id) private {
+        address adapter = IdToAdapterMap.get(id);
+        IdToAdapterMap.remove(id);
+        adapterToIdMap.remove(adapter);
 
-        emit AdapterRemoved(description);
+        emit AdapterRemoved(id);
     }
 
     /// @notice Sets the adapter for a vault
     /// @dev vault == address(0) is allowed
-    function _setVaultAdapter(address vault, bytes32 description) private {
-        IAdapter adapter = IAdapter(descriptionToAdapterMap.get(description));
+    function _setVaultAdapter(address vault, bytes32 id) private {
+        IAdapter adapter = IAdapter(IdToAdapterMap.get(id));
         if (adapter.getAsset(vault) != address(underlyingToken)) {
             revert Errors.INVALID_VAULT(address(vault));
         }
 
         // slither-disable-next-line unused-return
-        vaultToDescriptionMap.set(vault, description);
-        emit VaultAdapterSet(vault, description);
+        vaultToIdMap.set(vault, id);
+        emit VaultAdapterSet(vault, id);
     }
 
     /// @notice Removes a vault from the whitelist
     function _removeVault(address vault) private {
         // slither-disable-next-line unused-return
-        vaultToDescriptionMap.remove(vault);
+        vaultToIdMap.remove(vault);
         emit VaultRemoved(vault);
     }
 
