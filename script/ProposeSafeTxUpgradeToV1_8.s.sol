@@ -18,6 +18,8 @@ import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {Tenderly} from "@tenderly-utils/Tenderly.sol";
 
+import {AaveAdapter} from "@src/market/token/adapters/AaveAdapter.sol";
+
 contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
     using Tenderly for *;
     using Safe for *;
@@ -57,6 +59,8 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         NonTransferrableScaledTokenV1_5 v1_5 =
             NonTransferrableScaledTokenV1_5(address(markets[0].data().borrowTokenVault));
 
+        AaveAdapter aaveAdapterV1_8 = new AaveAdapter(NonTransferrableRebasingTokenVault(address(v1_5)));
+
         targets = new address[](markets.length + 2);
         datas = new bytes[](markets.length + 2);
 
@@ -72,7 +76,9 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
             UUPSUpgradeable.upgradeToAndCall,
             (
                 address(borrowTokenVaultV1_8Implementation),
-                abi.encodeCall(NonTransferrableRebasingTokenVault.reinitialize, ("Size USD Coin Vault", "svUSDC"))
+                abi.encodeCall(
+                    NonTransferrableRebasingTokenVault.reinitialize, ("Size USD Coin Vault", "svUSDC", aaveAdapterV1_8)
+                )
             )
         );
 

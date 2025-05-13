@@ -7,7 +7,6 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
-import {Adapter} from "@src/market/token/libraries/AdapterLibrary.sol";
 import {UNISWAP_V3_FACTORY_BYTECODE} from "@test/mocks/UniswapV3FactoryBytecode.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
@@ -489,15 +488,22 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         PoolMock(address(variablePool)).setLiquidityIndex(token, index);
     }
 
-    function _setVaultAdapter(IERC4626 v, Adapter adapter) internal {
-        return _setVaultAdapter(address(v), adapter);
+    function _setVaultAdapter(IERC4626 v, bytes32 description) internal {
+        return _setVaultAdapter(address(v), description);
     }
 
-    function _setVaultAdapter(address v, Adapter adapter) internal {
+    function _setVaultAdapter(address v, bytes32 description) internal {
         NonTransferrableRebasingTokenVault borrowTokenVault =
             NonTransferrableRebasingTokenVault(address(size.data().borrowTokenVault));
         vm.prank(address(this));
-        borrowTokenVault.setVaultAdapter(v, adapter);
+        borrowTokenVault.setVaultAdapter(v, description);
+    }
+
+    function _setAdapter(bytes32 description, address adapter) internal {
+        NonTransferrableRebasingTokenVault borrowTokenVault =
+            NonTransferrableRebasingTokenVault(address(size.data().borrowTokenVault));
+        vm.prank(address(this));
+        borrowTokenVault.setAdapter(description, adapter);
     }
 
     function _setLiquidityIndex(uint256 index) internal {
