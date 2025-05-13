@@ -108,7 +108,7 @@ Notes
 2. The max/min params from the `copyLimitOrder` method are not global max/min for the user-defined limit orders; they are specific to copy offers. Once the copy address offer is no longer valid, max/min guards for mismatched curves will not be applied. The only reason to stop market orders is in the event of "self arbitrage," i.e., for a given tenor, when the borrow curve >= lending curve, since these users could be drained by an attacker by borrowing high and lending low in a single transaction.
 3. The offset APR parameters are not validated and can cause market orders reverts depending on the final APR result
 
-After v1.8, the `CollectionsManager` core contract was introduced and some of this behavior changed.
+After v1.8, the `CollectionsManager` core contract was introduced, and some of this behavior changed. See the corresponding section further down below for more information.
 
 #### Authorization
 
@@ -175,9 +175,10 @@ Since Size v1.8, collections of markets, curators and rate providers are core en
 - During reinitialization:
   - All users who previously used the `copyLimitOrder` feature are now subscribed to a new collection that mirrors the rate provider they had copied.
   - Their existing limit orders are cleared, since these may now be used by the taker side of a market order.
-  - By default, market orders now select the user-defined yield curve (TODO: confirm this behavior). Since migrated users will have no personal curve set, market orders will revert unless integrators pass an explicit collection parameter.
+  - By default, market orders now select the user-defined yield curve. Since migrated users will have no personal curve set, market orders will revert unless integrators pass an explicit collection parameter.
 - To indicate "no copy," users should pass a `CopyLimitOrderConfig` with all fields set to null except `offsetAPR`. Passing zero min/max bounds will cause reverts—even if the curator has configured valid bounds.
 - For the sake of clarity, `getLoanOfferAPR` and `getBorrowOfferAPR` on the `SizeView` contract were renamed to `getUserDefinedLoanOfferAPR` and `getUserDefinedBorrowOfferAPR` to be explicit about whether the yield curve is from a rate provider or from the user themselves.
+- Some infrequently utilized `SizeView` functions were removed to make room for the additional `WithCollection` functions and not break the max contract size limit.
 
 ## Test
 
