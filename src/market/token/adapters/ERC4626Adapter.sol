@@ -35,6 +35,7 @@ contract ERC4626Adapter is Ownable, IAdapter {
     }
 
     /// @notice Deposits assets into the vault
+    /// @dev Requires underlying to be transferred to the adapter first
     function deposit(address vault, address, /*from*/ address to, uint256 amount) external returns (uint256 assets) {
         underlyingToken.forceApprove(vault, amount);
 
@@ -50,16 +51,18 @@ contract ERC4626Adapter is Ownable, IAdapter {
     }
 
     /// @notice Withdraws assets from the vault
+    /// @dev Requires tokenVault to have approved to address(this) first
     function withdraw(address vault, address from, address to, uint256 amount) external returns (uint256 assets) {
         bool fullWithdraw = amount == balanceOf(vault, from);
         uint256 sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
-        uint256 assetsBefore = underlyingToken.balanceOf(address(tokenVault));
+        uint256 assetsBefore = underlyingToken.balanceOf(address(this));
 
+        tokenVault.pullVaultTokens(vault, IERC4626(vault).previewWithdraw(amount));
         // slither-disable-next-line unused-return
-        IERC4626(vault).withdraw(amount, address(tokenVault), address(tokenVault));
+        IERC4626(vault).withdraw(amount, address(this), address(this));
 
         uint256 shares = sharesBefore - IERC4626(vault).balanceOf(address(tokenVault));
-        assets = underlyingToken.balanceOf(address(tokenVault)) - assetsBefore;
+        assets = underlyingToken.balanceOf(address(this)) - assetsBefore;
 
         underlyingToken.safeTransfer(to, assets);
 

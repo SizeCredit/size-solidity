@@ -11,6 +11,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
+import {Errors} from "@src/market/libraries/Errors.sol";
 import {IAdapter} from "@src/market/token/adapters/IAdapter.sol";
 
 import {Math} from "@src/market/libraries/Math.sol";
@@ -24,17 +25,26 @@ contract AaveAdapter is Ownable, IAdapter {
     NonTransferrableRebasingTokenVault public immutable tokenVault;
     IPool public immutable aavePool;
     IERC20Metadata public immutable underlyingToken;
+    IAToken public immutable aToken;
 
-    constructor(NonTransferrableRebasingTokenVault _tokenVault) Ownable(address(_tokenVault)) {
+    constructor(NonTransferrableRebasingTokenVault _tokenVault, IPool _aavePool, IERC20Metadata _underlyingToken)
+        Ownable(address(_tokenVault))
+    {
+        if (
+            address(_tokenVault) == address(0) || address(_aavePool) == address(0)
+                || address(_underlyingToken) == address(0)
+        ) {
+            revert Errors.NULL_ADDRESS();
+        }
         tokenVault = _tokenVault;
-        aavePool = tokenVault.aavePool();
-        underlyingToken = tokenVault.underlyingToken();
+        aavePool = _aavePool;
+        underlyingToken = _underlyingToken;
+        aToken = IAToken(_aavePool.getReserveData(address(_underlyingToken)).aTokenAddress);
     }
 
     /// @notice Returns the totalSupply of assets deposited on Aave
     function totalSupply(address /*vault*/ ) external view returns (uint256) {
-        IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
-        return aToken.balanceOf(address(this));
+        return aToken.balanceOf(address(tokenVault));
     }
 
     /// @notice Returns the balance of assets of an account on Aave
@@ -44,8 +54,6 @@ contract AaveAdapter is Ownable, IAdapter {
 
     /// @notice Deposits assets into Aave
     function deposit(address vault, address, /* from*/ address to, uint256 amount) external returns (uint256 assets) {
-        IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
-
         uint256 sharesBefore = aToken.scaledBalanceOf(address(tokenVault));
 
         underlyingToken.forceApprove(address(aavePool), amount);
@@ -61,11 +69,10 @@ contract AaveAdapter is Ownable, IAdapter {
     function withdraw(address vault, address from, address to, uint256 amount) external returns (uint256 assets) {
         uint256 balance = balanceOf(vault, from);
         bool fullWithdraw = amount == balance;
-        IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
 
         uint256 scaledBalanceBefore = aToken.scaledBalanceOf(address(tokenVault));
 
-        IERC20Metadata(address(aToken)).safeTransferFrom(address(tokenVault), address(this), amount);
+        tokenVault.pullVaultTokens(DEFAULT_VAULT, amount);
         // slither-disable-next-line unused-return
         aavePool.withdraw(address(underlyingToken), amount, to);
 
@@ -90,7 +97,6 @@ contract AaveAdapter is Ownable, IAdapter {
 
     /// @notice Transfers shares from one account to another from Aave to Aave
     function transferFrom(address vault, address from, address to, uint256 value) external {
-        IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
         if (underlyingToken.balanceOf(address(aToken)) < value) {
             revert NonTransferrableRebasingTokenVault.InsufficientTotalAssets(
                 DEFAULT_VAULT, underlyingToken.balanceOf(address(aToken)), value

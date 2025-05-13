@@ -59,8 +59,6 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         NonTransferrableScaledTokenV1_5 v1_5 =
             NonTransferrableScaledTokenV1_5(address(markets[0].data().borrowTokenVault));
 
-        AaveAdapter aaveAdapterV1_8 = new AaveAdapter(NonTransferrableRebasingTokenVault(address(v1_5)));
-
         targets = new address[](markets.length + 2);
         datas = new bytes[](markets.length + 2);
 
@@ -76,9 +74,7 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
             UUPSUpgradeable.upgradeToAndCall,
             (
                 address(borrowTokenVaultV1_8Implementation),
-                abi.encodeCall(
-                    NonTransferrableRebasingTokenVault.reinitialize, ("Size USD Coin Vault", "svUSDC", aaveAdapterV1_8)
-                )
+                abi.encodeCall(NonTransferrableRebasingTokenVault.reinitialize, ("Size USD Coin Vault", "svUSDC"))
             )
         );
 

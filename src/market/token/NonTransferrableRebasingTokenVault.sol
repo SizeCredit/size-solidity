@@ -20,6 +20,9 @@ import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {Math} from "@src/market/libraries/Math.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
+
+import {AaveAdapter} from "@src/market/token/adapters/AaveAdapter.sol";
+import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
 import {IAdapter} from "@src/market/token/adapters/IAdapter.sol";
 
 address constant DEFAULT_VAULT = address(0);
@@ -60,8 +63,9 @@ contract NonTransferrableRebasingTokenVault is
     // v1.8
     mapping(address user => address vault) public vaultOf;
     mapping(address vault => uint256 dust) public vaultDust;
-    EnumerableMap.AddressToBytes32Map internal vaultToAdapterDescriptionMap;
-    EnumerableMap.Bytes32ToAddressMap internal adapterDescriptionToAdapterMap;
+    EnumerableMap.AddressToBytes32Map internal vaultToDescriptionMap;
+    EnumerableMap.Bytes32ToAddressMap internal descriptionToAdapterMap;
+    EnumerableMap.AddressToBytes32Map internal adapterToDescriptionMap;
 
     /*//////////////////////////////////////////////////////////////
                             EVENTS
@@ -92,8 +96,7 @@ contract NonTransferrableRebasingTokenVault is
     }
 
     modifier onlyAdapter() {
-        bytes32 description = vaultToAdapterDescriptionMap.get(msg.sender);
-        if (!adapterDescriptionToAdapterMap.contains(description)) {
+        if (!adapterToDescriptionMap.contains(msg.sender)) {
             revert Errors.UNAUTHORIZED(msg.sender);
         }
         _;
@@ -137,6 +140,8 @@ contract NonTransferrableRebasingTokenVault is
         name = name_;
         symbol = symbol_;
         decimals = decimals_;
+
+        _initializeAdapters();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -144,15 +149,11 @@ contract NonTransferrableRebasingTokenVault is
     //////////////////////////////////////////////////////////////*/
 
     /// @dev Changing the IAdapter requires a reset in AToken approvals
-    function reinitialize(string memory name_, string memory symbol_, IAdapter aaveAdapter_)
-        external
-        onlyOwner
-        reinitializer(1_08_00)
-    {
+    function reinitialize(string memory name_, string memory symbol_) external onlyOwner reinitializer(1_08_00) {
         name = name_;
         symbol = symbol_;
 
-        _setAaveAdapter(aaveAdapter_);
+        _initializeAdapters();
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
@@ -176,13 +177,9 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @notice Removes a vault from the whitelist
     /// @dev Removing a vault will brick the vault (all `IAdapter` functions will revert,
-    ///        and `vaultToAdapterDescriptionMap.at()` will not return the vault, so `totalSupply()` will ignore it)
+    ///        and `vaultToDescriptionMap.at()` will not return the vault, so `totalSupply()` will ignore it)
     function removeVault(address vault) external onlyOwner {
         _removeVault(vault);
-    }
-
-    function setAaveAdapter(IAdapter aaveAdapter_) external onlyOwner {
-        _setAaveAdapter(aaveAdapter_);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -233,9 +230,9 @@ contract NonTransferrableRebasingTokenVault is
     // slither-disable-next-line calls-loop
     function totalSupply() public view returns (uint256) {
         uint256 assets = 0;
-        for (uint256 i = 0; i < vaultToAdapterDescriptionMap.length(); i++) {
+        for (uint256 i = 0; i < vaultToDescriptionMap.length(); i++) {
             // slither-disable-next-line unused-return
-            (address vault,) = vaultToAdapterDescriptionMap.at(i);
+            (address vault,) = vaultToDescriptionMap.at(i);
             IAdapter adapter = getVaultAdapter(vault);
             assets += adapter.totalSupply(vault);
         }
@@ -252,11 +249,12 @@ contract NonTransferrableRebasingTokenVault is
     ///      Setting the vault to a different address will withdraw all the user's assets
     ///        from the previous vault and deposit them into the new vault
     ///      Reverts if the vault asset is not the same as the NonTransferrableRebasingTokenVault's underlying token
+    ///      vault == address(0) is allowed
     function setVault(address user, address vault) external onlyMarket {
         if (user == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-        if (vaultToAdapterDescriptionMap.contains(vault) && vaultOf[user] != vault) {
+        if (vaultToDescriptionMap.contains(vault) && vaultOf[user] != vault) {
             _transferFrom(vaultOf[user], vault, user, user, balanceOf(user));
 
             emit VaultSet(user, vaultOf[user], vault);
@@ -274,9 +272,8 @@ contract NonTransferrableRebasingTokenVault is
             revert ERC20InvalidReceiver(address(0));
         }
 
-        underlyingToken.safeTransferFrom(msg.sender, address(this), amount);
-
         IAdapter adapter = getVaultAdapter(vaultOf[to]);
+        underlyingToken.safeTransferFrom(msg.sender, address(adapter), amount);
         assets = adapter.deposit(vaultOf[to], from, to, amount);
 
         emit Transfer(address(0), to, assets);
@@ -307,6 +304,32 @@ contract NonTransferrableRebasingTokenVault is
     }
 
     /*//////////////////////////////////////////////////////////////
+                            ADAPTER FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Sets the shares of a user
+    /// @dev Only callable by the adapter
+    function setSharesOf(address user, uint256 shares) public onlyAdapter {
+        sharesOf[user] = shares;
+    }
+
+    /// @notice Sets the dust of a vault
+    /// @dev Only callable by the adapter
+    function setVaultDust(address vault, uint256 dust) public onlyAdapter {
+        vaultDust[vault] = dust;
+    }
+
+    /// @notice Pulls tokens from the vault
+    /// @dev Only callable by the adapter
+    function pullVaultTokens(address vault, uint256 amount) public onlyAdapter {
+        if (vault == DEFAULT_VAULT) {
+            IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
+            vault = address(aToken);
+        }
+        IERC20Metadata(vault).safeTransfer(msg.sender, amount);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                             HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
@@ -319,17 +342,17 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @notice Returns true if the vault is whitelisted
     function isWhitelistedVault(address vault) public view returns (bool) {
-        return vaultToAdapterDescriptionMap.contains(vault);
+        return vaultToDescriptionMap.contains(vault);
     }
 
     /// @notice Returns the number of whitelisted vaults
     function getWhitelistedVaultsCount() public view returns (uint256) {
-        return vaultToAdapterDescriptionMap.length();
+        return vaultToDescriptionMap.length();
     }
 
     /// @notice Returns the whitelisted vault at the given index
     function getWhitelistedVault(uint256 index) public view returns (address, bytes32) {
-        return vaultToAdapterDescriptionMap.at(index);
+        return vaultToDescriptionMap.at(index);
     }
 
     /// @notice Returns all whitelisted vaults
@@ -338,20 +361,20 @@ contract NonTransferrableRebasingTokenVault is
         view
         returns (address[] memory vaults, address[] memory adapters, bytes32[] memory descriptions)
     {
-        vaults = new address[](vaultToAdapterDescriptionMap.length());
-        adapters = new address[](vaultToAdapterDescriptionMap.length());
-        descriptions = new bytes32[](vaultToAdapterDescriptionMap.length());
-        for (uint256 i = 0; i < vaultToAdapterDescriptionMap.length(); i++) {
-            (address vault, bytes32 description) = vaultToAdapterDescriptionMap.at(i);
+        vaults = new address[](vaultToDescriptionMap.length());
+        adapters = new address[](vaultToDescriptionMap.length());
+        descriptions = new bytes32[](vaultToDescriptionMap.length());
+        for (uint256 i = 0; i < vaultToDescriptionMap.length(); i++) {
+            (address vault, bytes32 description) = vaultToDescriptionMap.at(i);
             vaults[i] = vault;
-            adapters[i] = adapterDescriptionToAdapterMap.get(description);
+            adapters[i] = descriptionToAdapterMap.get(description);
             descriptions[i] = description;
         }
     }
 
     function getVaultAdapter(address vault) public view returns (IAdapter) {
-        bytes32 description = vaultToAdapterDescriptionMap.get(vault);
-        return IAdapter(adapterDescriptionToAdapterMap.get(description));
+        bytes32 description = vaultToDescriptionMap.get(vault);
+        return IAdapter(descriptionToAdapterMap.get(description));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -364,42 +387,47 @@ contract NonTransferrableRebasingTokenVault is
             revert Errors.NULL_ADDRESS();
         }
 
-        adapterDescriptionToAdapterMap.set(description, adapter);
+        descriptionToAdapterMap.set(description, adapter);
+        adapterToDescriptionMap.set(adapter, description);
         emit AdapterSet(description, adapter);
     }
 
     /// @notice Removes the adapter
     function _removeAdapter(bytes32 description) private {
-        adapterDescriptionToAdapterMap.remove(description);
+        address adapter = descriptionToAdapterMap.get(description);
+        descriptionToAdapterMap.remove(description);
+        adapterToDescriptionMap.remove(adapter);
+
         emit AdapterRemoved(description);
     }
 
     /// @notice Sets the adapter for a vault
+    /// @dev vault == address(0) is allowed
     function _setVaultAdapter(address vault, bytes32 description) private {
-        if (vault == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-        if (IAdapter(adapterDescriptionToAdapterMap.get(description)).getAsset(vault) != address(underlyingToken)) {
+        IAdapter adapter = IAdapter(descriptionToAdapterMap.get(description));
+        if (adapter.getAsset(vault) != address(underlyingToken)) {
             revert Errors.INVALID_VAULT(address(vault));
         }
 
         // slither-disable-next-line unused-return
-        vaultToAdapterDescriptionMap.set(vault, description);
+        vaultToDescriptionMap.set(vault, description);
         emit VaultAdapterSet(vault, description);
     }
 
     /// @notice Removes a vault from the whitelist
     function _removeVault(address vault) private {
         // slither-disable-next-line unused-return
-        vaultToAdapterDescriptionMap.remove(vault);
+        vaultToDescriptionMap.remove(vault);
         emit VaultRemoved(vault);
     }
 
-    function _setAaveAdapter(IAdapter aaveAdapter_) private {
-        IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
-        IERC20Metadata(address(aToken)).forceApprove(address(aaveAdapter_), type(uint256).max);
-        _setAdapter(bytes32("AaveAdapter"), address(aaveAdapter_));
+    function _initializeAdapters() private {
+        AaveAdapter aaveAdapter = new AaveAdapter(this, aavePool, underlyingToken);
+        _setAdapter(bytes32("AaveAdapter"), address(aaveAdapter));
         _setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
+
+        ERC4626Adapter erc4626Adapter = new ERC4626Adapter(this, underlyingToken);
+        _setAdapter(bytes32("ERC4626Adapter"), address(erc4626Adapter));
     }
 
     /// @notice Transfers assets from one account to another, using the `from` vault to the `to` vault
@@ -417,13 +445,5 @@ contract NonTransferrableRebasingTokenVault is
                 adapterTo.deposit(vaultTo, address(this), to, value);
             }
         }
-    }
-
-    function setSharesOf(address user, uint256 shares) public onlyAdapter {
-        sharesOf[user] = shares;
-    }
-
-    function setVaultDust(address vault, uint256 dust) public onlyAdapter {
-        vaultDust[vault] = dust;
     }
 }

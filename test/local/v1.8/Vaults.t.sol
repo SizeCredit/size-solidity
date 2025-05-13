@@ -33,6 +33,7 @@ import {MaliciousERC4626} from "@test/mocks/vaults/MaliciousERC4626.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {Events} from "@src/market/libraries/Events.sol";
+import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
 
 contract VaultsTest is BaseTest {
     function test_Vaults_borrower_vault_lender_aave() public {
@@ -478,7 +479,7 @@ contract VaultsTest is BaseTest {
         );
     }
 
-    function _isDustShares(address[4] memory) internal view returns (bool) {
+    function _isDustShares(address[4] memory) internal pure returns (bool) {
         // TODO implement this
         return false;
     }
