@@ -42,17 +42,17 @@ contract AaveAdapter is Ownable, IAdapter {
         aToken = IAToken(_aavePool.getReserveData(address(_underlyingToken)).aTokenAddress);
     }
 
-    /// @notice Returns the totalSupply of assets deposited on Aave
+    /// @inheritdoc IAdapter
     function totalSupply(address /*vault*/ ) external view returns (uint256) {
         return aToken.balanceOf(address(tokenVault));
     }
 
-    /// @notice Returns the balance of assets of an account on Aave
+    /// @inheritdoc IAdapter
     function balanceOf(address vault, address account) public view returns (uint256) {
         return _unscale(vault, tokenVault.sharesOf(account));
     }
 
-    /// @notice Deposits assets into Aave
+    /// @inheritdoc IAdapter
     function deposit(address vault, address, /* from*/ address to, uint256 amount) external returns (uint256 assets) {
         uint256 sharesBefore = aToken.scaledBalanceOf(address(tokenVault));
 
@@ -65,14 +65,15 @@ contract AaveAdapter is Ownable, IAdapter {
         tokenVault.setSharesOf(to, tokenVault.sharesOf(to) + shares);
     }
 
-    /// @notice Withdraws assets from Aave
+    /// @inheritdoc IAdapter
     function withdraw(address vault, address from, address to, uint256 amount) external returns (uint256 assets) {
         uint256 balance = balanceOf(vault, from);
         bool fullWithdraw = amount == balance;
 
         uint256 scaledBalanceBefore = aToken.scaledBalanceOf(address(tokenVault));
 
-        tokenVault.pullVaultTokens(DEFAULT_VAULT, amount);
+        tokenVault.requestApprove(DEFAULT_VAULT, amount);
+        IERC20Metadata(address(aToken)).safeTransferFrom(address(tokenVault), address(this), amount);
         // slither-disable-next-line unused-return
         aavePool.withdraw(address(underlyingToken), amount, to);
 
@@ -95,7 +96,7 @@ contract AaveAdapter is Ownable, IAdapter {
         }
     }
 
-    /// @notice Transfers shares from one account to another from Aave to Aave
+    /// @inheritdoc IAdapter
     function transferFrom(address vault, address from, address to, uint256 value) external {
         if (underlyingToken.balanceOf(address(aToken)) < value) {
             revert NonTransferrableRebasingTokenVault.InsufficientTotalAssets(
@@ -111,18 +112,17 @@ contract AaveAdapter is Ownable, IAdapter {
         tokenVault.setSharesOf(to, tokenVault.sharesOf(to) + shares);
     }
 
-    /// @notice Unscales a scaled amount to the asset amount
-    function _unscale(address vault, uint256 scaledAmount) internal view returns (uint256) {
-        return Math.mulDivDown(scaledAmount, pricePerShare(vault), WadRayMath.RAY);
-    }
-
-    /// @notice Returns the price per share of Aave (liquidity index)
+    /// @inheritdoc IAdapter
     function pricePerShare(address /*vault*/ ) public view returns (uint256) {
         return aavePool.getReserveNormalizedIncome(address(underlyingToken));
     }
 
-    /// @notice Returns the asset of Aave (underlying token)
+    /// @inheritdoc IAdapter
     function getAsset(address /*vault*/ ) external view returns (address) {
         return address(underlyingToken);
+    }
+
+    function _unscale(address vault, uint256 scaledAmount) internal view returns (uint256) {
+        return Math.mulDivDown(scaledAmount, pricePerShare(vault), WadRayMath.RAY);
     }
 }

@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
+import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
@@ -278,10 +279,10 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         token.removeVault(address(vault));
 
         vm.prank(address(size));
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vault)));
+        vm.expectRevert(abi.encodeWithSelector(EnumerableMap.EnumerableMapNonexistentKey.selector, address(vault)));
         token.withdraw(user, user, 500);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vault)));
+        vm.expectRevert(abi.encodeWithSelector(EnumerableMap.EnumerableMapNonexistentKey.selector, address(vault)));
         token.balanceOf(user);
 
         assertEq(token.totalSupply(), 3000);

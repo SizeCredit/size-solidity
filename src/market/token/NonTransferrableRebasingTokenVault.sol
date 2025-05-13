@@ -319,14 +319,14 @@ contract NonTransferrableRebasingTokenVault is
         vaultDust[vault] = dust;
     }
 
-    /// @notice Pulls tokens from the vault
+    /// @notice Increases the allowance of the vault
     /// @dev Only callable by the adapter
-    function pullVaultTokens(address vault, uint256 amount) public onlyAdapter {
+    function requestApprove(address vault, uint256 amount) public onlyAdapter {
         if (vault == DEFAULT_VAULT) {
             IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
             vault = address(aToken);
         }
-        IERC20Metadata(vault).safeTransfer(msg.sender, amount);
+        IERC20Metadata(vault).forceApprove(msg.sender, amount);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -440,7 +440,7 @@ contract NonTransferrableRebasingTokenVault is
                 IAdapter adapterFrom = getVaultAdapter(vaultFrom);
                 IAdapter adapterTo = getVaultAdapter(vaultTo);
                 // slither-disable-next-line unused-return
-                adapterFrom.withdraw(vaultFrom, from, address(this), value);
+                adapterFrom.withdraw(vaultFrom, from, address(adapterTo), value);
                 // slither-disable-next-line unused-return
                 adapterTo.deposit(vaultTo, address(this), to, value);
             }
