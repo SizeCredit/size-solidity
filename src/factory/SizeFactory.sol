@@ -93,6 +93,9 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactoryV1_8
+    // slither-disable-start calls-loop
+    // slither-disable-start reentrancy-benign
+    // slither-disable-start uninitialized-local
     function reinitialize(
         ICollectionsManager _collectionsManager,
         address[] memory _users,
@@ -141,19 +144,15 @@ contract SizeFactory is
         actions[0] = Action.BUY_CREDIT_LIMIT;
         actions[1] = Action.SELL_CREDIT_LIMIT;
 
-        // slither-disable-start calls-loop
-        // slither-disable-start reentrancy-benign
         for (uint256 i = 0; i < _users.length; i++) {
             collectionsManager.subscribeUserToCollections(_users[i], collectionIds);
             _setAuthorization(address(this), _users[i], Authorization.getActionsBitmap(actions));
             for (uint256 j = 0; j < _collectionMarkets.length; j++) {
-                // slither-disable-next-line uninitialized-local
                 BuyCreditLimitOnBehalfOfParams memory buyCreditLimitOnBehalfOfParams;
                 buyCreditLimitOnBehalfOfParams.onBehalfOf = _users[i];
 
                 _collectionMarkets[j].buyCreditLimitOnBehalfOf(buyCreditLimitOnBehalfOfParams);
 
-                // slither-disable-next-line uninitialized-local
                 SellCreditLimitOnBehalfOfParams memory sellCreditLimitOnBehalfOfParams;
                 sellCreditLimitOnBehalfOfParams.onBehalfOf = _users[i];
 
@@ -161,13 +160,14 @@ contract SizeFactory is
             }
             _setAuthorization(address(this), _users[i], Authorization.nullActionsBitmap());
         }
-        // slither-disable-end reentrancy-benign
-        // slither-disable-end calls-loop
 
         ERC721EnumerableUpgradeable(address(_collectionsManager)).safeTransferFrom(
             address(this), address(_rateProvider), collectionIds[0]
         );
     }
+    // slither-disable-end uninitialized-local
+    // slither-disable-end reentrancy-benign
+    // slither-disable-end calls-loop
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 

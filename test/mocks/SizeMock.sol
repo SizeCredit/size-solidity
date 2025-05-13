@@ -3,9 +3,10 @@ pragma solidity 0.8.23;
 
 import {Size} from "@src/market/Size.sol";
 import {State} from "@src/market/SizeStorage.sol";
-import {Math, PERCENT, YEAR} from "@src/market/libraries/Math.sol";
-import {Errors} from "@src/market/libraries/Errors.sol";
+
 import {AccountingLibrary} from "@src/market/libraries/AccountingLibrary.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
+import {Math, PERCENT, YEAR} from "@src/market/libraries/Math.sol";
 
 import {
     CREDIT_POSITION_ID_START,
@@ -103,7 +104,6 @@ contract SizeMock is Size {
         return Math.mulDivDown(credit - cash, YEAR * PERCENT, cash * tenor);
     }
 
-
     function getSwapFee(uint256 cash, uint256 tenor) public view returns (uint256) {
         if (tenor == 0) {
             revert Errors.NULL_TENOR();
@@ -115,5 +115,4 @@ contract SizeMock is Size {
         DebtPosition memory debtPosition = state.getDebtPosition(debtPositionId);
         return state.getDebtPositionAssignedCollateral(debtPosition);
     }
-
 }
