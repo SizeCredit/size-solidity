@@ -21,8 +21,6 @@ import {Math} from "@src/market/libraries/Math.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {AaveAdapter} from "@src/market/token/adapters/AaveAdapter.sol";
-import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
 import {IAdapter} from "@src/market/token/adapters/IAdapter.sol";
 
 address constant DEFAULT_VAULT = address(0);
@@ -140,8 +138,6 @@ contract NonTransferrableRebasingTokenVault is
         name = name_;
         symbol = symbol_;
         decimals = decimals_;
-
-        _initializeAdapters();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -149,22 +145,30 @@ contract NonTransferrableRebasingTokenVault is
     //////////////////////////////////////////////////////////////*/
 
     /// @dev Changing the IAdapter requires a reset in AToken approvals
-    function reinitialize(string memory name_, string memory symbol_) external onlyOwner reinitializer(1_08_00) {
+    function reinitialize(string memory name_, string memory symbol_, IAdapter aaveAdapter, IAdapter erc4626Adapter)
+        external
+        onlyOwner
+        reinitializer(1_08_00)
+    {
         name = name_;
         symbol = symbol_;
 
-        _initializeAdapters();
+        _setAdapter(bytes32("AaveAdapter"), aaveAdapter);
+        _setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
+
+        _setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     /// @notice Sets the adapter with id
-    function setAdapter(bytes32 id, address adapter) external onlyOwner {
+    /// @dev The adapter contract must be trusted, since it can call sensitive functions guarded by the `onlyAdapter` modifier
+    function setAdapter(bytes32 id, IAdapter adapter) external onlyOwner {
         _setAdapter(id, adapter);
     }
 
     /// @notice Removes the adapter
-    /// @dev Removing an adapter will brick the vault (TODO test this)
+    /// @dev Removing an adapter will brick the vault
     function removeAdapter(bytes32 id) external onlyOwner {
         _removeAdapter(id);
     }
@@ -264,17 +268,14 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @notice Deposit underlying tokens into the variable pool and mint scaled tokens
     /// @dev The actual deposited amount can be lower than the input amount based on the vault deposit and rounding logic
-    function deposit(address from, address to, uint256 amount) external onlyMarket returns (uint256 assets) {
-        if (from == address(0)) {
-            revert ERC20InvalidSender(address(0));
-        }
+    function deposit(address to, uint256 amount) external onlyMarket returns (uint256 assets) {
         if (to == address(0)) {
             revert ERC20InvalidReceiver(address(0));
         }
 
         IAdapter adapter = getVaultAdapter(vaultOf[to]);
         underlyingToken.safeTransferFrom(msg.sender, address(adapter), amount);
-        assets = adapter.deposit(vaultOf[to], from, to, amount);
+        assets = adapter.deposit(vaultOf[to], to, amount);
 
         emit Transfer(address(0), to, assets);
     }
@@ -372,6 +373,7 @@ contract NonTransferrableRebasingTokenVault is
         }
     }
 
+    /// @notice Returns the adapter for a vault
     function getVaultAdapter(address vault) public view returns (IAdapter) {
         bytes32 id = vaultToIdMap.get(vault);
         return IAdapter(IdToAdapterMap.get(id));
@@ -382,14 +384,14 @@ contract NonTransferrableRebasingTokenVault is
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Sets the adapter
-    function _setAdapter(bytes32 id, address adapter) private {
+    function _setAdapter(bytes32 id, IAdapter adapter) private {
         if (address(adapter) == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
 
-        IdToAdapterMap.set(id, adapter);
-        adapterToIdMap.set(adapter, id);
-        emit AdapterSet(id, adapter);
+        IdToAdapterMap.set(id, address(adapter));
+        adapterToIdMap.set(address(adapter), id);
+        emit AdapterSet(id, address(adapter));
     }
 
     /// @notice Removes the adapter
@@ -421,15 +423,6 @@ contract NonTransferrableRebasingTokenVault is
         emit VaultRemoved(vault);
     }
 
-    function _initializeAdapters() private {
-        AaveAdapter aaveAdapter = new AaveAdapter(this, aavePool, underlyingToken);
-        _setAdapter(bytes32("AaveAdapter"), address(aaveAdapter));
-        _setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
-
-        ERC4626Adapter erc4626Adapter = new ERC4626Adapter(this, underlyingToken);
-        _setAdapter(bytes32("ERC4626Adapter"), address(erc4626Adapter));
-    }
-
     /// @notice Transfers assets from one account to another, using the `from` vault to the `to` vault
     function _transferFrom(address vaultFrom, address vaultTo, address from, address to, uint256 value) private {
         if (value > 0) {
@@ -442,7 +435,7 @@ contract NonTransferrableRebasingTokenVault is
                 // slither-disable-next-line unused-return
                 adapterFrom.withdraw(vaultFrom, from, address(adapterTo), value);
                 // slither-disable-next-line unused-return
-                adapterTo.deposit(vaultTo, address(this), to, value);
+                adapterTo.deposit(vaultTo, to, value);
             }
         }
     }

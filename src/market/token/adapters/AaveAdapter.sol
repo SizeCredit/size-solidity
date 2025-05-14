@@ -53,7 +53,7 @@ contract AaveAdapter is Ownable, IAdapter {
     }
 
     /// @inheritdoc IAdapter
-    function deposit(address vault, address, /* from*/ address to, uint256 amount) external returns (uint256 assets) {
+    function deposit(address vault, address to, uint256 amount) external returns (uint256 assets) {
         uint256 sharesBefore = aToken.scaledBalanceOf(address(tokenVault));
 
         underlyingToken.forceApprove(address(aavePool), amount);

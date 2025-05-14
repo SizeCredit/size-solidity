@@ -115,7 +115,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         vm.prank(address(size));
         underlying.approve(address(token), deposit);
         vm.prank(address(size));
-        token.deposit(user, user, deposit);
+        token.deposit(user, deposit);
 
         deal(address(underlying), address(aToken), 100);
         vm.prank(address(size));
@@ -143,7 +143,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         vm.prank(address(size));
         underlying.approve(address(token), 100e18);
         vm.prank(address(size));
-        token.deposit(user, user, 100e18);
+        token.deposit(user, 100e18);
 
         vm.prank(address(size));
         token.transferFrom(user, address(this), 50e18);
@@ -196,7 +196,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         vm.prank(address(size));
         underlying.approve(address(token), 1000);
         vm.prank(address(size));
-        token.deposit(user, user, 1000);
+        token.deposit(user, 1000);
         assertEq(token.balanceOf(user), 1000);
     }
 
@@ -207,7 +207,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         vm.prank(address(size));
         underlying.approve(address(token), 1000);
         vm.prank(address(size));
-        token.deposit(user, user, 1000);
+        token.deposit(user, 1000);
         vm.prank(address(size));
         token.withdraw(user, user, 500);
         assertEq(token.balanceOf(user), 500);
@@ -247,7 +247,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         underlying.approve(address(token), 1000);
 
         vm.prank(address(size));
-        token.deposit(user, user, 1000);
+        token.deposit(user, 1000);
         assertEq(token.balanceOf(user), 1000);
 
         vm.prank(address(size));
@@ -271,7 +271,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         underlying.approve(address(token), 1000);
 
         vm.prank(address(size));
-        token.deposit(user, user, 1000);
+        token.deposit(user, 1000);
         assertEq(token.balanceOf(user), 1000);
         assertEq(token.totalSupply(), 4000);
 
@@ -298,7 +298,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         underlying.approve(address(token), 500);
 
         vm.prank(address(size));
-        token.deposit(user, user, 500);
+        token.deposit(user, 500);
 
         vm.prank(address(size));
         token.transferFrom(user, owner, 100);
@@ -318,7 +318,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         underlying.approve(address(token), 500);
 
         vm.prank(address(size));
-        token.deposit(user, user, 500);
+        token.deposit(user, 500);
 
         vm.prank(address(size));
         token.transferFrom(user, owner, 100);
@@ -338,7 +338,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         underlying.approve(address(token), 500);
 
         vm.prank(address(size));
-        token.deposit(user, user, 500);
+        token.deposit(user, 500);
 
         vm.prank(address(size));
         token.transferFrom(user, owner, 100);
@@ -360,7 +360,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         underlying.approve(address(token), 500);
 
         vm.prank(address(size));
-        token.deposit(user, user, 500);
+        token.deposit(user, 500);
 
         vm.prank(address(size));
         token.transferFrom(user, owner, 100);
@@ -380,7 +380,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         underlying.approve(address(token), 1_000e6);
 
         vm.prank(address(size));
-        token.deposit(bob, bob, 1_000e6);
+        token.deposit(bob, 1_000e6);
         assertEq(token.balanceOf(bob), 1_000e6);
         assertEq(token.totalSupply(), 1_000e6);
 
@@ -389,7 +389,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         underlying.approve(address(token), 300e6);
 
         vm.prank(address(size));
-        token.deposit(candy, candy, 300e6);
+        token.deposit(candy, 300e6);
         assertEq(token.balanceOf(bob), 1_000e6);
         assertEq(token.balanceOf(candy), 300e6);
         assertEq(token.totalSupply(), 1_300e6);

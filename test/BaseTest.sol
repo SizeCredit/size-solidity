@@ -499,13 +499,6 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         borrowTokenVault.setVaultAdapter(v, id);
     }
 
-    function _setAdapter(bytes32 id, address adapter) internal {
-        NonTransferrableRebasingTokenVault borrowTokenVault =
-            NonTransferrableRebasingTokenVault(address(size.data().borrowTokenVault));
-        vm.prank(address(this));
-        borrowTokenVault.setAdapter(id, adapter);
-    }
-
     function _setLiquidityIndex(uint256 index) internal {
         _setLiquidityIndex(address(usdc), index);
     }

@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
+import {Math} from "@src/market/libraries/Math.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -39,7 +41,7 @@ contract ERC4626Adapter is Ownable, IAdapter {
     }
 
     /// @inheritdoc IAdapter
-    function deposit(address vault, address, /*from*/ address to, uint256 amount) external returns (uint256 assets) {
+    function deposit(address vault, address to, uint256 amount) external returns (uint256 assets) {
         underlyingToken.forceApprove(vault, amount);
 
         uint256 sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
@@ -99,7 +101,7 @@ contract ERC4626Adapter is Ownable, IAdapter {
 
     /// @inheritdoc IAdapter
     function pricePerShare(address vault) public view returns (uint256) {
-        return IERC4626(vault).convertToAssets(10 ** underlyingToken.decimals());
+        return Math.mulDivDown(IERC4626(vault).totalAssets(), WadRayMath.RAY, IERC4626(vault).totalSupply());
     }
 
     /// @inheritdoc IAdapter
