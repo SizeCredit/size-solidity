@@ -35,6 +35,8 @@ address constant DEFAULT_VAULT = address(0);
 ///      By default, underlying tokens are deposited into the Aave pool, unless the user has set a ERC4626 vault.
 ///      Vaults are whitelisted, and are assumed to be standard ERC4626 tokens.
 ///      Vaults with features such as pause, fee on transfer, and asynchronous share minting/burning are not supported.
+///      The contract owner configures a vault adapter that implements the `IAdapter` interface to handle deposit/withdraw/etc logic for each vault that is whitelisted.
+///        Currently, only Aave and ERC4626 vaults are supported, but this can be extended to other vaults by the contract owner.
 contract NonTransferrableRebasingTokenVault is
     IERC20Metadata,
     IERC20Errors,
