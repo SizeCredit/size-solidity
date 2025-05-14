@@ -21,7 +21,7 @@ Networks:
 | 2024-06-08 | v1.0-rc | Spearbit | [Report](./audits/2024-06-08-Spearbit.pdf) |
 | 2024-03-26 | v1.0-beta | Solidified | [Report](./audits/2024-03-26-Solidified.pdf) |
 
-For bug reports, please refer to our [Bug Bounty Program](https://cantina.xyz/code/c5811be1-cc87-4418-80b0-f0b50f7e5849/overview)
+For bug reports, please refer to our [Bug Bounty Program](https://cantina.xyz/bounties/c5811be1-cc87-4418-80b0-f0b50f7e5849)
 
 ## Documentation
 
