@@ -13,13 +13,14 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 
 import {PendleSparkLinearDiscountOracle} from "@pendle/contracts/oracles/internal/PendleSparkLinearDiscountOracle.sol";
 import {IOracle} from "@src/oracle/adapters/morpho/IOracle.sol";
-import {PriceFeedPendleChainlink} from "@src/oracle/v1.7.1/PriceFeedPendleChainlink.sol";
+import {PriceFeedPendleSparkLinearDiscountChainlink} from
+    "@src/oracle/v1.7.1/PriceFeedPendleSparkLinearDiscountChainlink.sol";
 
-contract DeployPriceFeedPendleChainlinkScript is BaseScript, Networks, Deploy {
+contract DeployPriceFeedPendleSparkLinearDiscountChainlinkScript is BaseScript, Networks, Deploy {
     function setUp() public {}
 
     function run() public broadcast {
-        console.log("[PriceFeedPendleChainlink] deploying...");
+        console.log("[PriceFeedPendleSparkLinearDiscountChainlink] deploying...");
 
         (
             ,
@@ -31,15 +32,15 @@ contract DeployPriceFeedPendleChainlinkScript is BaseScript, Networks, Deploy {
             ,
         ) = priceFeedPendleChainlink29May2025UsdcMainnet();
 
-        PriceFeedPendleChainlink priceFeedPendleChainlink = new PriceFeedPendleChainlink(
+        PriceFeedPendleSparkLinearDiscountChainlink priceFeedPendleChainlink = new PriceFeedPendleSparkLinearDiscountChainlink(
             pendleOracle,
             underlyingChainlinkOracle,
             quoteChainlinkOracle,
             underlyingStalePriceInterval,
             quoteStalePriceInterval
         );
-        console.log("[PriceFeedPendleChainlink] priceFeed", address(priceFeedPendleChainlink));
+        console.log("[PriceFeedPendleSparkLinearDiscountChainlink] priceFeed", address(priceFeedPendleChainlink));
 
-        console.log("[PriceFeedPendleChainlink] done");
+        console.log("[PriceFeedPendleSparkLinearDiscountChainlink] done");
     }
 }

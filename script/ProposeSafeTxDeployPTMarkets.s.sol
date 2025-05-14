@@ -25,8 +25,12 @@ import {Tenderly} from "@tenderly-utils/Tenderly.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
+import {PendleChainlinkOracle} from "@pendle/contracts/oracles/PtYtLpOracle/chainlink/PendleChainlinkOracle.sol";
 import {PendleSparkLinearDiscountOracle} from "@pendle/contracts/oracles/internal/PendleSparkLinearDiscountOracle.sol";
-import {PriceFeedPendleChainlink} from "@src/oracle/v1.7.1/PriceFeedPendleChainlink.sol";
+import {PriceFeedPendleSparkLinearDiscountChainlink} from
+    "@src/oracle/v1.7.1/PriceFeedPendleSparkLinearDiscountChainlink.sol";
+import {PriceFeedPendleTWAPChainlink} from "@src/oracle/v1.7.2/PriceFeedPendleTWAPChainlink.sol";
 
 import {console} from "forge-std/console.sol";
 
@@ -69,7 +73,7 @@ contract ProposeSafeTxDeployPTMarketsScript is BaseScript, Networks {
             IERC20Metadata baseToken,
         ) = priceFeedPendleChainlinkPtSusde30July2025UsdcMainnet();
 
-        PriceFeedPendleChainlink ptSusde30July2025UsdcPriceFeed = new PriceFeedPendleChainlink(
+        PriceFeedPendleSparkLinearDiscountChainlink ptSusde30July2025UsdcPriceFeed = new PriceFeedPendleSparkLinearDiscountChainlink(
             pendleOracle,
             underlyingChainlinkOracle,
             quoteChainlinkOracle,
@@ -81,7 +85,7 @@ contract ProposeSafeTxDeployPTMarketsScript is BaseScript, Networks {
         console.log("ptSusde30July2025UsdcPriceFeed price", ptSusde30July2025UsdcPriceFeed.getPrice());
 
         (
-            PendleSparkLinearDiscountOracle pendleOracle2,
+            PendleChainlinkOracle pendleOracle2,
             AggregatorV3Interface underlyingChainlinkOracle2,
             AggregatorV3Interface quoteChainlinkOracle2,
             uint256 underlyingStalePriceInterval2,
@@ -89,7 +93,7 @@ contract ProposeSafeTxDeployPTMarketsScript is BaseScript, Networks {
             IERC20Metadata baseToken2,
         ) = priceFeedPendleChainlinkWstusrUsdc24Sep2025Mainnet();
 
-        PriceFeedPendleChainlink wstusrUsdc24Sep2025PriceFeed = new PriceFeedPendleChainlink(
+        PriceFeedPendleTWAPChainlink wstusrUsdc24Sep2025PriceFeed = new PriceFeedPendleTWAPChainlink(
             pendleOracle2,
             underlyingChainlinkOracle2,
             quoteChainlinkOracle2,

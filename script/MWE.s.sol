@@ -15,7 +15,8 @@ import {UpdateConfigParams} from "@src/market/libraries/actions/UpdateConfig.sol
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {PendleSparkLinearDiscountOracle} from "@pendle/contracts/oracles/internal/PendleSparkLinearDiscountOracle.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {PriceFeedPendleChainlink} from "@src/oracle/v1.7.1/PriceFeedPendleChainlink.sol";
+import {PriceFeedPendleSparkLinearDiscountChainlink} from
+    "@src/oracle/v1.7.1/PriceFeedPendleSparkLinearDiscountChainlink.sol";
 
 import {HTTP} from "@safe-utils/../lib/solidity-http/src/HTTP.sol";
 
@@ -51,7 +52,7 @@ contract MWEScript is BaseScript, Networks {
             ,
         ) = priceFeedPendleChainlink29May2025UsdcMainnet();
 
-        PriceFeedPendleChainlink newPriceFeed = new PriceFeedPendleChainlink(
+        PriceFeedPendleSparkLinearDiscountChainlink newPriceFeed = new PriceFeedPendleSparkLinearDiscountChainlink(
             pendleOracle,
             underlyingChainlinkOracle,
             quoteChainlinkOracle,
