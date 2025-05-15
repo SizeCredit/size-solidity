@@ -21,12 +21,9 @@ import {Math} from "@src/market/libraries/Math.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {
-    DEFAULT_VAULT,
-    NTRTVStorage,
-    NonTransferrableRebasingTokenVaultBase
-} from "@src/market/token/NonTransferrableRebasingTokenVaultBase.sol";
-import {Adapter, AdapterLibrary} from "@src/market/token/libraries/AdapterLibrary.sol";
+import {IAdapter} from "@src/market/token/adapters/IAdapter.sol";
+
+address constant DEFAULT_VAULT = address(0);
 
 /// @title NonTransferrableRebasingTokenVault
 /// @custom:security-contact security@size.credit
@@ -38,16 +35,76 @@ import {Adapter, AdapterLibrary} from "@src/market/token/libraries/AdapterLibrar
 ///      By default, underlying tokens are deposited into the Aave pool, unless the user has set a ERC4626 vault.
 ///      Vaults are whitelisted, and are assumed to be standard ERC4626 tokens.
 ///      Vaults with features such as pause, fee on transfer, and asynchronous share minting/burning are not supported.
+///      The contract owner configures a vault adapter that implements the `IAdapter` interface to handle deposit/withdraw/etc logic for each vault that is whitelisted.
+///        Currently, only Aave and ERC4626 vaults are supported, but this can be extended to other vaults by the contract owner.
 contract NonTransferrableRebasingTokenVault is
-    NonTransferrableRebasingTokenVaultBase,
     IERC20Metadata,
     IERC20Errors,
     Ownable2StepUpgradeable,
     UUPSUpgradeable
 {
     using SafeERC20 for IERC20Metadata;
-    using EnumerableMap for EnumerableMap.AddressToUintMap;
-    using AdapterLibrary for NTRTVStorage;
+    using EnumerableMap for EnumerableMap.AddressToBytes32Map;
+    using EnumerableMap for EnumerableMap.Bytes32ToAddressMap;
+
+    /*//////////////////////////////////////////////////////////////
+                            STORAGE
+    //////////////////////////////////////////////////////////////*/
+
+    // slither-disable-start uninitialized-state
+    // slither-disable-start constable-states
+    // v1.5
+    ISizeFactory public sizeFactory;
+    IPool public aavePool;
+    IERC20Metadata public underlyingToken;
+    string public name;
+    string public symbol;
+    uint8 public decimals;
+    uint256 private ___unused__scaledTotalSupply; // deprecated in v1.8
+    mapping(address user => uint256 shares) public sharesOf; // updated in v1.8
+    // v1.8
+    mapping(address user => address vault) public vaultOf;
+    mapping(address vault => uint256 dust) public vaultDust;
+    EnumerableMap.AddressToBytes32Map internal vaultToIdMap;
+    EnumerableMap.Bytes32ToAddressMap internal IdToAdapterMap;
+    EnumerableMap.AddressToBytes32Map internal adapterToIdMap;
+    // slither-disable-end constable-states
+    // slither-disable-end uninitialized-state
+
+    /*//////////////////////////////////////////////////////////////
+                            EVENTS
+    //////////////////////////////////////////////////////////////*/
+
+    event VaultSet(address indexed user, address indexed previousVault, address indexed newVault);
+    event VaultAdapterSet(address indexed vault, bytes32 indexed id);
+    event VaultRemoved(address indexed vault);
+    event AdapterSet(bytes32 indexed id, address indexed adapter);
+    event AdapterRemoved(bytes32 indexed id);
+
+    /*//////////////////////////////////////////////////////////////
+                            ERRORS
+    //////////////////////////////////////////////////////////////*/
+
+    error OnlyMarket();
+    error InsufficientTotalAssets(address vault, uint256 totalAssets, uint256 amount);
+
+    /*//////////////////////////////////////////////////////////////
+                            MODIFIERS
+    //////////////////////////////////////////////////////////////*/
+
+    modifier onlyMarket() {
+        if (!sizeFactory.isMarket(msg.sender)) {
+            revert Errors.UNAUTHORIZED(msg.sender);
+        }
+        _;
+    }
+
+    modifier onlyAdapter() {
+        if (!adapterToIdMap.contains(msg.sender)) {
+            revert Errors.UNAUTHORIZED(msg.sender);
+        }
+        _;
+    }
 
     /*//////////////////////////////////////////////////////////////
                             CONSTRUCTOR/INITIALIZER
@@ -58,6 +115,7 @@ contract NonTransferrableRebasingTokenVault is
         _disableInitializers();
     }
 
+    /// @dev Changing the IAdapter requires a reset in AToken approvals
     function initialize(
         ISizeFactory sizeFactory_,
         IPool aavePool_,
@@ -78,42 +136,58 @@ contract NonTransferrableRebasingTokenVault is
             revert Errors.NULL_ADDRESS();
         }
 
-        s.sizeFactory = sizeFactory_;
+        sizeFactory = sizeFactory_;
 
-        s.aavePool = aavePool_;
-        s.underlyingToken = underlyingToken_;
+        aavePool = aavePool_;
+        underlyingToken = underlyingToken_;
 
-        s.name = name_;
-        s.symbol = symbol_;
-        s.decimals = decimals_;
-
-        // v1.8
-        _setVaultAdapter(DEFAULT_VAULT, Adapter.Aave);
+        name = name_;
+        symbol = symbol_;
+        decimals = decimals_;
     }
 
     /*//////////////////////////////////////////////////////////////
                             OWNER FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function reinitialize(string memory name_, string memory symbol_) external onlyOwner reinitializer(1_08_00) {
-        s.name = name_;
-        s.symbol = symbol_;
+    /// @dev Changing the IAdapter requires a reset in AToken approvals
+    function reinitialize(string memory name_, string memory symbol_, IAdapter aaveAdapter, IAdapter erc4626Adapter)
+        external
+        onlyOwner
+        reinitializer(1_08_00)
+    {
+        name = name_;
+        symbol = symbol_;
 
-        // v1.8
-        _setVaultAdapter(DEFAULT_VAULT, Adapter.Aave);
+        _setAdapter(bytes32("AaveAdapter"), aaveAdapter);
+        _setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
+
+        _setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
+    /// @notice Sets the adapter with id
+    /// @dev The adapter contract must be trusted, since it can call sensitive functions guarded by the `onlyAdapter` modifier
+    function setAdapter(bytes32 id, IAdapter adapter) external onlyOwner {
+        _setAdapter(id, adapter);
+    }
+
+    /// @notice Removes the adapter
+    /// @dev Removing an adapter will brick the vault
+    function removeAdapter(bytes32 id) external onlyOwner {
+        _removeAdapter(id);
+    }
+
     /// @notice Sets the adapter for a vault
-    /// @dev Setting a wrong adapter may brick the vault (`VaultAdapterFunctions` may revert or return incorrect values)
-    function setVaultAdapter(address vault, Adapter adapter) external onlyOwner {
-        _setVaultAdapter(vault, adapter);
+    /// @dev Setting a wrong adapter may brick the vault (`IAdapter` functions may revert or return incorrect values)
+    function setVaultAdapter(address vault, bytes32 id) external onlyOwner {
+        _setVaultAdapter(vault, id);
     }
 
     /// @notice Removes a vault from the whitelist
-    /// @dev Removing a vault will brick the vault (all `VaultAdapterFunctions` will revert,
-    ///        and vaultToAdapterMap.at() will not return the vault, so `totalSupply()` will ignore it)
+    /// @dev Removing a vault will brick the vault (all `IAdapter` functions will revert,
+    ///        and `vaultToIdMap.at()` will not return the vault, so `totalSupply()` will ignore it)
     function removeVault(address vault) external onlyOwner {
         _removeVault(vault);
     }
@@ -121,21 +195,6 @@ contract NonTransferrableRebasingTokenVault is
     /*//////////////////////////////////////////////////////////////
                             ERC20 FUNCTIONS
     //////////////////////////////////////////////////////////////*/
-
-    /// @inheritdoc IERC20Metadata
-    function name() public view override returns (string memory) {
-        return s.name;
-    }
-
-    /// @inheritdoc IERC20Metadata
-    function symbol() public view override returns (string memory) {
-        return s.symbol;
-    }
-
-    /// @inheritdoc IERC20Metadata
-    function decimals() public view override returns (uint8) {
-        return s.decimals;
-    }
 
     /// @inheritdoc IERC20
     function transferFrom(address from, address to, uint256 value) public virtual onlyMarket returns (bool) {
@@ -146,7 +205,7 @@ contract NonTransferrableRebasingTokenVault is
             revert ERC20InvalidReceiver(address(0));
         }
 
-        _transferFrom(s.vaultOf[from], s.vaultOf[to], from, to, value);
+        _transferFrom(vaultOf[from], vaultOf[to], from, to, value);
 
         emit Transfer(from, to, value);
 
@@ -160,7 +219,7 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @inheritdoc IERC20
     function allowance(address, address spender) public view virtual override returns (uint256) {
-        return s.sizeFactory.isMarket(spender) ? type(uint256).max : 0;
+        return sizeFactory.isMarket(spender) ? type(uint256).max : 0;
     }
 
     /// @inheritdoc IERC20
@@ -170,7 +229,8 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @inheritdoc IERC20
     function balanceOf(address account) public view returns (uint256) {
-        return s.balanceOf(s.vaultOf[account], account);
+        IAdapter adapter = getVaultAdapter(vaultOf[account]);
+        return adapter.balanceOf(vaultOf[account], account);
     }
 
     /// @inheritdoc IERC20
@@ -180,10 +240,11 @@ contract NonTransferrableRebasingTokenVault is
     // slither-disable-next-line calls-loop
     function totalSupply() public view returns (uint256) {
         uint256 assets = 0;
-        for (uint256 i = 0; i < s.vaultToAdapterMap.length(); i++) {
+        for (uint256 i = 0; i < vaultToIdMap.length(); i++) {
             // slither-disable-next-line unused-return
-            (address vault,) = s.vaultToAdapterMap.at(i);
-            assets += s.totalSupply(vault);
+            (address vault,) = vaultToIdMap.at(i);
+            IAdapter adapter = getVaultAdapter(vault);
+            assets += adapter.totalSupply(vault);
         }
         return assets;
     }
@@ -202,27 +263,24 @@ contract NonTransferrableRebasingTokenVault is
         if (user == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-        if (s.vaultToAdapterMap.contains(address(vault)) && s.vaultOf[user] != vault) {
-            _transferFrom(s.vaultOf[user], vault, user, user, balanceOf(user));
+        if (vaultToIdMap.contains(vault) && vaultOf[user] != vault) {
+            _transferFrom(vaultOf[user], vault, user, user, balanceOf(user));
 
-            emit VaultSet(user, s.vaultOf[user], vault);
-            s.vaultOf[user] = vault;
+            emit VaultSet(user, vaultOf[user], vault);
+            vaultOf[user] = vault;
         }
     }
 
     /// @notice Deposit underlying tokens into the variable pool and mint scaled tokens
     /// @dev The actual deposited amount can be lower than the input amount based on the vault deposit and rounding logic
-    function deposit(address from, address to, uint256 amount) external onlyMarket returns (uint256 assets) {
-        if (from == address(0)) {
-            revert ERC20InvalidSender(address(0));
-        }
+    function deposit(address to, uint256 amount) external onlyMarket returns (uint256 assets) {
         if (to == address(0)) {
             revert ERC20InvalidReceiver(address(0));
         }
 
-        s.underlyingToken.safeTransferFrom(msg.sender, address(this), amount);
-
-        assets = s.deposit(s.vaultOf[to], from, to, amount);
+        IAdapter adapter = getVaultAdapter(vaultOf[to]);
+        underlyingToken.safeTransferFrom(msg.sender, address(adapter), amount);
+        assets = adapter.deposit(vaultOf[to], to, amount);
 
         emit Transfer(address(0), to, assets);
     }
@@ -245,103 +303,133 @@ contract NonTransferrableRebasingTokenVault is
             revert ERC20InvalidReceiver(address(0));
         }
 
-        assets = s.withdraw(s.vaultOf[from], from, to, amount);
+        IAdapter adapter = getVaultAdapter(vaultOf[from]);
+        assets = adapter.withdraw(vaultOf[from], from, to, amount);
 
         emit Transfer(from, address(0), assets);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            ADAPTER FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Sets the shares of a user
+    /// @dev Only callable by the adapter
+    function setSharesOf(address user, uint256 shares) public onlyAdapter {
+        sharesOf[user] = shares;
+    }
+
+    /// @notice Sets the dust of a vault
+    /// @dev Only callable by the adapter
+    function setVaultDust(address vault, uint256 dust) public onlyAdapter {
+        vaultDust[vault] = dust;
+    }
+
+    /// @notice Increases the allowance of the vault
+    /// @dev Only callable by the adapter
+    function requestApprove(address vault, uint256 amount) public onlyAdapter {
+        if (vault == DEFAULT_VAULT) {
+            IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
+            vault = address(aToken);
+        }
+        IERC20Metadata(vault).forceApprove(msg.sender, amount);
     }
 
     /*//////////////////////////////////////////////////////////////
                             HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Returns the vault of an account
-    function vaultOf(address user) public view returns (address) {
-        return s.vaultOf[user];
-    }
-
-    /// @notice Returns the shares of an account
-    function sharesOf(address user) public view returns (uint256) {
-        return s.sharesOf[user];
-    }
-
-    /// @notice Returns the scaled balance of an account
-    function scaledBalanceOf(address user) public view returns (uint256) {
-        return s.scaledBalanceOf[user];
-    }
-
-    /// @notice Returns the scaled total supply of the vault
-    function scaledTotalSupply() public view returns (uint256) {
-        return s.scaledTotalSupply;
-    }
-
-    /// @notice Returns the size factory
-    function sizeFactory() public view returns (ISizeFactory) {
-        return s.sizeFactory;
-    }
-
-    /// @notice Returns the Aave pool
-    function aavePool() public view returns (IPool) {
-        return s.aavePool;
-    }
-
-    /// @notice Returns the dust of a vault
-    function vaultDust(address vault) public view returns (uint256) {
-        return s.vaultDust[vault];
-    }
-
     /// @notice Returns the current liquidity index of the variable pool
     /// @return The current liquidity index of the variable pool
     function liquidityIndex() public view returns (uint256) {
-        return s.pricePerShare(DEFAULT_VAULT);
+        IAdapter adapter = getVaultAdapter(DEFAULT_VAULT);
+        return adapter.pricePerShare(DEFAULT_VAULT);
     }
 
     /// @notice Returns true if the vault is whitelisted
     function isWhitelistedVault(address vault) public view returns (bool) {
-        return s.vaultToAdapterMap.contains(vault);
+        return vaultToIdMap.contains(vault);
     }
 
     /// @notice Returns the number of whitelisted vaults
     function getWhitelistedVaultsCount() public view returns (uint256) {
-        return s.vaultToAdapterMap.length();
+        return vaultToIdMap.length();
     }
 
     /// @notice Returns the whitelisted vault at the given index
-    function getWhitelistedVault(uint256 index) public view returns (address, Adapter) {
-        (address vault, uint256 adapter) = s.vaultToAdapterMap.at(index);
-        return (vault, Adapter(adapter));
+    // slither-disable-next-line unused-return
+    function getWhitelistedVault(uint256 index) public view returns (address, bytes32) {
+        return vaultToIdMap.at(index);
     }
 
     /// @notice Returns all whitelisted vaults
-    function getWhitelistedVaults() public view returns (address[] memory vaults, Adapter[] memory adapters) {
-        vaults = new address[](s.vaultToAdapterMap.length());
-        adapters = new Adapter[](s.vaultToAdapterMap.length());
-        for (uint256 i = 0; i < s.vaultToAdapterMap.length(); i++) {
-            (address vault, uint256 adapter) = s.vaultToAdapterMap.at(i);
+    function getWhitelistedVaults()
+        public
+        view
+        returns (address[] memory vaults, address[] memory adapters, bytes32[] memory ids)
+    {
+        vaults = new address[](vaultToIdMap.length());
+        adapters = new address[](vaultToIdMap.length());
+        ids = new bytes32[](vaultToIdMap.length());
+        for (uint256 i = 0; i < vaultToIdMap.length(); i++) {
+            (address vault, bytes32 id) = vaultToIdMap.at(i);
             vaults[i] = vault;
-            adapters[i] = Adapter(adapter);
+            adapters[i] = IdToAdapterMap.get(id);
+            ids[i] = id;
         }
+    }
+
+    /// @notice Returns the adapter for a vault
+    function getVaultAdapter(address vault) public view returns (IAdapter) {
+        bytes32 id = vaultToIdMap.get(vault);
+        return IAdapter(IdToAdapterMap.get(id));
     }
 
     /*//////////////////////////////////////////////////////////////
                             PRIVATE FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Sets the adapter for a vault
-    /// @dev Sets the adapter first, so that s.getAsset(vault) is available
-    function _setVaultAdapter(address vault, Adapter adapter) private {
-        // slither-disable-next-line unused-return
-        s.vaultToAdapterMap.set(vault, uint256(adapter));
-        emit VaultAdapterSet(vault, uint256(adapter));
+    /// @notice Sets the adapter
+    // slither-disable-start unused-return
+    function _setAdapter(bytes32 id, IAdapter adapter) private {
+        if (address(adapter) == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
 
-        if (s.getAsset(vault) != address(s.underlyingToken)) {
+        IdToAdapterMap.set(id, address(adapter));
+        adapterToIdMap.set(address(adapter), id);
+        emit AdapterSet(id, address(adapter));
+    }
+    // slither-disable-end unused-return
+
+    /// @notice Removes the adapter
+    // slither-disable-start unused-return
+    function _removeAdapter(bytes32 id) private {
+        address adapter = IdToAdapterMap.get(id);
+        IdToAdapterMap.remove(id);
+        adapterToIdMap.remove(adapter);
+
+        emit AdapterRemoved(id);
+    }
+    // slither-disable-end unused-return
+
+    /// @notice Sets the adapter for a vault
+    ///  @dev Setting the vault to `address(0)` will use the default variable pool
+    function _setVaultAdapter(address vault, bytes32 id) private {
+        IAdapter adapter = IAdapter(IdToAdapterMap.get(id));
+        if (adapter.getAsset(vault) != address(underlyingToken)) {
             revert Errors.INVALID_VAULT(address(vault));
         }
+
+        // slither-disable-next-line unused-return
+        vaultToIdMap.set(vault, id);
+        emit VaultAdapterSet(vault, id);
     }
 
     /// @notice Removes a vault from the whitelist
     function _removeVault(address vault) private {
         // slither-disable-next-line unused-return
-        s.vaultToAdapterMap.remove(vault);
+        vaultToIdMap.remove(vault);
         emit VaultRemoved(vault);
     }
 
@@ -349,12 +437,15 @@ contract NonTransferrableRebasingTokenVault is
     function _transferFrom(address vaultFrom, address vaultTo, address from, address to, uint256 value) private {
         if (value > 0) {
             if (vaultFrom == vaultTo) {
-                s.transferFrom(vaultFrom, from, to, value);
+                IAdapter adapter = getVaultAdapter(vaultFrom);
+                adapter.transferFrom(vaultFrom, from, to, value);
             } else {
+                IAdapter adapterFrom = getVaultAdapter(vaultFrom);
+                IAdapter adapterTo = getVaultAdapter(vaultTo);
                 // slither-disable-next-line unused-return
-                s.withdraw(vaultFrom, from, address(this), value);
+                adapterFrom.withdraw(vaultFrom, from, address(adapterTo), value);
                 // slither-disable-next-line unused-return
-                s.deposit(vaultTo, address(this), to, value);
+                adapterTo.deposit(vaultTo, to, value);
             }
         }
     }

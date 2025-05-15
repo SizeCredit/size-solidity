@@ -25,6 +25,10 @@ import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 import {Size} from "@src/market/Size.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 
+import {DEFAULT_VAULT} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
+import {AaveAdapter} from "@src/market/token/adapters/AaveAdapter.sol";
+import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
+
 import {NetworkConfiguration} from "@script/Networks.sol";
 import {
     Initialize,
@@ -115,6 +119,16 @@ abstract contract Deploy {
         hevm.prank(owner);
         NonTransferrableRebasingTokenVault borrowTokenVault = sizeFactory.createBorrowTokenVault(variablePool, usdc);
 
+        AaveAdapter aaveAdapter = new AaveAdapter(borrowTokenVault, variablePool, usdc);
+        hevm.prank(owner);
+        borrowTokenVault.setAdapter(bytes32("AaveAdapter"), aaveAdapter);
+        hevm.prank(owner);
+        borrowTokenVault.setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
+
+        ERC4626Adapter erc4626Adapter = new ERC4626Adapter(borrowTokenVault, usdc);
+        hevm.prank(owner);
+        borrowTokenVault.setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
+
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
             fragmentationFee: 5e6,
@@ -194,6 +208,16 @@ abstract contract Deploy {
         hevm.prank(owner);
         NonTransferrableRebasingTokenVault borrowTokenVault =
             sizeFactory.createBorrowTokenVault(variablePool, borrowToken);
+
+        AaveAdapter aaveAdapter = new AaveAdapter(borrowTokenVault, variablePool, borrowToken);
+        hevm.prank(owner);
+        borrowTokenVault.setAdapter(bytes32("AaveAdapter"), aaveAdapter);
+        hevm.prank(owner);
+        borrowTokenVault.setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
+
+        ERC4626Adapter erc4626Adapter = new ERC4626Adapter(borrowTokenVault, borrowToken);
+        hevm.prank(owner);
+        borrowTokenVault.setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
 
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
