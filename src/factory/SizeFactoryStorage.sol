@@ -8,6 +8,7 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 /// @title SizeFactoryStorage
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
+    // slither-disable-start uninitialized-state
 abstract contract SizeFactoryStorage {
     // the markets
     EnumerableSet.AddressSet markets;
@@ -27,3 +28,4 @@ abstract contract SizeFactoryStorage {
     // mapping of authorization nonces per account (added on v1.7)
     mapping(address onBehalfOf => uint256 nonce) public authorizationNonces;
 }
+    // slither-disable-end uninitialized-state

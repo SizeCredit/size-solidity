@@ -51,6 +51,7 @@ contract NonTransferrableRebasingTokenVault is
                             STORAGE
     //////////////////////////////////////////////////////////////*/
 
+    // slither-disable-start uninitialized-state
     // v1.5
     ISizeFactory public sizeFactory;
     IPool public aavePool;
@@ -66,6 +67,7 @@ contract NonTransferrableRebasingTokenVault is
     EnumerableMap.AddressToBytes32Map internal vaultToIdMap;
     EnumerableMap.Bytes32ToAddressMap internal IdToAdapterMap;
     EnumerableMap.AddressToBytes32Map internal adapterToIdMap;
+    // slither-disable-end uninitialized-state
 
     /*//////////////////////////////////////////////////////////////
                             EVENTS
