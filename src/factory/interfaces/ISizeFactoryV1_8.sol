@@ -10,10 +10,11 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 /// @notice The interface for the size factory v1.8
 interface ISizeFactoryV1_8 {
     /// @notice Reinitialize the factory
-    /// @param users The users to reinitialize the factory for
-    /// @param curator The curator that will receive the collection
-    /// @param rateProvider The rate provider
-    /// @param collectionMarkets The markets for the collection
+    /// @param _collectionsManager The collections manager contract
+    /// @param _users The users to reinitialize the factory for
+    /// @param _curator The curator that will receive the collection
+    /// @param _rateProvider The rate provider
+    /// @param _collectionMarkets The markets for the collection
     /// @dev Before v1.8, users could copy rate providers directly through `copyLimitOrders`.
     ///        In v1.8, this method was deprecated in favor of collections. The `reinitialize` function serves as a migration path
     ///        for users who are following the only off-chain collection currently offered by Size.
@@ -22,10 +23,10 @@ interface ISizeFactoryV1_8 {
     ///        these addresses are filtered on the backend by liquidity, so this is not a concern.
     function reinitialize(
         ICollectionsManager _collectionsManager,
-        address[] memory users,
-        address curator,
-        address rateProvider,
-        ISize[] memory collectionMarkets
+        address[] memory _users,
+        address _curator,
+        address _rateProvider,
+        ISize[] memory _collectionMarkets
     ) external;
 
     /// @notice Call a market with data. This can be used to batch operations on multiple markets.
