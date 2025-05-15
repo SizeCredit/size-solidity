@@ -25,13 +25,15 @@ import {
 import {
     SellCreditMarket,
     SellCreditMarketOnBehalfOfParams,
-    SellCreditMarketParams
+    SellCreditMarketParams,
+    SellCreditMarketWithCollectionParams
 } from "@src/market/libraries/actions/SellCreditMarket.sol";
 
 import {
     BuyCreditMarket,
     BuyCreditMarketOnBehalfOfParams,
-    BuyCreditMarketParams
+    BuyCreditMarketParams,
+    BuyCreditMarketWithCollectionParams
 } from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {Claim, ClaimParams} from "@src/market/libraries/actions/Claim.sol";
 import {Deposit, DepositOnBehalfOfParams, DepositParams} from "@src/market/libraries/actions/Deposit.sol";
@@ -61,7 +63,8 @@ import {
 } from "@src/market/libraries/actions/CopyLimitOrders.sol";
 import {
     LiquidateWithReplacement,
-    LiquidateWithReplacementParams
+    LiquidateWithReplacementParams,
+    LiquidateWithReplacementWithCollectionParams
 } from "@src/market/libraries/actions/LiquidateWithReplacement.sol";
 import {Repay, RepayParams} from "@src/market/libraries/actions/Repay.sol";
 import {
@@ -79,6 +82,7 @@ import {IMulticall} from "@src/market/interfaces/IMulticall.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {ISizeAdmin} from "@src/market/interfaces/ISizeAdmin.sol";
 import {ISizeV1_7} from "@src/market/interfaces/v1.7/ISizeV1_7.sol";
+import {ISizeV1_8} from "@src/market/interfaces/v1.8/ISizeV1_8.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 
 import {
@@ -278,7 +282,15 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     /// @inheritdoc ISize
     function buyCreditMarket(BuyCreditMarketParams calldata params) external payable override(ISize) {
         buyCreditMarketOnBehalfOf(
-            BuyCreditMarketOnBehalfOfParams({params: params, onBehalfOf: msg.sender, recipient: msg.sender})
+            BuyCreditMarketOnBehalfOfParams({
+                withCollectionParams: BuyCreditMarketWithCollectionParams({
+                    params: params,
+                    collectionId: RESERVED_ID,
+                    rateProvider: address(0)
+                }),
+                onBehalfOf: msg.sender,
+                recipient: msg.sender
+            })
         );
     }
 
@@ -291,15 +303,23 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     {
         state.validateBuyCreditMarket(externalParams);
         state.executeBuyCreditMarket(externalParams);
-        if (externalParams.params.creditPositionId == RESERVED_ID) {
-            state.validateUserIsNotBelowOpeningLimitBorrowCR(externalParams.params.borrower);
+        if (externalParams.withCollectionParams.params.creditPositionId == RESERVED_ID) {
+            state.validateUserIsNotBelowOpeningLimitBorrowCR(externalParams.withCollectionParams.params.borrower);
         }
     }
 
     /// @inheritdoc ISize
     function sellCreditMarket(SellCreditMarketParams memory params) external payable override(ISize) {
         sellCreditMarketOnBehalfOf(
-            SellCreditMarketOnBehalfOfParams({params: params, onBehalfOf: msg.sender, recipient: msg.sender})
+            SellCreditMarketOnBehalfOfParams({
+                withCollectionParams: SellCreditMarketWithCollectionParams({
+                    params: params,
+                    collectionId: RESERVED_ID,
+                    rateProvider: address(0)
+                }),
+                onBehalfOf: msg.sender,
+                recipient: msg.sender
+            })
         );
     }
 
@@ -312,7 +332,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     {
         state.validateSellCreditMarket(externalParams);
         state.executeSellCreditMarket(externalParams);
-        if (externalParams.params.creditPositionId == RESERVED_ID) {
+        if (externalParams.withCollectionParams.params.creditPositionId == RESERVED_ID) {
             state.validateUserIsNotBelowOpeningLimitBorrowCR(externalParams.onBehalfOf);
         }
     }
@@ -365,14 +385,33 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         external
         payable
         override(ISize)
+        returns (uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken)
+    {
+        return liquidateWithReplacementWithCollection(
+            LiquidateWithReplacementWithCollectionParams({
+                params: params,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
+            })
+        );
+    }
+
+    /// @inheritdoc ISizeV1_8
+    function liquidateWithReplacementWithCollection(
+        LiquidateWithReplacementWithCollectionParams memory withCollectionParams
+    )
+        public
+        payable
+        override(ISizeV1_8)
         whenNotPaused
         onlyRoleOrSizeFactoryHasRole(KEEPER_ROLE)
         returns (uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken)
     {
-        state.validateLiquidateWithReplacement(params);
-        (liquidatorProfitCollateralToken, liquidatorProfitBorrowToken) = state.executeLiquidateWithReplacement(params);
-        state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
-        state.validateMinimumCollateralProfit(params, liquidatorProfitCollateralToken);
+        state.validateLiquidateWithReplacement(withCollectionParams);
+        (liquidatorProfitCollateralToken, liquidatorProfitBorrowToken) =
+            state.executeLiquidateWithReplacement(withCollectionParams);
+        state.validateUserIsNotBelowOpeningLimitBorrowCR(withCollectionParams.params.borrower);
+        state.validateMinimumCollateralProfit(withCollectionParams.params, liquidatorProfitCollateralToken);
     }
 
     /// @inheritdoc ISize

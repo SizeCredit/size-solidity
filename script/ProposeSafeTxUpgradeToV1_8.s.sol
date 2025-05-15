@@ -6,6 +6,9 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeab
 import {console} from "forge-std/console.sol";
 
 import {NonTransferrableScaledTokenV1_5} from "@deprecated/token/NonTransferrableScaledTokenV1_5.sol";
+
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {CollectionsManager} from "@src/collections/CollectionsManager.sol";
 import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {Size} from "@src/market/Size.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
@@ -14,9 +17,13 @@ import {BaseScript} from "@script/BaseScript.sol";
 import {Contract, Networks} from "@script/Networks.sol";
 
 import {Safe} from "@safe-utils/Safe.sol";
+
+import {HTTP} from "@solidity-http/HTTP.sol";
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {Tenderly} from "@tenderly-utils/Tenderly.sol";
+
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {AaveAdapter} from "@src/market/token/adapters/AaveAdapter.sol";
 import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
@@ -27,12 +34,20 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
     using Tenderly for *;
     using Safe for *;
+    using HTTP for *;
+
+    HTTP.Client http;
 
     address signer;
     string derivationPath;
 
-    ISizeFactory private sizeFactory;
-    address private safeAddress;
+    ISizeFactory sizeFactory;
+    address safeAddress;
+
+    address[] users;
+    address curator;
+    address rateProvider;
+    ISize[] collectionMarkets;
 
     modifier parseEnv() {
         signer = vm.envAddress("SIGNER");
@@ -48,27 +63,70 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         safeAddress = vm.envAddress("OWNER");
         safe.initialize(safeAddress);
 
+        HTTP.Response memory response =
+            http.initialize("https://api.size.credit/collection-users/LP-Capital").GET().request();
+        require(response.status == 200, "Failed to fetch collection users");
+
+        users = abi.decode(vm.parseJson(response.data, ".users"), (address[]));
+        curator = abi.decode(vm.parseJson(response.data, ".rate_provider_address"), (address));
+        rateProvider = abi.decode(vm.parseJson(response.data, ".rate_provider_address"), (address));
+        collectionMarkets = getCollectionMarkets(sizeFactory);
+
+        console.log("users", users.length);
+        console.log("curator", curator);
+        console.log("rateProvider", rateProvider);
+        console.log("collectionMarkets", collectionMarkets.length);
+
         _;
     }
 
-    function getTargetsAndDatas(ISizeFactory _sizeFactory)
-        public
-        returns (address[] memory targets, bytes[] memory datas)
-    {
+    function getCollectionMarkets(ISizeFactory _sizeFactory) public view returns (ISize[] memory _collectionMarkets) {
+        _collectionMarkets = new ISize[](4);
         ISize[] memory markets = _sizeFactory.getMarkets();
-        NonTransferrableScaledTokenV1_5 v1_5 =
+        uint256 j = 0;
+        for (uint256 i = 0; i < markets.length; i++) {
+            string memory symbol = markets[i].data().underlyingCollateralToken.symbol();
+            if (
+                Strings.equal(symbol, "WETH") || Strings.equal(symbol, "cbBTC") || Strings.equal(symbol, "cbETH")
+                    || Strings.equal(symbol, "wstETH")
+            ) {
+                _collectionMarkets[j++] = markets[i];
+            }
+        }
+
+        require(j == 4, "Invalid number of collection markets");
+    }
+
+    function getTargetsAndDatas(
+        ISizeFactory _sizeFactory,
+        address[] memory _users,
+        address _curator,
+        address _rateProvider,
+        ISize[] memory _collectionMarkets
+    ) public returns (address[] memory targets, bytes[] memory datas) {
+        ISize[] memory markets = _sizeFactory.getMarkets();
+        NonTransferrableScaledTokenV1_5 v1_5saToken =
             NonTransferrableScaledTokenV1_5(address(markets[0].data().borrowTokenVault));
-        IPool variablePool = v1_5.variablePool();
-        IERC20Metadata underlyingToken = v1_5.underlyingToken();
 
         /* deployments start */
         Size sizeV1_8Implementation = new Size();
         SizeFactory sizeFactoryV1_8Implementation = new SizeFactory();
         NonTransferrableRebasingTokenVault borrowTokenVaultV1_8Implementation = new NonTransferrableRebasingTokenVault();
-        AaveAdapter aaveAdapter =
-            new AaveAdapter(NonTransferrableRebasingTokenVault(address(v1_5)), variablePool, underlyingToken);
+        CollectionsManager collectionsManager = CollectionsManager(
+            address(
+                new ERC1967Proxy(
+                    address(new CollectionsManager()),
+                    abi.encodeCall(CollectionsManager.initialize, ISizeFactory(address(_sizeFactory)))
+                )
+            )
+        );
+        AaveAdapter aaveAdapter = new AaveAdapter(
+            NonTransferrableRebasingTokenVault(address(v1_5saToken)),
+            v1_5saToken.variablePool(),
+            v1_5saToken.underlyingToken()
+        );
         ERC4626Adapter erc4626Adapter =
-            new ERC4626Adapter(NonTransferrableRebasingTokenVault(address(v1_5)), underlyingToken);
+            new ERC4626Adapter(NonTransferrableRebasingTokenVault(address(v1_5saToken)), v1_5saToken.underlyingToken());
         /* deployment end */
 
         targets = new address[](markets.length + 2);
@@ -81,7 +139,7 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         }
 
         // NonTransferrableScaledTokenV1_5.upgradeToAndCall(v1_8, reinitialize(name, symbol))
-        targets[markets.length] = address(v1_5);
+        targets[markets.length] = address(v1_5saToken);
         datas[markets.length] = abi.encodeCall(
             UUPSUpgradeable.upgradeToAndCall,
             (
@@ -93,15 +151,18 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
             )
         );
 
-        // SizeFactory.upgradeToAndCall(v1_8, multicall[setSizeImplementation,setNonTransferrableRebasingTokenVaultImplementation])
-        bytes[] memory multicallDatas = new bytes[](2);
-        multicallDatas[0] = abi.encodeCall(SizeFactory.setSizeImplementation, (address(sizeV1_8Implementation)));
-        multicallDatas[1] = abi.encodeCall(
+        // SizeFactory.upgradeToAndCall(v1_8, multicall[reinitialize, setSizeImplementation, setNonTransferrableRebasingTokenVaultImplementation])
+        bytes[] memory multicallDatas = new bytes[](3);
+        multicallDatas[0] = abi.encodeCall(
+            SizeFactory.reinitialize, (collectionsManager, _users, _curator, _rateProvider, _collectionMarkets)
+        );
+        multicallDatas[1] = abi.encodeCall(SizeFactory.setSizeImplementation, (address(sizeV1_8Implementation)));
+        multicallDatas[2] = abi.encodeCall(
             SizeFactory.setNonTransferrableRebasingTokenVaultImplementation,
             (address(borrowTokenVaultV1_8Implementation))
         );
 
-        targets[markets.length + 1] = address(sizeFactory);
+        targets[markets.length + 1] = address(_sizeFactory);
         datas[markets.length + 1] = abi.encodeCall(
             UUPSUpgradeable.upgradeToAndCall,
             (address(sizeFactoryV1_8Implementation), abi.encodeCall(MulticallUpgradeable.multicall, (multicallDatas)))
@@ -111,7 +172,8 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
     function run() external parseEnv {
         vm.startBroadcast();
 
-        (address[] memory targets, bytes[] memory datas) = getTargetsAndDatas(sizeFactory);
+        (address[] memory targets, bytes[] memory datas) =
+            getTargetsAndDatas(sizeFactory, users, curator, rateProvider, collectionMarkets);
 
         vm.stopBroadcast();
 

@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {SizeStorage, State, User, UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
+import {SizeStorage, State, User} from "@src/market/SizeStorage.sol";
+
+import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 import {VariablePoolBorrowRateParams} from "@src/market/libraries/YieldCurveLibrary.sol";
 
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
@@ -22,17 +24,20 @@ import {AccountingLibrary} from "@src/market/libraries/AccountingLibrary.sol";
 import {RiskLibrary} from "@src/market/libraries/RiskLibrary.sol";
 
 import {ISizeView} from "@src/market/interfaces/ISizeView.sol";
+import {ISizeViewV1_8} from "@src/market/interfaces/v1.8/ISizeViewV1_8.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {LimitOrder, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
 
-import {BuyCreditMarket, BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
+import {BuyCreditMarket, BuyCreditMarketWithCollectionParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {
     InitializeDataParams,
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/market/libraries/actions/Initialize.sol";
-import {SellCreditMarket, SellCreditMarketParams} from "@src/market/libraries/actions/SellCreditMarket.sol";
+import {
+    SellCreditMarket, SellCreditMarketWithCollectionParams
+} from "@src/market/libraries/actions/SellCreditMarket.sol";
 
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {ISizeViewV1_7} from "@src/market/interfaces/v1.7/ISizeViewV1_7.sol";
@@ -113,9 +118,14 @@ abstract contract SizeView is SizeStorage, ISizeView {
         });
     }
 
-    /// @inheritdoc ISizeView
-    function getUserCopyLimitOrders(address user) external view returns (UserCopyLimitOrders memory) {
-        return state.data.usersCopyLimitOrders[user];
+    /// @inheritdoc ISizeViewV1_8
+    function getUserDefinedCopyLoanOfferConfig(address user) external view returns (CopyLimitOrderConfig memory) {
+        return state.data.usersCopyLimitOrders[user].copyLoanOfferConfig;
+    }
+
+    /// @inheritdoc ISizeViewV1_8
+    function getUserDefinedCopyBorrowOfferConfig(address user) external view returns (CopyLimitOrderConfig memory) {
+        return state.data.usersCopyLimitOrders[user].copyBorrowOfferConfig;
     }
 
     /// @inheritdoc ISizeView
@@ -156,46 +166,50 @@ abstract contract SizeView is SizeStorage, ISizeView {
         );
     }
 
-    /// @inheritdoc ISizeView
-    function getBorrowOfferAPR(address borrower, uint256 tenor) external view returns (uint256) {
-        return state.getBorrowOfferAPRByTenor(borrower, tenor);
+    /// @inheritdoc ISizeViewV1_8
+    function getUserDefinedLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256) {
+        return state.getUserDefinedLoanOfferAPR(lender, tenor);
+    }
+
+    /// @inheritdoc ISizeViewV1_8
+    function getUserDefinedBorrowOfferAPR(address borrower, uint256 tenor) external view returns (uint256) {
+        return state.getUserDefinedBorrowOfferAPR(borrower, tenor);
+    }
+
+    /// @inheritdoc ISizeViewV1_8
+    function getLoanOfferAPR(address user, uint256 collectionId, address rateProvider, uint256 tenor)
+        external
+        view
+        returns (uint256)
+    {
+        return state.getLoanOfferAPR(user, collectionId, rateProvider, tenor);
+    }
+
+    /// @inheritdoc ISizeViewV1_8
+    function getBorrowOfferAPR(address user, uint256 collectionId, address rateProvider, uint256 tenor)
+        external
+        view
+        returns (uint256)
+    {
+        return state.getBorrowOfferAPR(user, collectionId, rateProvider, tenor);
     }
 
     /// @inheritdoc ISizeView
-    function getLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256) {
-        return state.getLoanOfferAPRByTenor(lender, tenor);
-    }
-
-    /// @inheritdoc ISizeView
-    function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256) {
-        DebtPosition memory debtPosition = state.getDebtPosition(debtPositionId);
-        return state.getDebtPositionAssignedCollateral(debtPosition);
-    }
-
-    /// @inheritdoc ISizeView
-    function getSwapFee(uint256 cash, uint256 tenor) public view returns (uint256) {
-        if (tenor == 0) {
-            revert Errors.NULL_TENOR();
-        }
-        return state.getSwapFee(cash, tenor);
-    }
-
-    /// @inheritdoc ISizeView
-    function getBuyCreditMarketSwapData(BuyCreditMarketParams memory params)
+    function getBuyCreditMarketSwapData(BuyCreditMarketWithCollectionParams memory withCollectionParams)
         external
         view
         returns (BuyCreditMarket.SwapDataBuyCreditMarket memory)
     {
-        return BuyCreditMarket.getSwapData(state, params);
+        return BuyCreditMarket.getSwapData(state, withCollectionParams);
     }
 
     /// @inheritdoc ISizeView
-    function getSellCreditMarketSwapData(SellCreditMarketParams memory params)
+    function getSellCreditMarketSwapData(SellCreditMarketWithCollectionParams memory withCollectionParams)
         external
         view
         returns (SellCreditMarket.SwapDataSellCreditMarket memory)
     {
-        return SellCreditMarket.getSwapData(state, params);
+        return SellCreditMarket.getSwapData(state, withCollectionParams);
     }
 
     /// @inheritdoc ISizeView

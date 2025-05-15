@@ -12,7 +12,9 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/market/libraries/LoanLibrary.sol";
 import {
-    BuyCreditMarketOnBehalfOfParams, BuyCreditMarketParams
+    BuyCreditMarketOnBehalfOfParams,
+    BuyCreditMarketParams,
+    BuyCreditMarketWithCollectionParams
 } from "@src/market/libraries/actions/BuyCreditMarket.sol";
 
 contract AuthorizationBuyCreditMarketTest is BaseTest {
@@ -37,14 +39,18 @@ contract AuthorizationBuyCreditMarketTest is BaseTest {
         vm.prank(candy);
         size.buyCreditMarketOnBehalfOf(
             BuyCreditMarketOnBehalfOfParams({
-                params: BuyCreditMarketParams({
-                    borrower: alice,
-                    creditPositionId: RESERVED_ID,
-                    amount: amountIn,
-                    tenor: tenor,
-                    deadline: block.timestamp,
-                    minAPR: 0,
-                    exactAmountIn: true
+                withCollectionParams: BuyCreditMarketWithCollectionParams({
+                    params: BuyCreditMarketParams({
+                        borrower: alice,
+                        creditPositionId: RESERVED_ID,
+                        amount: amountIn,
+                        tenor: tenor,
+                        deadline: block.timestamp,
+                        minAPR: 0,
+                        exactAmountIn: true
+                    }),
+                    collectionId: RESERVED_ID,
+                    rateProvider: address(0)
                 }),
                 onBehalfOf: bob,
                 recipient: candy
@@ -76,14 +82,18 @@ contract AuthorizationBuyCreditMarketTest is BaseTest {
         vm.prank(alice);
         size.buyCreditMarketOnBehalfOf(
             BuyCreditMarketOnBehalfOfParams({
-                params: BuyCreditMarketParams({
-                    borrower: alice,
-                    creditPositionId: RESERVED_ID,
-                    amount: 100e6,
-                    tenor: 365 days,
-                    deadline: block.timestamp,
-                    minAPR: 0,
-                    exactAmountIn: true
+                withCollectionParams: BuyCreditMarketWithCollectionParams({
+                    params: BuyCreditMarketParams({
+                        borrower: alice,
+                        creditPositionId: RESERVED_ID,
+                        amount: 100e6,
+                        tenor: 365 days,
+                        deadline: block.timestamp,
+                        minAPR: 0,
+                        exactAmountIn: true
+                    }),
+                    collectionId: RESERVED_ID,
+                    rateProvider: address(0)
                 }),
                 onBehalfOf: bob,
                 recipient: candy
@@ -94,14 +104,18 @@ contract AuthorizationBuyCreditMarketTest is BaseTest {
         vm.prank(alice);
         size.buyCreditMarketOnBehalfOf(
             BuyCreditMarketOnBehalfOfParams({
-                params: BuyCreditMarketParams({
-                    borrower: address(0),
-                    creditPositionId: RESERVED_ID,
-                    amount: 100e6,
-                    tenor: 365 days,
-                    deadline: block.timestamp,
-                    minAPR: 0,
-                    exactAmountIn: true
+                withCollectionParams: BuyCreditMarketWithCollectionParams({
+                    params: BuyCreditMarketParams({
+                        borrower: address(0),
+                        creditPositionId: RESERVED_ID,
+                        amount: 100e6,
+                        tenor: 365 days,
+                        deadline: block.timestamp,
+                        minAPR: 0,
+                        exactAmountIn: true
+                    }),
+                    collectionId: RESERVED_ID,
+                    rateProvider: address(0)
                 }),
                 onBehalfOf: alice,
                 recipient: address(0)

@@ -10,6 +10,7 @@ abstract contract SizeFactoryEvents {
         address indexed oldNonTransferrableRebasingTokenVaultImplementation,
         address indexed newNonTransferrableRebasingTokenVaultImplementation
     ); // v1.8
+    event CollectionsManagerSet(address indexed oldCollectionsManager, address indexed newCollectionsManager); // v1.8
 
     event CreateMarket(address indexed market);
     event CreatePriceFeed(address indexed priceFeed);
