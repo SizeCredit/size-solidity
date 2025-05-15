@@ -259,11 +259,13 @@ contract NonTransferrableRebasingTokenVault is
     ///      Setting the vault to a different address will withdraw all the user's assets
     ///        from the previous vault and deposit them into the new vault
     ///      Reverts if the vault asset is not the same as the NonTransferrableRebasingTokenVault's underlying token
+    ///      vaultOf[user] is set at the end of the function so that we can withdraw from existing vault
     function setVault(address user, address vault) external onlyMarket {
         if (user == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
         if (vaultToIdMap.contains(vault) && vaultOf[user] != vault) {
+            // slither-disable-next-line reentrancy-no-eth
             _transferFrom(vaultOf[user], vault, user, user, balanceOf(user));
 
             emit VaultSet(user, vaultOf[user], vault);
