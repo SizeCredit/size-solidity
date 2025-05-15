@@ -12,7 +12,6 @@ import {DataView} from "@src/market/SizeViewData.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {ISizeV1_7} from "@src/market/interfaces/v1.7/ISizeV1_7.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
-import {Adapter} from "@src/market/token/libraries/AdapterLibrary.sol";
 
 import {
     CopyLimitOrder,
@@ -285,7 +284,7 @@ contract CallMarketTest is BaseTest {
         size = size2;
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.04e18));
 
-        _setVaultAdapter(vault2, Adapter.ERC4626);
+        _setVaultAdapter(vault2, "ERC4626Adapter");
 
         uint256 depositAmount = 100e6;
 
