@@ -22,10 +22,14 @@ import {
 contract AaveAdapter is Ownable, IAdapter {
     using SafeERC20 for IERC20Metadata;
 
+    // slither-disable-start uninitialized-state
+    // slither-disable-start constable-states
     NonTransferrableRebasingTokenVault public immutable tokenVault;
     IPool public immutable aavePool;
     IERC20Metadata public immutable underlyingToken;
     IAToken public immutable aToken;
+    // slither-disable-end constable-states
+    // slither-disable-end uninitialized-state
 
     constructor(NonTransferrableRebasingTokenVault _tokenVault, IPool _aavePool, IERC20Metadata _underlyingToken)
         Ownable(address(_tokenVault))

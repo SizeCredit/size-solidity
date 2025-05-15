@@ -17,8 +17,12 @@ import {IAdapter} from "@src/market/token/adapters/IAdapter.sol";
 contract ERC4626Adapter is Ownable, IAdapter {
     using SafeERC20 for IERC20Metadata;
 
+    // slither-disable-start uninitialized-state
+    // slither-disable-start constable-states
     NonTransferrableRebasingTokenVault public immutable tokenVault;
     IERC20Metadata public immutable underlyingToken;
+    // slither-disable-end constable-states
+    // slither-disable-end uninitialized-state
 
     constructor(NonTransferrableRebasingTokenVault _tokenVault, IERC20Metadata _underlyingToken)
         Ownable(address(_tokenVault))

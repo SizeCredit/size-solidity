@@ -52,6 +52,7 @@ contract NonTransferrableRebasingTokenVault is
     //////////////////////////////////////////////////////////////*/
 
     // slither-disable-start uninitialized-state
+    // slither-disable-start constable-states
     // v1.5
     ISizeFactory public sizeFactory;
     IPool public aavePool;
@@ -67,6 +68,7 @@ contract NonTransferrableRebasingTokenVault is
     EnumerableMap.AddressToBytes32Map internal vaultToIdMap;
     EnumerableMap.Bytes32ToAddressMap internal IdToAdapterMap;
     EnumerableMap.AddressToBytes32Map internal adapterToIdMap;
+    // slither-disable-end constable-states
     // slither-disable-end uninitialized-state
 
     /*//////////////////////////////////////////////////////////////
@@ -355,6 +357,7 @@ contract NonTransferrableRebasingTokenVault is
     }
 
     /// @notice Returns the whitelisted vault at the given index
+    // slither-disable-next-line unused-return
     function getWhitelistedVault(uint256 index) public view returns (address, bytes32) {
         return vaultToIdMap.at(index);
     }
@@ -387,6 +390,7 @@ contract NonTransferrableRebasingTokenVault is
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Sets the adapter
+    // slither-disable-start unused-return
     function _setAdapter(bytes32 id, IAdapter adapter) private {
         if (address(adapter) == address(0)) {
             revert Errors.NULL_ADDRESS();
@@ -396,8 +400,10 @@ contract NonTransferrableRebasingTokenVault is
         adapterToIdMap.set(address(adapter), id);
         emit AdapterSet(id, address(adapter));
     }
+    // slither-disable-end unused-return
 
     /// @notice Removes the adapter
+    // slither-disable-start unused-return
     function _removeAdapter(bytes32 id) private {
         address adapter = IdToAdapterMap.get(id);
         IdToAdapterMap.remove(id);
@@ -405,6 +411,7 @@ contract NonTransferrableRebasingTokenVault is
 
         emit AdapterRemoved(id);
     }
+    // slither-disable-end unused-return
 
     /// @notice Sets the adapter for a vault
     ///  @dev Setting the vault to `address(0)` will use the default variable pool
