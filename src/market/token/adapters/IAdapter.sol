@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+/// @title IAdapter
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
+/// @notice Interface for the adapter
 interface IAdapter {
     /// @notice Returns the total supply of the vault
     /// @param vault The address of the vault

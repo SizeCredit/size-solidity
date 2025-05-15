@@ -255,7 +255,6 @@ contract NonTransferrableRebasingTokenVault is
     ///      Setting the vault to a different address will withdraw all the user's assets
     ///        from the previous vault and deposit them into the new vault
     ///      Reverts if the vault asset is not the same as the NonTransferrableRebasingTokenVault's underlying token
-    ///      vault == address(0) is allowed
     function setVault(address user, address vault) external onlyMarket {
         if (user == address(0)) {
             revert Errors.NULL_ADDRESS();
@@ -406,7 +405,7 @@ contract NonTransferrableRebasingTokenVault is
     }
 
     /// @notice Sets the adapter for a vault
-    /// @dev vault == address(0) is allowed
+    ///  @dev Setting the vault to `address(0)` will use the default variable pool
     function _setVaultAdapter(address vault, bytes32 id) private {
         IAdapter adapter = IAdapter(IdToAdapterMap.get(id));
         if (adapter.getAsset(vault) != address(underlyingToken)) {

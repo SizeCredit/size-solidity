@@ -41,7 +41,7 @@ contract ERC4626Adapter is Ownable, IAdapter {
     }
 
     /// @inheritdoc IAdapter
-    function deposit(address vault, address to, uint256 amount) external returns (uint256 assets) {
+    function deposit(address vault, address to, uint256 amount) external onlyOwner returns (uint256 assets) {
         underlyingToken.forceApprove(vault, amount);
 
         uint256 sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
@@ -56,7 +56,11 @@ contract ERC4626Adapter is Ownable, IAdapter {
     }
 
     /// @inheritdoc IAdapter
-    function withdraw(address vault, address from, address to, uint256 amount) external returns (uint256 assets) {
+    function withdraw(address vault, address from, address to, uint256 amount)
+        external
+        onlyOwner
+        returns (uint256 assets)
+    {
         bool fullWithdraw = amount == balanceOf(vault, from);
         uint256 sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
         uint256 assetsBefore = underlyingToken.balanceOf(address(this));
@@ -82,7 +86,7 @@ contract ERC4626Adapter is Ownable, IAdapter {
     }
 
     /// @inheritdoc IAdapter
-    function transferFrom(address vault, address from, address to, uint256 value) external {
+    function transferFrom(address vault, address from, address to, uint256 value) external onlyOwner {
         if (IERC4626(vault).totalAssets() < value) {
             revert NonTransferrableRebasingTokenVault.InsufficientTotalAssets(
                 address(vault), IERC4626(vault).totalAssets(), value

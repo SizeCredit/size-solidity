@@ -53,7 +53,7 @@ contract AaveAdapter is Ownable, IAdapter {
     }
 
     /// @inheritdoc IAdapter
-    function deposit(address vault, address to, uint256 amount) external returns (uint256 assets) {
+    function deposit(address vault, address to, uint256 amount) external onlyOwner returns (uint256 assets) {
         uint256 sharesBefore = aToken.scaledBalanceOf(address(tokenVault));
 
         underlyingToken.forceApprove(address(aavePool), amount);
@@ -66,7 +66,11 @@ contract AaveAdapter is Ownable, IAdapter {
     }
 
     /// @inheritdoc IAdapter
-    function withdraw(address vault, address from, address to, uint256 amount) external returns (uint256 assets) {
+    function withdraw(address vault, address from, address to, uint256 amount)
+        external
+        onlyOwner
+        returns (uint256 assets)
+    {
         uint256 balance = balanceOf(vault, from);
         bool fullWithdraw = amount == balance;
 
@@ -97,7 +101,7 @@ contract AaveAdapter is Ownable, IAdapter {
     }
 
     /// @inheritdoc IAdapter
-    function transferFrom(address vault, address from, address to, uint256 value) external {
+    function transferFrom(address vault, address from, address to, uint256 value) external onlyOwner {
         if (underlyingToken.balanceOf(address(aToken)) < value) {
             revert NonTransferrableRebasingTokenVault.InsufficientTotalAssets(
                 DEFAULT_VAULT, underlyingToken.balanceOf(address(aToken)), value
