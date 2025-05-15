@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 
-import {MockERC20} from "@solady/../test/utils/mocks/MockERC20.sol";
+import {MockERC20} from "@solady/test/utils/mocks/MockERC20.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {Math} from "@src/market/libraries/Math.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";

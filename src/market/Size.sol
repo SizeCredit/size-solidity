@@ -70,7 +70,6 @@ import {
     SelfLiquidateParams
 } from "@src/market/libraries/actions/SelfLiquidate.sol";
 
-import {CapsLibrary} from "@src/market/libraries/CapsLibrary.sol";
 import {RiskLibrary} from "@src/market/libraries/RiskLibrary.sol";
 
 import {SizeView} from "@src/market/SizeView.sol";
@@ -108,7 +107,6 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     using PartialRepay for State;
     using SetUserConfiguration for State;
     using RiskLibrary for State;
-    using CapsLibrary for State;
     using Multicall for State;
     using CopyLimitOrders for State;
 
@@ -152,29 +150,6 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
             revert AccessControlUnauthorizedAccount(msg.sender, role);
         }
         _;
-    }
-
-    function reinitialize(ISizeFactory _sizeFactory)
-        external
-        override(ISizeV1_7)
-        onlyRoleOrSizeFactoryHasRole(DEFAULT_ADMIN_ROLE)
-        reinitializer(1_07_00)
-    {
-        // validate _sizeFactory
-        if (address(_sizeFactory) == address(0)) {
-            // _sizeFactory cannot be 0 address (markets deployed with v1.6 Size implementation)
-            revert Errors.NULL_ADDRESS();
-        }
-        if (address(state.data.sizeFactory) != address(0)) {
-            // _sizeFactory cannot be already set (new markets deployed with v1.7 Size implementation)
-            revert Errors.NOT_SUPPORTED();
-        }
-        if (!_sizeFactory.isMarket(address(this))) {
-            // sanity check for ISizeFactory
-            revert Errors.INVALID_MARKET(address(this));
-        }
-
-        state.data.sizeFactory = _sizeFactory;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -315,11 +290,10 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         whenNotPaused
     {
         state.validateBuyCreditMarket(externalParams);
-        uint256 amount = state.executeBuyCreditMarket(externalParams);
+        state.executeBuyCreditMarket(externalParams);
         if (externalParams.params.creditPositionId == RESERVED_ID) {
             state.validateUserIsNotBelowOpeningLimitBorrowCR(externalParams.params.borrower);
         }
-        state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
     /// @inheritdoc ISize
@@ -337,11 +311,10 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         whenNotPaused
     {
         state.validateSellCreditMarket(externalParams);
-        uint256 amount = state.executeSellCreditMarket(externalParams);
+        state.executeSellCreditMarket(externalParams);
         if (externalParams.params.creditPositionId == RESERVED_ID) {
             state.validateUserIsNotBelowOpeningLimitBorrowCR(externalParams.onBehalfOf);
         }
-        state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
     /// @inheritdoc ISize
@@ -397,12 +370,9 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         returns (uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken)
     {
         state.validateLiquidateWithReplacement(params);
-        uint256 amount;
-        (amount, liquidatorProfitCollateralToken, liquidatorProfitBorrowToken) =
-            state.executeLiquidateWithReplacement(params);
+        (liquidatorProfitCollateralToken, liquidatorProfitBorrowToken) = state.executeLiquidateWithReplacement(params);
         state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
         state.validateMinimumCollateralProfit(params, liquidatorProfitCollateralToken);
-        state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
     /// @inheritdoc ISize

@@ -40,7 +40,8 @@ interface ITargetFunctions {
     function compensate(uint256 creditPositionWithDebtToRepayId, uint256 creditPositionToCompensateId, uint256 amount)
         external;
 
-    function setUserConfiguration(uint256 openingLimitBorrowCR, bool allCreditPositionsForSaleDisabled) external;
+    function setUserConfiguration(address vault, uint256 openingLimitBorrowCR, bool allCreditPositionsForSaleDisabled)
+        external;
 
     function setPrice(uint256 price) external;
 

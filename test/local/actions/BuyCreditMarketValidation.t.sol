@@ -94,7 +94,7 @@ contract BuyCreditMarketTest is BaseTest {
             abi.encodeWithSelector(
                 Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector,
                 1e6,
-                size.riskConfig().minimumCreditBorrowAToken
+                size.riskConfig().minimumCreditBorrowToken
             )
         );
         size.buyCreditMarket(

@@ -21,7 +21,7 @@ abstract contract AssertsHelper is Test {
             "variablePool.collateralTokenBalance"
         );
         assertEq(
-            a.variablePool.borrowATokenBalance, b.variablePool.borrowATokenBalance, "variablePool.borrowATokenBalance"
+            a.variablePool.borrowTokenBalance, b.variablePool.borrowTokenBalance, "variablePool.borrowTokenBalance"
         );
         assertEq(
             a.feeRecipient.collateralTokenBalance,
@@ -29,14 +29,14 @@ abstract contract AssertsHelper is Test {
             "feeRecipient.collateralTokenBalance"
         );
         assertEq(
-            a.feeRecipient.borrowATokenBalance, b.feeRecipient.borrowATokenBalance, "feeRecipient.borrowATokenBalance"
+            a.feeRecipient.borrowTokenBalance, b.feeRecipient.borrowTokenBalance, "feeRecipient.borrowTokenBalance"
         );
     }
 
     function assertEq(UserView memory a, UserView memory b) internal pure {
         assertEq(a.account, b.account, "account");
         assertEq(a.collateralTokenBalance, b.collateralTokenBalance, "collateralTokenBalance");
-        assertEq(a.borrowATokenBalance, b.borrowATokenBalance, "borrowATokenBalance");
+        assertEq(a.borrowTokenBalance, b.borrowTokenBalance, "borrowTokenBalance");
         assertEq(a.debtBalance, b.debtBalance, "debtBalance");
     }
 

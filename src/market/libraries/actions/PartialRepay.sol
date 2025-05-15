@@ -62,13 +62,13 @@ library PartialRepay {
             params.amount >= debtPositionToRepay.futureValue || params.amount > creditPositionWithDebtToRepay.credit
                 || (
                     params.amount != creditPositionWithDebtToRepay.credit
-                        && params.amount < state.riskConfig.minimumCreditBorrowAToken
+                        && params.amount < state.riskConfig.minimumCreditBorrowToken
                 )
         ) {
             // disallows partial repayments of
             // - the entire debt
             // - more than the credit position
-            // - less than the minimumCreditBorrowAToken amount and not the full credit amount
+            // - less than the minimumCreditBorrowToken amount and not the full credit amount
             revert Errors.INVALID_AMOUNT(params.amount);
         }
 
@@ -88,7 +88,7 @@ library PartialRepay {
             state.getCreditPosition(params.creditPositionWithDebtToRepayId);
 
         // transfer cash directly to the lender since it's a partial repayment
-        state.data.borrowATokenV1_5.transferFrom(msg.sender, creditPositionWithDebtToRepay.lender, params.amount);
+        state.data.borrowTokenVault.transferFrom(msg.sender, creditPositionWithDebtToRepay.lender, params.amount);
         // debt and credit reduction
         state.reduceDebtAndCredit(
             creditPositionWithDebtToRepay.debtPositionId, params.creditPositionWithDebtToRepayId, params.amount

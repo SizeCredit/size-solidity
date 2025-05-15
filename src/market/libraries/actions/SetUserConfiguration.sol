@@ -10,7 +10,11 @@ import {Action} from "@src/factory/libraries/Authorization.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {Events} from "@src/market/libraries/Events.sol";
 
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+
 struct SetUserConfigurationParams {
+    // the user vault to deposit borrow tokens into
+    address vault;
     // The opening limit borrow CR
     uint256 openingLimitBorrowCR;
     // Whether all credit positions for sale are disabled
@@ -48,6 +52,9 @@ library SetUserConfiguration {
         if (!state.data.sizeFactory.isAuthorized(msg.sender, onBehalfOf, Action.SET_USER_CONFIGURATION)) {
             revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.SET_USER_CONFIGURATION));
         }
+
+        // validate vault
+        // N/A
 
         // validate openingLimitBorrowCR
         // N/A
@@ -94,9 +101,12 @@ library SetUserConfiguration {
             );
         }
 
+        state.data.borrowTokenVault.setVault(onBehalfOf, params.vault);
+
         emit Events.SetUserConfiguration(
             msg.sender,
             onBehalfOf,
+            params.vault,
             params.openingLimitBorrowCR,
             params.allCreditPositionsForSaleDisabled,
             params.creditPositionIdsForSale,

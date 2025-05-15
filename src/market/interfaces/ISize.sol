@@ -45,8 +45,8 @@ string constant VERSION = "v1.7";
 ///      See `Multicall.sol`
 interface ISize is ISizeView, ISizeAdmin, IMulticall, ISizeV1_7 {
     /// @notice Deposit underlying borrow/collateral tokens to the protocol (e.g. USDC, WETH)
-    ///         Borrow tokens are always deposited into the Variable Pool,
-    ///         Collateral tokens are deposited into the Size contract through the DepositTokenLibrary
+    ///         Borrow tokens are always deposited into the Aave Variable Pool or User Vault
+    ///         Collateral tokens are deposited into the Size contract
     /// @dev The caller must approve the transfer of the token to the protocol.
     ///      This function mints 1:1 Deposit Tokens (e.g. szaUSDC, szETH) in exchange of the deposited tokens
     /// @param params DepositParams struct containing the following fields:
@@ -56,8 +56,8 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall, ISizeV1_7 {
     function deposit(DepositParams calldata params) external payable;
 
     /// @notice Withdraw underlying borrow/collateral tokens from the protocol (e.g. USDC, WETH)
-    ///         Borrow tokens are always withdrawn from the Variable Pool
-    ///         Collateral tokens are withdrawn from the Size contract through the DepositTokenLibrary
+    ///         Borrow tokens are always withdrawn from the Aave Variable Pool or User Vault
+    ///         Collateral tokens are withdrawn from the Size contract
     /// @dev This function burns 1:1 Deposit Tokens (e.g. szaUSDC, szETH) in exchange of the withdrawn tokens
     /// @param params WithdrawParams struct containing the following fields:
     ///     - address token: The address of the token to withdraw
@@ -179,7 +179,10 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall, ISizeV1_7 {
     /// @dev By default, all created creadit positions are for sale.
     ///      Users who want to disable the sale of all or specific credit positions can do so by calling this function.
     ///      By default, all users CR to open a position is crOpening. Users who want to increase their CR opening limit can do so by calling this function.
+    ///      Note: this function was updated in v1.8 to accept a `vault` parameter.
+    ///        Although this function is market-specific, it will change a NonTransferrableRebasingTokenVault state that will be reflected on all markets.
     /// @param params SetUserConfigurationParams struct containing the following fields:
+    ///     - address vault: The address of the user vault
     ///     - uint256 openingLimitBorrowCR: The opening limit borrow collateral ratio, which indicates the maximum CR the borrower is willing to accept after their offer is picked by a lender
     ///     - bool allCreditPositionsForSaleDisabled: This global flag indicates if all credit positions should be set for sale or not
     ///     - bool creditPositionIdsForSale: This flag indicates if the creditPositionIds array should be set for sale or not

@@ -18,7 +18,7 @@ import {PERCENT} from "@src/market/libraries/Math.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
-import {NonTransferrableScaledTokenV1_5} from "@src/market/token/NonTransferrableScaledTokenV1_5.sol";
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {NonTransferrableToken} from "@src/market/token/NonTransferrableToken.sol";
 
 import {State} from "@src/market/SizeStorage.sol";
@@ -39,8 +39,7 @@ struct InitializeFeeConfigParams {
 struct InitializeRiskConfigParams {
     uint256 crOpening;
     uint256 crLiquidation;
-    uint256 minimumCreditBorrowAToken;
-    uint256 borrowATokenCap;
+    uint256 minimumCreditBorrowToken;
     uint256 minTenor;
     uint256 maxTenor;
 }
@@ -55,7 +54,7 @@ struct InitializeDataParams {
     address underlyingCollateralToken;
     address underlyingBorrowToken;
     address variablePool;
-    address borrowATokenV1_5;
+    address borrowTokenVault;
     address sizeFactory;
 }
 
@@ -64,7 +63,7 @@ struct InitializeDataParams {
 /// @author Size (https://size.credit/)
 /// @notice Contains the logic to initialize the protocol
 /// @dev The collateralToken (e.g. szETH) and debtToken (e.g. szDebt) are created in the `executeInitialize` function
-///      The borrowAToken (e.g. szaUSDC) must have been deployed before the initialization
+///      The borrowTokenVault (e.g. svUSDC) must have been deployed before the initialization
 library Initialize {
     using SafeERC20 for IERC20;
 
@@ -120,13 +119,8 @@ library Initialize {
             revert Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO(r.crOpening, r.crLiquidation);
         }
 
-        // validate minimumCreditBorrowAToken
-        if (r.minimumCreditBorrowAToken == 0) {
-            revert Errors.NULL_AMOUNT();
-        }
-
-        // validate borrowATokenCap
-        if (r.borrowATokenCap == 0) {
+        // validate minimumCreditBorrowToken
+        if (r.minimumCreditBorrowToken == 0) {
             revert Errors.NULL_AMOUNT();
         }
 
@@ -183,8 +177,8 @@ library Initialize {
             revert Errors.NULL_ADDRESS();
         }
 
-        // validate borrowATokenV1_5
-        if (d.borrowATokenV1_5 == address(0)) {
+        // validate borrowTokenVault
+        if (d.borrowTokenVault == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
 
@@ -236,9 +230,7 @@ library Initialize {
         state.riskConfig.crOpening = r.crOpening;
         state.riskConfig.crLiquidation = r.crLiquidation;
 
-        state.riskConfig.minimumCreditBorrowAToken = r.minimumCreditBorrowAToken;
-
-        state.riskConfig.borrowATokenCap = r.borrowATokenCap;
+        state.riskConfig.minimumCreditBorrowToken = r.minimumCreditBorrowToken;
 
         state.riskConfig.minTenor = r.minTenor;
         state.riskConfig.maxTenor = r.maxTenor;
@@ -276,8 +268,8 @@ library Initialize {
             string.concat("szDebt", IERC20Metadata(state.data.underlyingBorrowToken).symbol()),
             IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );
-        state.data.borrowATokenV1_5 = NonTransferrableScaledTokenV1_5(d.borrowATokenV1_5);
         state.data.sizeFactory = ISizeFactory(d.sizeFactory);
+        state.data.borrowTokenVault = NonTransferrableRebasingTokenVault(d.borrowTokenVault);
     }
 
     /// @notice Executes the initialization of the protocol

@@ -2,9 +2,9 @@
 pragma solidity 0.8.23;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
-
 import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
 import {Math, PERCENT} from "@src/market/libraries/Math.sol";
 import {
     InitializeDataParams,
@@ -25,13 +25,14 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {MarketFactoryLibrary} from "@src/factory/libraries/MarketFactoryLibrary.sol";
-import {NonTransferrableScaledTokenV1_5FactoryLibrary} from
-    "@src/factory/libraries/NonTransferrableScaledTokenV1_5FactoryLibrary.sol";
+
+import {NonTransferrableRebasingTokenVaultLibrary} from
+    "@src/factory/libraries/NonTransferrableRebasingTokenVaultLibrary.sol";
 import {PriceFeedFactoryLibrary} from "@src/factory/libraries/PriceFeedFactoryLibrary.sol";
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
 import {IPriceFeedV1_5_2} from "@src/oracle/v1.5.2/IPriceFeedV1_5_2.sol";
 
-import {NonTransferrableScaledTokenV1_5} from "@src/market/token/NonTransferrableScaledTokenV1_5.sol";
 import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 
 import {SizeFactoryEvents} from "@src/factory/SizeFactoryEvents.sol";
@@ -76,19 +77,6 @@ contract SizeFactory is
         _grantRole(BORROW_RATE_UPDATER_ROLE, _owner);
     }
 
-    function reinitialize() external onlyOwner reinitializer(1_7_0) {
-        // grant `AccessControlUpgradeable` roles to the `Ownable2StepUpgradeable` owner
-        address _owner = owner();
-        _grantRole(DEFAULT_ADMIN_ROLE, _owner);
-        _grantRole(PAUSER_ROLE, _owner);
-        _grantRole(KEEPER_ROLE, _owner);
-        _grantRole(BORROW_RATE_UPDATER_ROLE, _owner);
-        // transfer `Ownable2StepUpgradeable` ownership to the zero address to keep the state consistent
-        // in a future upgrade, we can simply remove `Ownable2StepUpgradeable` from the implementation
-        _transferOwnership(address(0));
-        // can only be called once
-    }
-
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 
     /// @inheritdoc ISizeFactory
@@ -101,17 +89,17 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactory
-    function setNonTransferrableScaledTokenV1_5Implementation(address _nonTransferrableScaledTokenV1_5Implementation)
+    function setNonTransferrableRebasingTokenVaultImplementation(address _nonTransferrableTokenVaultImplementation)
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        if (_nonTransferrableScaledTokenV1_5Implementation == address(0)) {
+        if (_nonTransferrableTokenVaultImplementation == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-        emit NonTransferrableScaledTokenV1_5ImplementationSet(
-            nonTransferrableScaledTokenV1_5Implementation, _nonTransferrableScaledTokenV1_5Implementation
+        emit NonTransferrableRebasingTokenVaultImplementationSet(
+            nonTransferrableTokenVaultImplementation, _nonTransferrableTokenVaultImplementation
         );
-        nonTransferrableScaledTokenV1_5Implementation = _nonTransferrableScaledTokenV1_5Implementation;
+        nonTransferrableTokenVaultImplementation = _nonTransferrableTokenVaultImplementation;
     }
 
     /// @inheritdoc ISizeFactory
@@ -131,6 +119,19 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactory
+    function createBorrowTokenVault(IPool variablePool, IERC20Metadata underlyingBorrowToken)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        returns (NonTransferrableRebasingTokenVault borrowTokenVault)
+    {
+        address admin = msg.sender;
+        borrowTokenVault = NonTransferrableRebasingTokenVaultLibrary.createNonTransferrableRebasingTokenVault(
+            nonTransferrableTokenVaultImplementation, admin, variablePool, underlyingBorrowToken
+        );
+        emit CreateBorrowTokenVault(address(borrowTokenVault));
+    }
+
+    /// @inheritdoc ISizeFactory
     function createPriceFeed(PriceFeedParams memory _priceFeedParams)
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
@@ -138,19 +139,6 @@ contract SizeFactory is
     {
         priceFeed = PriceFeedFactoryLibrary.createPriceFeed(_priceFeedParams);
         emit CreatePriceFeed(address(priceFeed));
-    }
-
-    /// @inheritdoc ISizeFactory
-    function createBorrowATokenV1_5(IPool variablePool, IERC20Metadata underlyingBorrowToken)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-        returns (NonTransferrableScaledTokenV1_5 borrowATokenV1_5)
-    {
-        address admin = msg.sender;
-        borrowATokenV1_5 = NonTransferrableScaledTokenV1_5FactoryLibrary.createNonTransferrableScaledTokenV1_5(
-            nonTransferrableScaledTokenV1_5Implementation, admin, variablePool, underlyingBorrowToken
-        );
-        emit CreateBorrowATokenV1_5(address(borrowATokenV1_5));
     }
 
     /// @inheritdoc ISizeFactory

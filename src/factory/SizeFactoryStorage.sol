@@ -8,6 +8,8 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 /// @title SizeFactoryStorage
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
+// slither-disable-start uninitialized-state
+// slither-disable-start constable-states
 abstract contract SizeFactoryStorage {
     // the markets
     EnumerableSet.AddressSet markets;
@@ -17,8 +19,8 @@ abstract contract SizeFactoryStorage {
     EnumerableSet.AddressSet ___unused_02;
     // the size implementation (used as implementation for proxy contracts, added on v1.6)
     address public sizeImplementation;
-    // the non-transferrable scaled token v1.5 implementation (used as implementation for proxy contracts, added on v1.6)
-    address public nonTransferrableScaledTokenV1_5Implementation;
+    // the non-transferrable token vault implementation (upgraded on v1.8)
+    address public nonTransferrableTokenVaultImplementation;
     // mapping of authorized actions for operators per account (added on v1.7)
     mapping(
         uint256 nonce
@@ -27,3 +29,5 @@ abstract contract SizeFactoryStorage {
     // mapping of authorization nonces per account (added on v1.7)
     mapping(address onBehalfOf => uint256 nonce) public authorizationNonces;
 }
+// slither-disable-end constable-states
+// slither-disable-end uninitialized-state

@@ -57,8 +57,7 @@ library UpdateConfig {
         return InitializeRiskConfigParams({
             crOpening: state.riskConfig.crOpening,
             crLiquidation: state.riskConfig.crLiquidation,
-            minimumCreditBorrowAToken: state.riskConfig.minimumCreditBorrowAToken,
-            borrowATokenCap: state.riskConfig.borrowATokenCap,
+            minimumCreditBorrowToken: state.riskConfig.minimumCreditBorrowToken,
             minTenor: state.riskConfig.minTenor,
             maxTenor: state.riskConfig.maxTenor
         });
@@ -93,10 +92,8 @@ library UpdateConfig {
                 revert Errors.INVALID_COLLATERAL_RATIO(params.value);
             }
             state.riskConfig.crLiquidation = params.value;
-        } else if (Strings.equal(params.key, "minimumCreditBorrowAToken")) {
-            state.riskConfig.minimumCreditBorrowAToken = params.value;
-        } else if (Strings.equal(params.key, "borrowATokenCap")) {
-            state.riskConfig.borrowATokenCap = params.value;
+        } else if (Strings.equal(params.key, "minimumCreditBorrowToken")) {
+            state.riskConfig.minimumCreditBorrowToken = params.value;
         } else if (Strings.equal(params.key, "minTenor")) {
             if (
                 state.feeConfig.swapFeeAPR != 0
