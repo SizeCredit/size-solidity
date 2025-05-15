@@ -49,7 +49,7 @@ contract ForkVaultsTest is ForkTest, Networks {
         ProposeSafeTxUpgradeToV1_8Script script = new ProposeSafeTxUpgradeToV1_8Script();
 
         (address[] memory targets, bytes[] memory datas) =
-            script.getTargetsAndDatas(sizeFactory, new address[](0), address(0), new ISize[](0));
+            script.getTargetsAndDatas(sizeFactory, new address[](0), address(0), address(0), new ISize[](0));
 
         for (uint256 i = 0; i < targets.length; i++) {
             vm.prank(owner);

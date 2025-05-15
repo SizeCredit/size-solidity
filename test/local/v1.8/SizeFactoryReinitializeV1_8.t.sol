@@ -23,7 +23,9 @@ contract SizeFactoryReinitializeV1_8Test is BaseTest {
 
     function test_SizeFactoryReinitializeV1_8_input_validation() public {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        sizeFactory.reinitialize(ICollectionsManager(address(0)), new address[](0), address(0), new ISize[](0));
+        sizeFactory.reinitialize(
+            ICollectionsManager(address(0)), new address[](0), address(0), address(0), new ISize[](0)
+        );
 
         address[] memory users = new address[](1);
         users[0] = alice;
@@ -32,11 +34,11 @@ contract SizeFactoryReinitializeV1_8Test is BaseTest {
         invalidCollectionMarkets[0] = ISize(address(this));
 
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_MARKET.selector, address(this)));
-        sizeFactory.reinitialize(collectionsManager, users, bob, invalidCollectionMarkets);
+        sizeFactory.reinitialize(collectionsManager, users, candy, bob, invalidCollectionMarkets);
     }
 
     function test_SizeFactoryReinitializeV1_8_simple() public {
-        sizeFactory.reinitialize(collectionsManager, new address[](0), address(0), new ISize[](0));
+        sizeFactory.reinitialize(collectionsManager, new address[](0), address(0), address(0), new ISize[](0));
 
         assertEq(address(sizeFactory.collectionsManager()), address(collectionsManager));
     }
@@ -47,16 +49,17 @@ contract SizeFactoryReinitializeV1_8Test is BaseTest {
         users[0] = alice;
         users[1] = bob;
         users[2] = candy;
+        address curator = liquidator;
         address rateProvider = james;
         ISize[] memory collectionMarkets = new ISize[](1);
         collectionMarkets[0] = size1;
 
-        sizeFactory.reinitialize(collectionsManager, users, rateProvider, collectionMarkets);
+        sizeFactory.reinitialize(collectionsManager, users, curator, rateProvider, collectionMarkets);
 
         uint256 collectionId = 0;
 
         assertEq(address(sizeFactory.collectionsManager()), address(collectionsManager));
-        assertEq(ERC721EnumerableUpgradeable(address(collectionsManager)).ownerOf(collectionId), james);
+        assertEq(ERC721EnumerableUpgradeable(address(collectionsManager)).ownerOf(collectionId), curator);
 
         for (uint256 i = 0; i < users.length; i++) {
             assertEq(collectionsManager.getSubscribedCollections(users[i]).length, 1);

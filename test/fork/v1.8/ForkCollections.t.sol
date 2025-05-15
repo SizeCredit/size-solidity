@@ -16,9 +16,7 @@ import {Errors} from "@src/market/libraries/Errors.sol";
 
 import {ProposeSafeTxUpgradeToV1_8Script} from "@script/ProposeSafeTxUpgradeToV1_8.s.sol";
 
-import {ERC721ReceiverMock} from "@openzeppelin/contracts/mocks/token/ERC721ReceiverMock.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {Size} from "@src/market/Size.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
@@ -32,8 +30,11 @@ import {
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
 contract ForkCollectionsTest is ForkTest, Networks {
+    ProposeSafeTxUpgradeToV1_8Script script;
+
     address[] users;
     ISize[] collectionMarkets;
+    address curator;
     address rateProvider;
 
     uint256[][] usersPreviousLoanAPRsPerCollectionMarket;
@@ -53,27 +54,15 @@ contract ForkCollectionsTest is ForkTest, Networks {
         variablePool = size.data().variablePool;
         owner = Networks.contracts[block.chainid][Contract.SIZE_GOVERNANCE];
 
+        script = new ProposeSafeTxUpgradeToV1_8Script();
+
         users = new address[](2);
         users[0] = 0x87CDad83a779D785A729a91dBb9FE0DB8be14b3b;
         users[1] = 0x000000f840D8A851718d7DC470bFf1ed09F69107;
 
-        collectionMarkets = new ISize[](4);
+        collectionMarkets = script.getCollectionMarkets(sizeFactory);
+        curator = makeAddr("curator");
         rateProvider = 0x39EB0e1039732d8d2380B682Bc00Ad07b864F176;
-        ERC721ReceiverMock erc721Receiver =
-            new ERC721ReceiverMock(IERC721Receiver.onERC721Received.selector, ERC721ReceiverMock.RevertType.None);
-        vm.etch(rateProvider, address(erc721Receiver).code);
-        ISize[] memory markets = sizeFactory.getMarkets();
-        uint256 j = 0;
-        for (uint256 i = 0; i < markets.length; i++) {
-            string memory symbol = markets[i].data().underlyingCollateralToken.symbol();
-            if (
-                Strings.equal(symbol, "WETH") || Strings.equal(symbol, "cbBTC") || Strings.equal(symbol, "cbETH")
-                    || Strings.equal(symbol, "wstETH")
-            ) {
-                collectionMarkets[j++] = markets[i];
-            }
-        }
-        assertEq(j, 4);
 
         _getPreviousState();
 
@@ -98,10 +87,8 @@ contract ForkCollectionsTest is ForkTest, Networks {
     }
 
     function _upgradeToV1_8() internal {
-        ProposeSafeTxUpgradeToV1_8Script script = new ProposeSafeTxUpgradeToV1_8Script();
-
         (address[] memory targets, bytes[] memory datas) =
-            script.getTargetsAndDatas(sizeFactory, users, rateProvider, collectionMarkets);
+            script.getTargetsAndDatas(sizeFactory, users, curator, rateProvider, collectionMarkets);
 
         for (uint256 i = 0; i < targets.length; i++) {
             vm.prank(owner);

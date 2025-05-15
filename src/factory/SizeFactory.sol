@@ -99,6 +99,7 @@ contract SizeFactory is
     function reinitialize(
         ICollectionsManager _collectionsManager,
         address[] memory _users,
+        address _curator,
         address _rateProvider,
         ISize[] memory _collectionMarkets
     ) external onlyRole(DEFAULT_ADMIN_ROLE) reinitializer(1_08_00) {
@@ -109,7 +110,7 @@ contract SizeFactory is
         collectionsManager = _collectionsManager;
         emit CollectionsManagerSet(address(0), address(_collectionsManager));
 
-        if (_rateProvider == address(0)) {
+        if (_curator == address(0) || _rateProvider == address(0)) {
             // no migration required
             return;
         }
@@ -162,7 +163,7 @@ contract SizeFactory is
         }
 
         ERC721EnumerableUpgradeable(address(_collectionsManager)).safeTransferFrom(
-            address(this), address(_rateProvider), collectionIds[0]
+            address(this), address(_curator), collectionIds[0]
         );
     }
     // slither-disable-end uninitialized-local

@@ -17,9 +17,13 @@ import {BaseScript} from "@script/BaseScript.sol";
 import {Contract, Networks} from "@script/Networks.sol";
 
 import {Safe} from "@safe-utils/Safe.sol";
+
+import {HTTP} from "@solidity-http/HTTP.sol";
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {Tenderly} from "@tenderly-utils/Tenderly.sol";
+
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {AaveAdapter} from "@src/market/token/adapters/AaveAdapter.sol";
 import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
@@ -30,6 +34,9 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
     using Tenderly for *;
     using Safe for *;
+    using HTTP for *;
+
+    HTTP.Client http;
 
     address signer;
     string derivationPath;
@@ -38,6 +45,7 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
     address safeAddress;
 
     address[] users;
+    address curator;
     address rateProvider;
     ISize[] collectionMarkets;
 
@@ -55,20 +63,44 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         safeAddress = vm.envAddress("OWNER");
         safe.initialize(safeAddress);
 
-        users = vm.envOr("USERS", ",", new address[](0));
-        rateProvider = vm.envOr("RATE_PROVIDER", address(0));
-        address[] memory collectionMarketsAddresses = vm.envOr("COLLECTION_MARKETS", ",", new address[](0));
-        collectionMarkets = new ISize[](collectionMarketsAddresses.length);
-        for (uint256 i = 0; i < collectionMarketsAddresses.length; i++) {
-            collectionMarkets[i] = ISize(collectionMarketsAddresses[i]);
-        }
+        HTTP.Response memory response =
+            http.initialize("https://api.size.credit/collection-users/LP-Capital").GET().request();
+        require(response.status == 200, "Failed to fetch collection users");
+
+        users = abi.decode(vm.parseJson(response.data, ".users"), (address[]));
+        curator = abi.decode(vm.parseJson(response.data, ".rate_provider_address"), (address));
+        rateProvider = abi.decode(vm.parseJson(response.data, ".rate_provider_address"), (address));
+        collectionMarkets = getCollectionMarkets(sizeFactory);
+
+        console.log("users", users.length);
+        console.log("curator", curator);
+        console.log("rateProvider", rateProvider);
+        console.log("collectionMarkets", collectionMarkets.length);
 
         _;
+    }
+
+    function getCollectionMarkets(ISizeFactory _sizeFactory) public view returns (ISize[] memory _collectionMarkets) {
+        _collectionMarkets = new ISize[](4);
+        ISize[] memory markets = _sizeFactory.getMarkets();
+        uint256 j = 0;
+        for (uint256 i = 0; i < markets.length; i++) {
+            string memory symbol = markets[i].data().underlyingCollateralToken.symbol();
+            if (
+                Strings.equal(symbol, "WETH") || Strings.equal(symbol, "cbBTC") || Strings.equal(symbol, "cbETH")
+                    || Strings.equal(symbol, "wstETH")
+            ) {
+                _collectionMarkets[j++] = markets[i];
+            }
+        }
+
+        require(j == 4, "Invalid number of collection markets");
     }
 
     function getTargetsAndDatas(
         ISizeFactory _sizeFactory,
         address[] memory _users,
+        address _curator,
         address _rateProvider,
         ISize[] memory _collectionMarkets
     ) public returns (address[] memory targets, bytes[] memory datas) {
@@ -121,8 +153,9 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
 
         // SizeFactory.upgradeToAndCall(v1_8, multicall[reinitialize, setSizeImplementation, setNonTransferrableRebasingTokenVaultImplementation])
         bytes[] memory multicallDatas = new bytes[](3);
-        multicallDatas[0] =
-            abi.encodeCall(SizeFactory.reinitialize, (collectionsManager, _users, _rateProvider, _collectionMarkets));
+        multicallDatas[0] = abi.encodeCall(
+            SizeFactory.reinitialize, (collectionsManager, _users, _curator, _rateProvider, _collectionMarkets)
+        );
         multicallDatas[1] = abi.encodeCall(SizeFactory.setSizeImplementation, (address(sizeV1_8Implementation)));
         multicallDatas[2] = abi.encodeCall(
             SizeFactory.setNonTransferrableRebasingTokenVaultImplementation,
@@ -140,7 +173,7 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         vm.startBroadcast();
 
         (address[] memory targets, bytes[] memory datas) =
-            getTargetsAndDatas(sizeFactory, users, rateProvider, collectionMarkets);
+            getTargetsAndDatas(sizeFactory, users, curator, rateProvider, collectionMarkets);
 
         vm.stopBroadcast();
 
