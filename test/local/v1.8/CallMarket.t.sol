@@ -14,7 +14,6 @@ import {ISizeV1_7} from "@src/market/interfaces/v1.7/ISizeV1_7.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
-import {Adapter} from "@src/market/token/libraries/AdapterLibrary.sol";
 
 import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 import {
@@ -289,7 +288,7 @@ contract CallMarketTest is BaseTest {
         uint256[] memory collectionIds = new uint256[](1);
         collectionIds[0] = collectionId;
 
-        _setVaultAdapter(vault2, Adapter.ERC4626);
+        _setVaultAdapter(vault2, "ERC4626Adapter");
 
         uint256 depositAmount = 100e6;
 

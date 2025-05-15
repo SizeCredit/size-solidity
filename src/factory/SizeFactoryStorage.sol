@@ -10,6 +10,8 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 /// @title SizeFactoryStorage
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
+// slither-disable-start uninitialized-state
+// slither-disable-start constable-states
 abstract contract SizeFactoryStorage {
     // the markets
     EnumerableSet.AddressSet markets;
@@ -31,3 +33,5 @@ abstract contract SizeFactoryStorage {
     // collections manager (added in v1.8)
     ICollectionsManager public collectionsManager;
 }
+// slither-disable-end constable-states
+// slither-disable-end uninitialized-state

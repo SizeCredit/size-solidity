@@ -21,6 +21,12 @@ import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {Tenderly} from "@tenderly-utils/Tenderly.sol";
 
+import {AaveAdapter} from "@src/market/token/adapters/AaveAdapter.sol";
+import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
+
+import {IPool} from "@aave/interfaces/IPool.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
 contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
     using Tenderly for *;
     using Safe for *;
@@ -66,6 +72,11 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         address _rateProvider,
         ISize[] memory _collectionMarkets
     ) public returns (address[] memory targets, bytes[] memory datas) {
+        ISize[] memory markets = _sizeFactory.getMarkets();
+        NonTransferrableScaledTokenV1_5 v1_5saToken =
+            NonTransferrableScaledTokenV1_5(address(markets[0].data().borrowTokenVault));
+
+        /* deployments start */
         Size sizeV1_8Implementation = new Size();
         SizeFactory sizeFactoryV1_8Implementation = new SizeFactory();
         NonTransferrableRebasingTokenVault borrowTokenVaultV1_8Implementation = new NonTransferrableRebasingTokenVault();
@@ -77,10 +88,14 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
                 )
             )
         );
-
-        ISize[] memory markets = _sizeFactory.getMarkets();
-        NonTransferrableScaledTokenV1_5 v1_5 =
-            NonTransferrableScaledTokenV1_5(address(markets[0].data().borrowTokenVault));
+        AaveAdapter aaveAdapter = new AaveAdapter(
+            NonTransferrableRebasingTokenVault(address(v1_5saToken)),
+            v1_5saToken.variablePool(),
+            v1_5saToken.underlyingToken()
+        );
+        ERC4626Adapter erc4626Adapter =
+            new ERC4626Adapter(NonTransferrableRebasingTokenVault(address(v1_5saToken)), v1_5saToken.underlyingToken());
+        /* deployment end */
 
         targets = new address[](markets.length + 2);
         datas = new bytes[](markets.length + 2);
@@ -92,12 +107,15 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         }
 
         // NonTransferrableScaledTokenV1_5.upgradeToAndCall(v1_8, reinitialize(name, symbol))
-        targets[markets.length] = address(v1_5);
+        targets[markets.length] = address(v1_5saToken);
         datas[markets.length] = abi.encodeCall(
             UUPSUpgradeable.upgradeToAndCall,
             (
                 address(borrowTokenVaultV1_8Implementation),
-                abi.encodeCall(NonTransferrableRebasingTokenVault.reinitialize, ("Size USD Coin Vault", "svUSDC"))
+                abi.encodeCall(
+                    NonTransferrableRebasingTokenVault.reinitialize,
+                    ("Size USD Coin Vault", "svUSDC", aaveAdapter, erc4626Adapter)
+                )
             )
         );
 

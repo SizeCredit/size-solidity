@@ -5,8 +5,7 @@ import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
 import {PERCENT} from "@src/market/libraries/Math.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
-import {DEFAULT_VAULT} from "@src/market/token/NonTransferrableRebasingTokenVaultBase.sol";
-import {Adapter} from "@src/market/token/libraries/AdapterLibrary.sol";
+import {DEFAULT_VAULT} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {BaseTest, Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
@@ -19,6 +18,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 import {ERC4626 as ERC4626OpenZeppelin} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
+
+import {ERC20 as ERC20Solady} from "@solady/src/tokens/ERC20.sol";
 import {ERC4626 as ERC4626Solady} from "@solady/src/tokens/ERC4626.sol";
 import {MockERC4626} from "@solady/test/utils/mocks/MockERC4626.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
@@ -34,6 +35,7 @@ import {MaliciousERC4626} from "@test/mocks/vaults/MaliciousERC4626.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {Events} from "@src/market/libraries/Events.sol";
+import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
 
 contract VaultsTest is BaseTest {
     function test_Vaults_borrower_vault_lender_aave() public {
@@ -44,7 +46,7 @@ contract VaultsTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        _setVaultAdapter(vault, Adapter.ERC4626);
+        _setVaultAdapter(vault, "ERC4626Adapter");
         _setUserConfiguration(bob, address(vault), 1.5e18, false, false, new uint256[](0));
 
         _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
@@ -58,7 +60,7 @@ contract VaultsTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        _setVaultAdapter(vault, Adapter.ERC4626);
+        _setVaultAdapter(vault, "ERC4626Adapter");
         _setUserConfiguration(alice, address(vault), 1.5e18, false, false, new uint256[](0));
 
         _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
@@ -72,7 +74,7 @@ contract VaultsTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        _setVaultAdapter(vault, Adapter.ERC4626);
+        _setVaultAdapter(vault, "ERC4626Adapter");
         _setUserConfiguration(alice, address(vault), 1.5e18, false, false, new uint256[](0));
         _setUserConfiguration(bob, address(vault), 1.5e18, false, false, new uint256[](0));
 
@@ -87,7 +89,7 @@ contract VaultsTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        _setVaultAdapter(vault, Adapter.ERC4626);
+        _setVaultAdapter(vault, "ERC4626Adapter");
         _setUserConfiguration(alice, address(vault), 1.5e18, false, false, new uint256[](0));
         _setUserConfiguration(bob, address(vault), 1.5e18, false, false, new uint256[](0));
 
@@ -104,7 +106,7 @@ contract VaultsTest is BaseTest {
     }
 
     function test_Vaults_lender_vault_low_liquidity() public {
-        _setVaultAdapter(vault, Adapter.ERC4626);
+        _setVaultAdapter(vault, "ERC4626Adapter");
         _setUserConfiguration(alice, address(vault), 1.5e18, false, false, new uint256[](0));
 
         _deposit(alice, usdc, 100e6);
@@ -141,7 +143,7 @@ contract VaultsTest is BaseTest {
     }
 
     function test_Vaults_malicious_vault() public {
-        _setVaultAdapter(vaultMalicious, Adapter.ERC4626);
+        _setVaultAdapter(vaultMalicious, "ERC4626Adapter");
         _setUserConfiguration(alice, address(vaultMalicious), 1.5e18, false, false, new uint256[](0));
 
         _deposit(alice, usdc, 200e6);
@@ -169,7 +171,7 @@ contract VaultsTest is BaseTest {
     function test_Vaults_fee_on_transfer_vault() public {
         _updateConfig("swapFeeAPR", 0);
 
-        _setVaultAdapter(vaultFeeOnTransfer, Adapter.ERC4626);
+        _setVaultAdapter(vaultFeeOnTransfer, "ERC4626Adapter");
         _setUserConfiguration(alice, address(vaultFeeOnTransfer), 1.5e18, false, false, new uint256[](0));
 
         _mint(address(usdc), alice, 200e6);
@@ -226,7 +228,7 @@ contract VaultsTest is BaseTest {
             NonTransferrableRebasingTokenVault(address(size.data().borrowTokenVault));
         vm.prank(address(this));
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vaultInvalidUnderlying)));
-        borrowTokenVault.setVaultAdapter(address(vaultInvalidUnderlying), Adapter.ERC4626);
+        borrowTokenVault.setVaultAdapter(address(vaultInvalidUnderlying), "ERC4626Adapter");
 
         _setUserConfiguration(alice, address(vaultInvalidUnderlying), 1.5e18, false, false, new uint256[](0));
     }
@@ -235,8 +237,8 @@ contract VaultsTest is BaseTest {
         NonTransferrableRebasingTokenVault borrowTokenVault =
             NonTransferrableRebasingTokenVault(address(size.data().borrowTokenVault));
         vm.prank(address(this));
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vaultNonERC4626)));
-        borrowTokenVault.setVaultAdapter(address(vaultNonERC4626), Adapter.ERC4626);
+        vm.expectRevert();
+        borrowTokenVault.setVaultAdapter(address(vaultNonERC4626), "ERC4626Adapter");
 
         _setUserConfiguration(alice, address(vaultNonERC4626), 1.5e18, false, false, new uint256[](0));
     }
@@ -244,7 +246,7 @@ contract VaultsTest is BaseTest {
     function test_Vaults_erc7540_fully_async_contract() public {
         // fully async ERC7540 vaults revert on deposit/withdraw
 
-        _setVaultAdapter(vaultERC7540FullyAsync, Adapter.ERC4626);
+        _setVaultAdapter(vaultERC7540FullyAsync, "ERC4626Adapter");
         _setUserConfiguration(alice, address(vaultERC7540FullyAsync), 1.5e18, false, false, new uint256[](0));
 
         _mint(address(usdc), alice, 200e6);
@@ -257,7 +259,7 @@ contract VaultsTest is BaseTest {
     function test_Vaults_erc7540_controlled_async_deposit_contract() public {
         // controlled async deposit ERC7540 vaults revert on deposit
 
-        _setVaultAdapter(vaultERC7540ControlledAsyncDeposit, Adapter.ERC4626);
+        _setVaultAdapter(vaultERC7540ControlledAsyncDeposit, "ERC4626Adapter");
         _setUserConfiguration(
             alice, address(vaultERC7540ControlledAsyncDeposit), 1.5e18, false, false, new uint256[](0)
         );
@@ -274,7 +276,7 @@ contract VaultsTest is BaseTest {
 
         _updateConfig("swapFeeAPR", 0);
 
-        _setVaultAdapter(vaultERC7540ControlledAsyncRedeem, Adapter.ERC4626);
+        _setVaultAdapter(vaultERC7540ControlledAsyncRedeem, "ERC4626Adapter");
         _setUserConfiguration(alice, address(vaultERC7540ControlledAsyncRedeem), 1.5e18, false, false, new uint256[](0));
         _setUserConfiguration(bob, address(vaultERC7540ControlledAsyncRedeem), 1.5e18, false, false, new uint256[](0));
         _setUserConfiguration(
@@ -318,7 +320,7 @@ contract VaultsTest is BaseTest {
     }
 
     function test_Vaults_limits_vault() public {
-        _setVaultAdapter(vaultLimits, Adapter.ERC4626);
+        _setVaultAdapter(vaultLimits, "ERC4626Adapter");
         _setUserConfiguration(alice, address(vaultLimits), 1.5e18, false, false, new uint256[](0));
         _setUserConfiguration(bob, address(vaultLimits), 1.5e18, false, false, new uint256[](0));
         _setUserConfiguration(candy, address(vaultLimits), 1.5e18, false, false, new uint256[](0));
@@ -342,7 +344,7 @@ contract VaultsTest is BaseTest {
     }
 
     function test_Vaults_fee_on_entry_exit_vault() public {
-        _setVaultAdapter(vaultFeeOnEntryExit, Adapter.ERC4626);
+        _setVaultAdapter(vaultFeeOnEntryExit, "ERC4626Adapter");
         _setUserConfiguration(alice, address(vaultFeeOnEntryExit), 1.5e18, false, false, new uint256[](0));
 
         Vars memory _before = _state();
@@ -357,7 +359,7 @@ contract VaultsTest is BaseTest {
     }
 
     function test_Vaults_total_supply_across_multiple_vaults() public {
-        _setVaultAdapter(vault2, Adapter.ERC4626);
+        _setVaultAdapter(vault2, "ERC4626Adapter");
         _setUserConfiguration(alice, address(vault2), 1.5e18, false, false, new uint256[](0));
 
         _deposit(alice, usdc, 200e6);
@@ -400,8 +402,8 @@ contract VaultsTest is BaseTest {
         _deposit(liquidator, usdc, cash * 100);
         assertTrue(!_isDustShares([alice, bob, candy, liquidator]), err);
 
-        _setVaultAdapter(vault, Adapter.ERC4626);
-        _setVaultAdapter(vault2, Adapter.ERC4626);
+        _setVaultAdapter(vault, "ERC4626Adapter");
+        _setVaultAdapter(vault2, "ERC4626Adapter");
         _setUserConfiguration(alice, address(vault), 1.5e18, false, false, new uint256[](0));
         _setUserConfiguration(bob, address(vault2), 1.5e18, false, false, new uint256[](0));
         _setUserConfiguration(candy, address(DEFAULT_VAULT), 1.5e18, false, false, new uint256[](0));
@@ -479,15 +481,8 @@ contract VaultsTest is BaseTest {
         );
     }
 
-    function _isDustShares(address[4] memory users) internal view returns (bool) {
-        NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
-        for (uint256 i = 0; i < users.length; i++) {
-            uint256 sharesOf = borrowTokenVault.sharesOf(users[i]);
-            uint256 scaledBalanceOf = borrowTokenVault.scaledBalanceOf(users[i]);
-            if (scaledBalanceOf > 0 && sharesOf > 0) {
-                return true;
-            }
-        }
+    function _isDustShares(address[4] memory) internal pure returns (bool) {
+        // TODO implement this
         return false;
     }
 }

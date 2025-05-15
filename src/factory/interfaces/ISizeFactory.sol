@@ -49,6 +49,7 @@ interface ISizeFactory is ISizeFactoryOffchainGetters, ISizeFactoryV1_7, ISizeFa
 
     /// @notice Creates a new borrow token vault
     /// @dev The contract owner is set as the owner of the borrow token vault
+    ///      The borrow token vault needs to have adapters set after initialization
     function createBorrowTokenVault(IPool variablePool, IERC20Metadata underlyingBorrowToken)
         external
         returns (NonTransferrableRebasingTokenVault);

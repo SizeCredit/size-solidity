@@ -440,14 +440,4 @@ abstract contract Networks {
         baseToken = IERC20Metadata(0x50D2C7992b802Eef16c04FeADAB310f31866a545);
         quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
     }
-
-    function multiSendCallOnly(string memory network) public pure returns (IMultiSendCallOnly) {
-        if (Strings.equal(network, "base-production")) {
-            return IMultiSendCallOnly(0xA1dabEF33b3B82c7814B6D82A79e50F4AC44102B);
-        } else if (Strings.equal(network, "mainnet")) {
-            return IMultiSendCallOnly(0x40A2aCCbd92BCA938b02010E17A5b8929b49130D);
-        } else {
-            revert InvalidNetworkConfiguration(network);
-        }
-    }
 }

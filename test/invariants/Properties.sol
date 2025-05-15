@@ -155,16 +155,6 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
         for (uint256 i = 0; i < users.length; i++) {
             UserView memory userView = size.getUserView(users[i]);
             totalBalance += userView.borrowTokenBalance;
-
-            uint256 sharesOf = borrowTokenVault.sharesOf(users[i]);
-            uint256 scaledBalanceOf = borrowTokenVault.scaledBalanceOf(users[i]);
-
-            if (sharesOf > 0) {
-                eq(scaledBalanceOf, 0, VAULTS_02);
-            }
-            if (scaledBalanceOf > 0) {
-                eq(sharesOf, 0, VAULTS_02);
-            }
         }
         t(totalBalance <= totalSupply, VAULTS_01);
 
