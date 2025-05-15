@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
@@ -24,6 +25,9 @@ import {DEFAULT_VAULT} from "@src/market/token/NonTransferrableRebasingTokenVaul
 import {BaseTest} from "@test/BaseTest.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
+
+import {AaveAdapter} from "@src/market/token/adapters/AaveAdapter.sol";
+import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
 
 contract NonTransferrableRebasingTokenVaultTest is BaseTest {
     NonTransferrableRebasingTokenVault public token;
@@ -222,6 +226,39 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         assertTrue(token.isWhitelistedVault(address(vault)));
     }
 
+    function test_NonTransferrableRebasingTokenVault_update_ERC4626Adapter() public {
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
+        new ERC4626Adapter(NonTransferrableRebasingTokenVault(address(0)), underlying);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        new ERC4626Adapter(token, IERC20Metadata(address(0)));
+
+        ERC4626Adapter adapter = new ERC4626Adapter(token, underlying);
+
+        vm.prank(owner);
+        token.setAdapter(bytes32("ERC4626Adapter"), adapter);
+
+        assertEq(adapter.pricePerShare(address(vault)), 1e27);
+    }
+
+    function test_NonTransferrableRebasingTokenVault_update_AaveAdapter() public {
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
+        new AaveAdapter(NonTransferrableRebasingTokenVault(address(0)), pool, underlying);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        new AaveAdapter(token, IPool(address(0)), underlying);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        new AaveAdapter(token, pool, IERC20Metadata(address(0)));
+
+        AaveAdapter adapter = new AaveAdapter(token, pool, underlying);
+
+        vm.prank(owner);
+        token.setAdapter(bytes32("AaveAdapter"), adapter);
+
+        assertEq(adapter.pricePerShare(address(vault)), 1e27);
+    }
+
     function test_NonTransferrableRebasingTokenVault_setVault_1() public {
         vm.prank(address(size));
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
@@ -233,6 +270,40 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         vm.prank(address(size));
         token.setVault(alice, address(vault));
         assertEq(address(token.vaultOf(alice)), address(vault));
+    }
+
+    function testFuzz_NonTransferrableRebasingTokenVault_aave_deposit_withdraw_path(
+        uint256 depositAmount,
+        uint256 withdrawAmount,
+        uint256 liquidityIndex
+    ) public {
+        depositAmount = bound(depositAmount, 1, 1e18);
+        withdrawAmount = bound(withdrawAmount, 1, depositAmount);
+        liquidityIndex = bound(liquidityIndex, 1e27, 1.5e27);
+
+        deal(address(underlying), address(size), depositAmount);
+        vm.prank(address(size));
+        underlying.approve(address(token), depositAmount);
+
+        vm.prank(address(size));
+        token.deposit(user, depositAmount);
+        assertEq(token.balanceOf(user), depositAmount, "deposit amount");
+
+        _setLiquidityIndex(liquidityIndex);
+
+        uint256 balanceBefore = underlying.balanceOf(user);
+
+        vm.prank(address(size));
+        token.withdraw(user, user, withdrawAmount);
+        assertEq(underlying.balanceOf(user), balanceBefore + withdrawAmount, "withdraw amount");
+    }
+
+    function test_NonTransferrableRebasingTokenVault_aave_deposit_withdraw_path_concrete() public {
+        testFuzz_NonTransferrableRebasingTokenVault_aave_deposit_withdraw_path(
+            4658740278735764266672813707384099823332568,
+            115792089237316195423570985008687907853269984665640564039457584007913129639934,
+            373227715561
+        );
     }
 
     function test_NonTransferrableRebasingTokenVault_vault_deposit_withdraw_path() public {
@@ -366,6 +437,10 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         token.transferFrom(user, owner, 100);
         assertEq(token.balanceOf(user), 400);
         assertEq(token.balanceOf(owner), 100);
+
+        vm.prank(address(size));
+        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, user, 400, 900));
+        token.transferFrom(user, owner, 900);
     }
 
     function test_NonTransferrableRebasingTokenVault_totalSupply_2() public {

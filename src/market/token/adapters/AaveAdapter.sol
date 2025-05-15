@@ -71,8 +71,7 @@ contract AaveAdapter is Ownable, IAdapter {
         onlyOwner
         returns (uint256 assets)
     {
-        uint256 balance = balanceOf(vault, from);
-        bool fullWithdraw = amount == balance;
+        bool fullWithdraw = amount == balanceOf(vault, from);
 
         uint256 scaledBalanceBefore = aToken.scaledBalanceOf(address(tokenVault));
 
@@ -84,19 +83,16 @@ contract AaveAdapter is Ownable, IAdapter {
         uint256 shares = scaledBalanceBefore - aToken.scaledBalanceOf(address(tokenVault));
         assets = _unscale(vault, shares);
 
-        uint256 sharesBefore = tokenVault.sharesOf(from);
-
-        if (sharesBefore < shares) {
-            revert IERC20Errors.ERC20InsufficientBalance(from, balance, amount);
+        if (tokenVault.sharesOf(from) < shares) {
+            revert IERC20Errors.ERC20InsufficientBalance(from, balanceOf(vault, from), amount);
         }
 
         if (fullWithdraw) {
-            uint256 dust = sharesBefore - shares;
-            uint256 dustBefore = tokenVault.vaultDust(vault);
+            uint256 dust = tokenVault.sharesOf(from) - shares;
             tokenVault.setSharesOf(from, 0);
-            tokenVault.setVaultDust(vault, dustBefore + dust);
+            tokenVault.setVaultDust(vault, tokenVault.vaultDust(vault) + dust);
         } else {
-            tokenVault.setSharesOf(from, sharesBefore - shares);
+            tokenVault.setSharesOf(from, tokenVault.sharesOf(from) - shares);
         }
     }
 
