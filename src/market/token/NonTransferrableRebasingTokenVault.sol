@@ -229,7 +229,7 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @inheritdoc IERC20
     function balanceOf(address account) public view returns (uint256) {
-        IAdapter adapter = getVaultAdapter(vaultOf[account]);
+        IAdapter adapter = getWhitelistedVaultAdapter(vaultOf[account]);
         return adapter.balanceOf(vaultOf[account], account);
     }
 
@@ -243,7 +243,7 @@ contract NonTransferrableRebasingTokenVault is
         for (uint256 i = 0; i < vaultToIdMap.length(); i++) {
             // slither-disable-next-line unused-return
             (address vault,) = vaultToIdMap.at(i);
-            IAdapter adapter = getVaultAdapter(vault);
+            IAdapter adapter = getWhitelistedVaultAdapter(vault);
             assets += adapter.totalSupply(vault);
         }
         return assets;
@@ -278,7 +278,7 @@ contract NonTransferrableRebasingTokenVault is
             revert ERC20InvalidReceiver(address(0));
         }
 
-        IAdapter adapter = getVaultAdapter(vaultOf[to]);
+        IAdapter adapter = getWhitelistedVaultAdapter(vaultOf[to]);
         underlyingToken.safeTransferFrom(msg.sender, address(adapter), amount);
         assets = adapter.deposit(vaultOf[to], to, amount);
 
@@ -303,7 +303,7 @@ contract NonTransferrableRebasingTokenVault is
             revert ERC20InvalidReceiver(address(0));
         }
 
-        IAdapter adapter = getVaultAdapter(vaultOf[from]);
+        IAdapter adapter = getWhitelistedVaultAdapter(vaultOf[from]);
         assets = adapter.withdraw(vaultOf[from], from, to, amount);
 
         emit Transfer(from, address(0), assets);
@@ -342,7 +342,7 @@ contract NonTransferrableRebasingTokenVault is
     /// @notice Returns the current liquidity index of the variable pool
     /// @return The current liquidity index of the variable pool
     function liquidityIndex() public view returns (uint256) {
-        IAdapter adapter = getVaultAdapter(DEFAULT_VAULT);
+        IAdapter adapter = getWhitelistedVaultAdapter(DEFAULT_VAULT);
         return adapter.pricePerShare(DEFAULT_VAULT);
     }
 
@@ -357,9 +357,9 @@ contract NonTransferrableRebasingTokenVault is
     }
 
     /// @notice Returns the whitelisted vault at the given index
-    // slither-disable-next-line unused-return
-    function getWhitelistedVault(uint256 index) public view returns (address, bytes32) {
-        return vaultToIdMap.at(index);
+    function getWhitelistedVault(uint256 index) public view returns (address vault, address adapter, bytes32 id) {
+        (vault, id) = vaultToIdMap.at(index);
+        adapter = IdToAdapterMap.get(id);
     }
 
     /// @notice Returns all whitelisted vaults
@@ -372,15 +372,12 @@ contract NonTransferrableRebasingTokenVault is
         adapters = new address[](vaultToIdMap.length());
         ids = new bytes32[](vaultToIdMap.length());
         for (uint256 i = 0; i < vaultToIdMap.length(); i++) {
-            (address vault, bytes32 id) = vaultToIdMap.at(i);
-            vaults[i] = vault;
-            adapters[i] = IdToAdapterMap.get(id);
-            ids[i] = id;
+            (vaults[i], adapters[i], ids[i]) = getWhitelistedVault(i);
         }
     }
 
     /// @notice Returns the adapter for a vault
-    function getVaultAdapter(address vault) public view returns (IAdapter) {
+    function getWhitelistedVaultAdapter(address vault) public view returns (IAdapter) {
         bytes32 id = vaultToIdMap.get(vault);
         return IAdapter(IdToAdapterMap.get(id));
     }
@@ -437,11 +434,11 @@ contract NonTransferrableRebasingTokenVault is
     function _transferFrom(address vaultFrom, address vaultTo, address from, address to, uint256 value) private {
         if (value > 0) {
             if (vaultFrom == vaultTo) {
-                IAdapter adapter = getVaultAdapter(vaultFrom);
+                IAdapter adapter = getWhitelistedVaultAdapter(vaultFrom);
                 adapter.transferFrom(vaultFrom, from, to, value);
             } else {
-                IAdapter adapterFrom = getVaultAdapter(vaultFrom);
-                IAdapter adapterTo = getVaultAdapter(vaultTo);
+                IAdapter adapterFrom = getWhitelistedVaultAdapter(vaultFrom);
+                IAdapter adapterTo = getWhitelistedVaultAdapter(vaultTo);
                 // slither-disable-next-line unused-return
                 adapterFrom.withdraw(vaultFrom, from, address(adapterTo), value);
                 // slither-disable-next-line unused-return
