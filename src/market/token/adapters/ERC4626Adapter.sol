@@ -17,6 +17,12 @@ import {IAdapter} from "@src/market/token/adapters/IAdapter.sol";
 contract ERC4626Adapter is Ownable, IAdapter {
     using SafeERC20 for IERC20Metadata;
 
+    struct Vars {
+        uint256 sharesBefore;
+        uint256 assetsBefore;
+        uint256 userSharesBefore;
+    }
+
     // slither-disable-start uninitialized-state
     // slither-disable-start constable-states
     NonTransferrableRebasingTokenVault public immutable tokenVault;
@@ -48,15 +54,17 @@ contract ERC4626Adapter is Ownable, IAdapter {
     function deposit(address vault, address to, uint256 amount) external onlyOwner returns (uint256 assets) {
         underlyingToken.forceApprove(vault, amount);
 
-        uint256 sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
+        Vars memory vars;
+        vars.sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
+        vars.userSharesBefore = tokenVault.sharesOf(to);
 
         // slither-disable-next-line unused-return
         IERC4626(vault).deposit(amount, address(tokenVault));
 
-        uint256 shares = IERC4626(vault).balanceOf(address(tokenVault)) - sharesBefore;
+        uint256 shares = IERC4626(vault).balanceOf(address(tokenVault)) - vars.sharesBefore;
         assets = IERC4626(vault).convertToAssets(shares);
 
-        tokenVault.setSharesOf(to, tokenVault.sharesOf(to) + shares);
+        tokenVault.setSharesOf(to, vars.userSharesBefore + shares);
     }
 
     /// @inheritdoc IAdapter
@@ -66,26 +74,27 @@ contract ERC4626Adapter is Ownable, IAdapter {
         returns (uint256 assets)
     {
         bool fullWithdraw = amount == balanceOf(vault, from);
-        uint256 sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
-        uint256 assetsBefore = underlyingToken.balanceOf(address(this));
+
+        Vars memory vars;
+        vars.sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
+        vars.assetsBefore = underlyingToken.balanceOf(address(this));
+        vars.userSharesBefore = tokenVault.sharesOf(from);
 
         tokenVault.requestApprove(vault, type(uint256).max);
         // slither-disable-next-line unused-return
         IERC4626(vault).withdraw(amount, address(this), address(tokenVault));
-
         tokenVault.requestApprove(vault, 0);
 
-        uint256 shares = sharesBefore - IERC4626(vault).balanceOf(address(tokenVault));
-        assets = underlyingToken.balanceOf(address(this)) - assetsBefore;
+        uint256 shares = vars.sharesBefore - IERC4626(vault).balanceOf(address(tokenVault));
+        assets = underlyingToken.balanceOf(address(this)) - vars.assetsBefore;
 
         underlyingToken.safeTransfer(to, assets);
 
         if (fullWithdraw) {
-            uint256 dust = tokenVault.sharesOf(from) - shares;
             tokenVault.setSharesOf(from, 0);
-            tokenVault.setVaultDust(vault, tokenVault.vaultDust(vault) + dust);
+            tokenVault.setVaultDust(vault, tokenVault.vaultDust(vault) + vars.userSharesBefore - shares);
         } else {
-            tokenVault.setSharesOf(from, tokenVault.sharesOf(from) - shares);
+            tokenVault.setSharesOf(from, vars.userSharesBefore - shares);
         }
     }
 
