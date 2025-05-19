@@ -108,11 +108,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         token.transferFrom(user, address(this), 50);
 
         vm.prank(address(size));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                NonTransferrableRebasingTokenVault.InsufficientTotalAssets.selector, address(0), 0, 50
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IAdapter.InsufficientTotalAssets.selector, address(0), 0, 50));
         token.transferFrom(user, address(this), 50);
 
         uint256 deposit = 100;
@@ -137,10 +133,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         vm.prank(address(size));
         vm.expectRevert(
             abi.encodeWithSelector(
-                NonTransferrableRebasingTokenVault.InsufficientTotalAssets.selector,
-                address(vault),
-                INITIAL_VAULT_ASSETS + deposit,
-                50e18
+                IAdapter.InsufficientTotalAssets.selector, address(vault), INITIAL_VAULT_ASSETS + deposit, 50e18
             )
         );
         token.transferFrom(user, address(this), 50e18);
