@@ -29,6 +29,8 @@ import {USDC} from "@test/mocks/USDC.sol";
 import {AaveAdapter} from "@src/market/token/adapters/AaveAdapter.sol";
 import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
 
+import {IAdapter} from "@src/market/token/adapters/IAdapter.sol";
+
 contract NonTransferrableRebasingTokenVaultTest is BaseTest {
     NonTransferrableRebasingTokenVault public token;
     address user = address(0x10);
@@ -194,6 +196,10 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
     }
 
     function test_NonTransferrableRebasingTokenVault_deposit() public {
+        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InvalidReceiver.selector, address(0)));
+        vm.prank(address(size));
+        token.deposit(address(0), 500);
+
         vm.prank(owner);
         deal(address(underlying), address(size), 1000);
 
@@ -205,6 +211,14 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
     }
 
     function test_NonTransferrableRebasingTokenVault_withdraw() public {
+        vm.prank(address(size));
+        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InvalidSender.selector, address(0)));
+        token.withdraw(address(0), user, 500);
+
+        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InvalidReceiver.selector, address(0)));
+        vm.prank(address(size));
+        token.withdraw(user, address(0), 500);
+
         vm.prank(owner);
         deal(address(underlying), address(size), 1000);
 
@@ -224,6 +238,14 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         vm.prank(owner);
         token.setVaultAdapter(address(vault), "ERC4626Adapter");
         assertTrue(token.isWhitelistedVault(address(vault)));
+
+        assertEq(token.getWhitelistedVaultsCount(), 2);
+        (address vault, address adapter, bytes32 id) = token.getWhitelistedVault(0);
+        assertEq(vault, DEFAULT_VAULT);
+        assertTrue(adapter != address(0));
+        assertEq(id, bytes32("AaveAdapter"));
+
+        assertEq(address(token.getWhitelistedVaultAdapter(DEFAULT_VAULT)), adapter);
     }
 
     function test_NonTransferrableRebasingTokenVault_update_ERC4626Adapter() public {
@@ -234,6 +256,10 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         new ERC4626Adapter(token, IERC20Metadata(address(0)));
 
         ERC4626Adapter adapter = new ERC4626Adapter(token, underlying);
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        token.setAdapter(bytes32("ERC4626Adapter"), IAdapter(address(0)));
 
         vm.prank(owner);
         token.setAdapter(bytes32("ERC4626Adapter"), adapter);
@@ -501,5 +527,29 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         assertEq(underlying.balanceOf(address(vault)), (1_000e6 + INITIAL_VAULT_ASSETS) * 2);
         assertEq(underlying.balanceOf(address(aToken)), 1050e6);
         assertEqApprox(token.totalSupply(), 3_050e6, 1);
+    }
+
+    function test_NonTransferrableRebasingTokenVault_onlyAdapter() public {
+        vm.expectRevert(abi.encodeWithSelector(Errors.UNAUTHORIZED.selector, alice));
+        vm.prank(alice);
+        token.setSharesOf(alice, 1_000e18);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.UNAUTHORIZED.selector, alice));
+        vm.prank(alice);
+        token.setVaultDust(address(vault), 3);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.UNAUTHORIZED.selector, alice));
+        vm.prank(alice);
+        token.requestApprove(address(vault), type(uint256).max);
+    }
+
+    function test_NonTransferrableRebasingTokenVault_getWhitelistedVaults() public view {
+        (address[] memory vaults, address[] memory adapters, bytes32[] memory adapterTypes) =
+            token.getWhitelistedVaults();
+        assertEq(vaults.length, 1);
+        assertEq(vaults[0], DEFAULT_VAULT);
+        assertEq(adapters.length, 1);
+        assertEq(adapterTypes.length, 1);
+        assertEq(adapterTypes[0], bytes32("AaveAdapter"));
     }
 }
