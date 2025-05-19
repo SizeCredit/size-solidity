@@ -6,7 +6,7 @@ import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.so
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {Deploy} from "@script/Deploy.sol";
-import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
+import {IAdapter} from "@src/market/token/adapters/IAdapter.sol";
 import {console} from "forge-std/console.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
@@ -59,7 +59,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         SELL_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.MISMATCHED_CURVES.selector);
         SELL_CREDIT_MARKET_ERRORS.push(SafeCast.SafeCastOverflowedIntToUint.selector);
-        SELL_CREDIT_MARKET_ERRORS.push(NonTransferrableRebasingTokenVault.InsufficientTotalAssets.selector);
+        SELL_CREDIT_MARKET_ERRORS.push(IAdapter.InsufficientTotalAssets.selector);
 
         // SELL_CREDIT_LIMIT_ERRORS
         SELL_CREDIT_LIMIT_ERRORS.push(Errors.PAST_MAX_DUE_DATE.selector);
@@ -81,7 +81,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         BUY_CREDIT_MARKET_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.MISMATCHED_CURVES.selector);
         BUY_CREDIT_MARKET_ERRORS.push(SafeCast.SafeCastOverflowedIntToUint.selector);
-        BUY_CREDIT_MARKET_ERRORS.push(NonTransferrableRebasingTokenVault.InsufficientTotalAssets.selector);
+        BUY_CREDIT_MARKET_ERRORS.push(IAdapter.InsufficientTotalAssets.selector);
 
         // BUY_CREDIT_LIMIT_ERRORS
         BUY_CREDIT_LIMIT_ERRORS.push(Errors.PAST_MAX_DUE_DATE.selector);
@@ -90,7 +90,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         // REPAY_ERRORS
         REPAY_ERRORS.push(Errors.LOAN_ALREADY_REPAID.selector);
         REPAY_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
-        REPAY_ERRORS.push(NonTransferrableRebasingTokenVault.InsufficientTotalAssets.selector);
+        REPAY_ERRORS.push(IAdapter.InsufficientTotalAssets.selector);
 
         // CLAIM_ERRORS
         CLAIM_ERRORS.push(Errors.LOAN_NOT_REPAID.selector);
@@ -100,7 +100,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         LIQUIDATE_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         LIQUIDATE_ERRORS.push(Errors.LOAN_NOT_LIQUIDATABLE.selector);
         LIQUIDATE_ERRORS.push(Errors.LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT.selector);
-        LIQUIDATE_ERRORS.push(NonTransferrableRebasingTokenVault.InsufficientTotalAssets.selector);
+        LIQUIDATE_ERRORS.push(IAdapter.InsufficientTotalAssets.selector);
 
         // SELF_LIQUIDATE_ERRORS
         SELF_LIQUIDATE_ERRORS.push(Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector);
@@ -119,7 +119,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.MISMATCHED_CURVES.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(SafeCast.SafeCastOverflowedIntToUint.selector);
-        LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(NonTransferrableRebasingTokenVault.InsufficientTotalAssets.selector);
+        LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(IAdapter.InsufficientTotalAssets.selector);
 
         // COMPENSATE_ERRORS
         COMPENSATE_ERRORS.push(Errors.LOAN_ALREADY_REPAID.selector);
