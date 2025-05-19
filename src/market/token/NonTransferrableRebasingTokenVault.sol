@@ -357,9 +357,9 @@ contract NonTransferrableRebasingTokenVault is
     }
 
     /// @notice Returns the whitelisted vault at the given index
-    // slither-disable-next-line unused-return
-    function getWhitelistedVault(uint256 index) public view returns (address, bytes32) {
-        return vaultToIdMap.at(index);
+    function getWhitelistedVault(uint256 index) public view returns (address vault, address adapter, bytes32 id) {
+        (vault, id) = vaultToIdMap.at(index);
+        adapter = IdToAdapterMap.get(id);
     }
 
     /// @notice Returns all whitelisted vaults
@@ -372,10 +372,7 @@ contract NonTransferrableRebasingTokenVault is
         adapters = new address[](vaultToIdMap.length());
         ids = new bytes32[](vaultToIdMap.length());
         for (uint256 i = 0; i < vaultToIdMap.length(); i++) {
-            (address vault, bytes32 id) = vaultToIdMap.at(i);
-            vaults[i] = vault;
-            adapters[i] = IdToAdapterMap.get(id);
-            ids[i] = id;
+            (vaults[i], adapters[i], ids[i]) = getWhitelistedVault(i);
         }
     }
 
