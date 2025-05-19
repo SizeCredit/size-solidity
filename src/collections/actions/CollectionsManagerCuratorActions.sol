@@ -49,12 +49,29 @@ abstract contract CollectionsManagerCuratorActions is
     }
 
     /// @inheritdoc ICollectionsManagerCuratorActions
-    function addMarketsToCollection(
+    function addMarketsToCollection(uint256 collectionId, ISize[] memory markets)
+        external /* onlyCollectionCuratorAuthorized(collectionId) */
+    {
+        CopyLimitOrderConfig[] memory fullCopies = new CopyLimitOrderConfig[](markets.length);
+        for (uint256 i = 0; i < markets.length; i++) {
+            fullCopies[i] = CopyLimitOrderConfig({
+                minTenor: 0,
+                maxTenor: type(uint256).max,
+                minAPR: 0,
+                maxAPR: type(uint256).max,
+                offsetAPR: 0
+            });
+        }
+        setCollectionMarketConfigs(collectionId, markets, fullCopies, fullCopies);
+    }
+
+    /// @inheritdoc ICollectionsManagerCuratorActions
+    function setCollectionMarketConfigs(
         uint256 collectionId,
         ISize[] memory markets,
         CopyLimitOrderConfig[] memory copyLoanOfferConfigs,
         CopyLimitOrderConfig[] memory copyBorrowOfferConfigs
-    ) external onlyCollectionCuratorAuthorized(collectionId) {
+    ) public onlyCollectionCuratorAuthorized(collectionId) {
         if (markets.length != copyLoanOfferConfigs.length || markets.length != copyBorrowOfferConfigs.length) {
             revert Errors.ARRAY_LENGTHS_MISMATCH();
         }

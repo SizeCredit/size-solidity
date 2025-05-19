@@ -36,9 +36,16 @@ interface ICollectionsManagerCuratorActions {
     /// @notice Adds markets to a collection
     /// @param collectionId The collection ID
     /// @param markets The markets to add
+    /// @dev By default, the collection market configs are set to "full", ie, the rate providers limit orders are fully copied without alterations
+    function addMarketsToCollection(uint256 collectionId, ISize[] memory markets) external;
+
+    /// @notice Sets the collection market configs
+    /// @param collectionId The collection ID
+    /// @param markets The markets to set the configs for
     /// @param copyLoanOfferConfigs The copy limit order parameters for loan offers
     /// @param copyBorrowOfferConfigs The copy limit order parameters for borrow offers
-    function addMarketsToCollection(
+    /// @dev This function has the same effect as calling `addMarketsToCollection` but with a custom config for each market
+    function setCollectionMarketConfigs(
         uint256 collectionId,
         ISize[] memory markets,
         CopyLimitOrderConfig[] memory copyLoanOfferConfigs,

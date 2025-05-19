@@ -532,16 +532,8 @@ contract BaseTest is Test, Deploy, AssertsHelper {
     function _addMarketToCollection(address user, uint256 collectionId, ISize market) internal {
         ISize[] memory markets = new ISize[](1);
         markets[0] = market;
-        CopyLimitOrderConfig[] memory fullCopies = new CopyLimitOrderConfig[](1);
-        fullCopies[0] = CopyLimitOrderConfig({
-            minTenor: 0,
-            maxTenor: type(uint256).max,
-            minAPR: 0,
-            maxAPR: type(uint256).max,
-            offsetAPR: 0
-        });
         vm.prank(user);
-        collectionsManager.addMarketsToCollection(collectionId, markets, fullCopies, fullCopies);
+        collectionsManager.addMarketsToCollection(collectionId, markets);
     }
 
     function _addRateProviderToCollectionMarket(address user, uint256 collectionId, ISize market, address rateProvider)

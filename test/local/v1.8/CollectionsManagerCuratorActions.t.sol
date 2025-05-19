@@ -31,20 +31,12 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
     function test_CollectionsManagerCuratorActions_addMarketsToCollection_not_curator() public {
         uint256 collectionId = _createCollection(alice);
 
-        CopyLimitOrderConfig[] memory fullCopies = new CopyLimitOrderConfig[](1);
-        fullCopies[0] = CopyLimitOrderConfig({
-            minTenor: 0,
-            maxTenor: type(uint256).max,
-            minAPR: 0,
-            maxAPR: type(uint256).max,
-            offsetAPR: 0
-        });
         ISize[] memory markets = new ISize[](1);
         markets[0] = size;
 
         vm.prank(bob);
         vm.expectRevert(abi.encodeWithSelector(IERC721Errors.ERC721InsufficientApproval.selector, bob, collectionId));
-        collectionsManager.addMarketsToCollection(collectionId, markets, fullCopies, fullCopies);
+        collectionsManager.addMarketsToCollection(collectionId, markets);
 
         assertEq(collectionsManager.collectionContainsMarket(collectionId, size), false);
     }
@@ -52,14 +44,6 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
     function test_CollectionsManagerCuratorActions_addMarketsToCollection_approved() public {
         uint256 collectionId = _createCollection(alice);
 
-        CopyLimitOrderConfig[] memory fullCopies = new CopyLimitOrderConfig[](1);
-        fullCopies[0] = CopyLimitOrderConfig({
-            minTenor: 0,
-            maxTenor: type(uint256).max,
-            minAPR: 0,
-            maxAPR: type(uint256).max,
-            offsetAPR: 0
-        });
         ISize[] memory markets = new ISize[](1);
         markets[0] = size;
 
@@ -67,7 +51,7 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
         collectionsManager.approve(bob, collectionId);
 
         vm.prank(bob);
-        collectionsManager.addMarketsToCollection(collectionId, markets, fullCopies, fullCopies);
+        collectionsManager.addMarketsToCollection(collectionId, markets);
 
         assertEq(collectionsManager.collectionContainsMarket(collectionId, size), true);
 
@@ -98,14 +82,18 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
 
         vm.prank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.ARRAY_LENGTHS_MISMATCH.selector));
-        collectionsManager.addMarketsToCollection(collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs);
+        collectionsManager.setCollectionMarketConfigs(
+            collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs
+        );
 
         markets = new ISize[](1);
         markets[0] = ISize(address(0));
 
         vm.prank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_MARKET.selector, address(0)));
-        collectionsManager.addMarketsToCollection(collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs);
+        collectionsManager.setCollectionMarketConfigs(
+            collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs
+        );
 
         markets[0] = size;
 
@@ -113,7 +101,9 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
         copyLoanOfferConfigs[0].maxTenor = 3;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_TENOR_RANGE.selector, 4, 3));
         vm.prank(alice);
-        collectionsManager.addMarketsToCollection(collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs);
+        collectionsManager.setCollectionMarketConfigs(
+            collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs
+        );
 
         copyLoanOfferConfigs[0].minTenor = 0;
         copyLoanOfferConfigs[0].maxTenor = type(uint256).max;
@@ -121,7 +111,9 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
         copyLoanOfferConfigs[0].maxAPR = 5;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_APR_RANGE.selector, 7, 5));
         vm.prank(alice);
-        collectionsManager.addMarketsToCollection(collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs);
+        collectionsManager.setCollectionMarketConfigs(
+            collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs
+        );
 
         copyLoanOfferConfigs[0].minAPR = 0;
         copyLoanOfferConfigs[0].maxAPR = type(uint256).max;
@@ -129,7 +121,9 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
         copyBorrowOfferConfigs[0].maxTenor = 3;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_TENOR_RANGE.selector, 4, 3));
         vm.prank(alice);
-        collectionsManager.addMarketsToCollection(collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs);
+        collectionsManager.setCollectionMarketConfigs(
+            collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs
+        );
 
         copyBorrowOfferConfigs[0].minTenor = 0;
         copyBorrowOfferConfigs[0].maxTenor = type(uint256).max;
@@ -137,24 +131,18 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
         copyBorrowOfferConfigs[0].maxAPR = 5;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_APR_RANGE.selector, 7, 5));
         vm.prank(alice);
-        collectionsManager.addMarketsToCollection(collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs);
+        collectionsManager.setCollectionMarketConfigs(
+            collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs
+        );
     }
 
     function test_CollectionsManagerCuratorActions_addMarketsToCollection_curator() public {
         uint256 collectionId = _createCollection(alice);
 
-        CopyLimitOrderConfig[] memory fullCopies = new CopyLimitOrderConfig[](1);
-        fullCopies[0] = CopyLimitOrderConfig({
-            minTenor: 0,
-            maxTenor: type(uint256).max,
-            minAPR: 0,
-            maxAPR: type(uint256).max,
-            offsetAPR: 0
-        });
         ISize[] memory markets = new ISize[](1);
         markets[0] = size;
         vm.prank(alice);
-        collectionsManager.addMarketsToCollection(collectionId, markets, fullCopies, fullCopies);
+        collectionsManager.addMarketsToCollection(collectionId, markets);
 
         assertEq(collectionsManager.collectionContainsMarket(collectionId, size), true);
     }
@@ -162,18 +150,10 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
     function test_CollectionsManagerCuratorActions_removeMarketsFromCollection() public {
         uint256 collectionId = _createCollection(alice);
 
-        CopyLimitOrderConfig[] memory fullCopies = new CopyLimitOrderConfig[](1);
-        fullCopies[0] = CopyLimitOrderConfig({
-            minTenor: 0,
-            maxTenor: type(uint256).max,
-            minAPR: 0,
-            maxAPR: type(uint256).max,
-            offsetAPR: 0
-        });
         ISize[] memory markets = new ISize[](1);
         markets[0] = size;
         vm.prank(alice);
-        collectionsManager.addMarketsToCollection(collectionId, markets, fullCopies, fullCopies);
+        collectionsManager.addMarketsToCollection(collectionId, markets);
 
         assertEq(collectionsManager.collectionContainsMarket(collectionId, size), true);
 
@@ -219,7 +199,7 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
         collectionsManager.removeRateProvidersFromCollectionMarket(collectionId, size, rateProviders);
 
         vm.prank(alice);
-        collectionsManager.addMarketsToCollection(collectionId, markets, fullCopies, fullCopies);
+        collectionsManager.addMarketsToCollection(collectionId, markets);
 
         vm.prank(alice);
         collectionsManager.addRateProvidersToCollectionMarket(collectionId, size, rateProviders);
@@ -238,19 +218,9 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
         uint256 collectionId = 0;
 
         datas[0] = abi.encodeCall(CollectionsManagerCuratorActions.createCollection, ());
-        CopyLimitOrderConfig[] memory fullCopies = new CopyLimitOrderConfig[](1);
-        fullCopies[0] = CopyLimitOrderConfig({
-            minTenor: 0,
-            maxTenor: type(uint256).max,
-            minAPR: 0,
-            maxAPR: type(uint256).max,
-            offsetAPR: 0
-        });
         ISize[] memory markets = new ISize[](1);
         markets[0] = size;
-        datas[1] = abi.encodeCall(
-            CollectionsManagerCuratorActions.addMarketsToCollection, (collectionId, markets, fullCopies, fullCopies)
-        );
+        datas[1] = abi.encodeCall(CollectionsManagerCuratorActions.addMarketsToCollection, (collectionId, markets));
 
         address[] memory rateProviders = new address[](2);
         rateProviders[0] = bob;

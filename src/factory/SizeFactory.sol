@@ -132,7 +132,7 @@ contract SizeFactory is
                 offsetAPR: 0
             });
         }
-        collectionsManager.addMarketsToCollection(collectionIds[0], _collectionMarkets, fullCopies, noCopies);
+        collectionsManager.setCollectionMarketConfigs(collectionIds[0], _collectionMarkets, fullCopies, noCopies);
         address[] memory rateProviders = new address[](1);
         rateProviders[0] = _rateProvider;
         for (uint256 i = 0; i < _collectionMarkets.length; i++) {
