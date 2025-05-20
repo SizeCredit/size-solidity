@@ -52,12 +52,12 @@ contract ERC4626Adapter is Ownable, IAdapter {
 
     /// @inheritdoc IAdapter
     function deposit(address vault, address to, uint256 amount) external onlyOwner returns (uint256 assets) {
-        underlyingToken.forceApprove(vault, amount);
-
+        // slither-disable-next-line uninitialized-local
         Vars memory vars;
         vars.sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
         vars.userSharesBefore = tokenVault.sharesOf(to);
 
+        underlyingToken.forceApprove(vault, amount);
         // slither-disable-next-line unused-return
         IERC4626(vault).deposit(amount, address(tokenVault));
 
@@ -75,6 +75,7 @@ contract ERC4626Adapter is Ownable, IAdapter {
     {
         bool fullWithdraw = amount == balanceOf(vault, from);
 
+        // slither-disable-next-line uninitialized-local
         Vars memory vars;
         vars.sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
         vars.assetsBefore = underlyingToken.balanceOf(address(this));

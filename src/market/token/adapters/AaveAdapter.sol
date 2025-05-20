@@ -64,6 +64,7 @@ contract AaveAdapter is Ownable, IAdapter {
 
     /// @inheritdoc IAdapter
     function deposit(address vault, address to, uint256 amount) external onlyOwner returns (uint256 assets) {
+        // slither-disable-next-line uninitialized-local
         Vars memory vars;
         vars.sharesBefore = aToken.scaledBalanceOf(address(tokenVault));
         vars.userSharesBefore = tokenVault.sharesOf(to);
@@ -85,6 +86,7 @@ contract AaveAdapter is Ownable, IAdapter {
     {
         bool fullWithdraw = amount == balanceOf(vault, from);
 
+        // slither-disable-next-line uninitialized-local
         Vars memory vars;
         vars.sharesBefore = aToken.scaledBalanceOf(address(tokenVault));
         vars.userSharesBefore = tokenVault.sharesOf(from);
