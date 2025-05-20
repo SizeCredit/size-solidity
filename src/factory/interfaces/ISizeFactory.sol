@@ -17,6 +17,7 @@ import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 
 import {ISizeFactoryOffchainGetters} from "@src/factory/interfaces/ISizeFactoryOffchainGetters.sol";
 import {ISizeFactoryV1_7} from "@src/factory/interfaces/ISizeFactoryV1_7.sol";
+import {ISizeFactoryV1_8} from "@src/factory/interfaces/ISizeFactoryV1_8.sol";
 
 bytes32 constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
 bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
@@ -26,7 +27,7 @@ bytes32 constant BORROW_RATE_UPDATER_ROLE = keccak256("BORROW_RATE_UPDATER_ROLE"
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice The interface for the size factory
-interface ISizeFactory is ISizeFactoryOffchainGetters, ISizeFactoryV1_7 {
+interface ISizeFactory is ISizeFactoryOffchainGetters, ISizeFactoryV1_7, ISizeFactoryV1_8 {
     /// @notice Set the size implementation
     /// @param _sizeImplementation The new size implementation
     function setSizeImplementation(address _sizeImplementation) external;
