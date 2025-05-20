@@ -111,7 +111,7 @@ abstract contract BaseScript is Script {
         string memory networkConfiguration,
         EnumerableMap.AddressToUintMap storage map,
         uint256 blockNumber,
-        address borrowATokenV1_5
+        address borrowTokenVault
     ) internal {
         root = vm.projectRoot();
         path = string.concat(root, "/deployments/v1.5/");
@@ -127,7 +127,7 @@ abstract contract BaseScript is Script {
         finalObject = vm.serializeUint(".", "values", values);
         finalObject = vm.serializeUint(".", "blockNumber", blockNumber);
         finalObject =
-            vm.serializeBytes(".", "data", abi.encodeCall(ISizeV1_5.reinitialize, (address(borrowATokenV1_5), users)));
+            vm.serializeBytes(".", "data", abi.encodeCall(ISizeV1_5.reinitialize, (address(borrowTokenVault), users)));
         vm.writeJson(finalObject, path);
     }
 

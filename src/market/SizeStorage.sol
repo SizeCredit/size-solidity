@@ -10,7 +10,7 @@ import {CopyLimitOrder, LimitOrder} from "@src/market/libraries/OfferLibrary.sol
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
-import {NonTransferrableScaledTokenV1_5} from "@src/market/token/NonTransferrableScaledTokenV1_5.sol";
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {NonTransferrableToken} from "@src/market/token/NonTransferrableToken.sol";
 
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
@@ -56,9 +56,9 @@ struct RiskConfig {
     // maximum collateral ratio for liquidation
     uint256 crLiquidation;
     // minimum credit value of loans
-    uint256 minimumCreditBorrowAToken;
-    // maximum amount of deposited borrowed aTokens
-    uint256 borrowATokenCap;
+    uint256 minimumCreditBorrowToken;
+    // maximum amount of deposited borrowed tokens (deprecated in v1.8)
+    uint256 ___deprecated_borrowTokenCap;
     // minimum tenor for a loan
     uint256 minTenor;
     // maximum tenor for a loan
@@ -95,19 +95,19 @@ struct Data {
     IERC20Metadata underlyingBorrowToken;
     // Size deposit underlying collateral token
     NonTransferrableToken collateralToken;
-    // Size deposit underlying borrow aToken v1.2 (deprecated)
+    // Size deposit underlying borrow aToken v1.2 (deprecated in v1.5)
     address ___deprecated_borrowATokenV1_2;
     // Size tokenized debt
     NonTransferrableToken debtToken;
     // Variable Pool (Aave v3)
     IPool variablePool;
-    // Multicall lock to check if multicall is in progress
-    bool isMulticall;
-    // Size deposit underlying borrow aToken (added on v1.5)
-    NonTransferrableScaledTokenV1_5 borrowATokenV1_5;
-    // mapping of copy limit orders (added on v1.6.1)
+    // Multicall lock to check if multicall is in progress (deprecated in v1.8)
+    bool ___deprecated_isMulticall;
+    // Size deposit underlying borrow token (upgraded in v1.8)
+    NonTransferrableRebasingTokenVault borrowTokenVault;
+    // mapping of copy limit orders (added in v1.6.1)
     mapping(address => UserCopyLimitOrders) usersCopyLimitOrders;
-    // Size Factory (added on v1.7)
+    // Size Factory (added in v1.7)
     ISizeFactory sizeFactory;
 }
 

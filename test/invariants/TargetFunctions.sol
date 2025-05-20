@@ -69,7 +69,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                 eq(_after.sizeCollateralAmount, _before.sizeCollateralAmount + amount, DEPOSIT_02);
             } else {
                 if (variablePool.getReserveNormalizedIncome(address(usdc)) == WadRayMath.RAY) {
-                    eq(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance + amount, DEPOSIT_01);
+                    eq(_after.sender.borrowTokenBalance, _before.sender.borrowTokenBalance + amount, DEPOSIT_01);
                 }
                 eq(_after.senderBorrowAmount, _before.senderBorrowAmount - amount, DEPOSIT_01);
                 eq(_after.sizeBorrowAmount, _before.sizeBorrowAmount + amount, DEPOSIT_02);
@@ -100,11 +100,11 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                 eq(_after.senderCollateralAmount, _before.senderCollateralAmount + withdrawnAmount, WITHDRAW_01);
                 eq(_after.sizeCollateralAmount, _before.sizeCollateralAmount - withdrawnAmount, WITHDRAW_02);
             } else {
-                withdrawnAmount = Math.min(amount, _before.sender.borrowATokenBalance);
+                withdrawnAmount = Math.min(amount, _before.sender.borrowTokenBalance);
                 if (variablePool.getReserveNormalizedIncome(address(usdc)) == WadRayMath.RAY) {
                     eq(
-                        _after.sender.borrowATokenBalance,
-                        _before.sender.borrowATokenBalance - withdrawnAmount,
+                        _after.sender.borrowTokenBalance,
+                        _before.sender.borrowTokenBalance - withdrawnAmount,
                         WITHDRAW_01
                     );
                 }
@@ -148,7 +148,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         if (success) {
             if (lender != sender) {
                 if (amount >= MIN_AMOUNT_USDC) {
-                    gt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
+                    gt(_after.sender.borrowTokenBalance, _before.sender.borrowTokenBalance, BORROW_01);
                 } else {
                     // fragmentationFee can eat the whole cash and leave only 1 as cashAmountOut,
                     //   which would be rounded down in NonTransferrableScaledTokenV1_5.transferFrom
@@ -257,7 +257,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         );
         __after(debtPositionId);
         if (success) {
-            lte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, REPAY_01);
+            lte(_after.sender.borrowTokenBalance, _before.sender.borrowTokenBalance, REPAY_01);
             gte(_after.variablePoolBorrowAmount, _before.variablePoolBorrowAmount, REPAY_01);
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, REPAY_02);
             eq(uint256(_after.loanStatus), uint256(LoanStatus.REPAID), REPAY_03);
@@ -275,7 +275,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
             address(size).call(abi.encodeCall(size.claim, ClaimParams({creditPositionId: creditPositionId})));
         __after(creditPositionId);
         if (success) {
-            gte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, CLAIM_01);
+            gte(_after.sender.borrowTokenBalance, _before.sender.borrowTokenBalance, CLAIM_01);
             t(size.isCreditPositionId(creditPositionId), CLAIM_02);
         }
     }
@@ -314,7 +314,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                     LIQUIDATE_01
                 );
             }
-            lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, LIQUIDATE_02);
+            lt(_after.sender.borrowTokenBalance, _before.sender.borrowTokenBalance, LIQUIDATE_02);
             t(_before.isBorrowerUnderwater || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_04);
             eq(uint256(_after.loanStatus), uint256(LoanStatus.REPAID), LIQUIDATE_05);
@@ -424,20 +424,23 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         }
     }
 
-    function setUserConfiguration(uint256 openingLimitBorrowCR, bool allCreditPositionsForSaleDisabled)
-        public
-        getSender
-        checkExpectedErrors(SET_USER_CONFIGURATION_ERRORS)
-    {
+    function setUserConfiguration(
+        address _vault,
+        uint256 _openingLimitBorrowCR,
+        bool _allCreditPositionsForSaleDisabled
+    ) public getSender checkExpectedErrors(SET_USER_CONFIGURATION_ERRORS) {
         __before();
+
+        _vault = _getRandomVault(_vault);
 
         hevm.prank(sender);
         (success, returnData) = address(size).call(
             abi.encodeCall(
                 size.setUserConfiguration,
                 SetUserConfigurationParams({
-                    openingLimitBorrowCR: openingLimitBorrowCR,
-                    allCreditPositionsForSaleDisabled: allCreditPositionsForSaleDisabled,
+                    vault: _vault,
+                    openingLimitBorrowCR: _openingLimitBorrowCR,
+                    allCreditPositionsForSaleDisabled: _allCreditPositionsForSaleDisabled,
                     creditPositionIdsForSale: false,
                     creditPositionIds: new uint256[](0)
                 })
@@ -509,12 +512,12 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         __after(creditPositionWithDebtToRepayId);
         if (success) {
             eq(
-                _after.sender.borrowATokenBalance - _before.sender.borrowATokenBalance,
-                _after.lender.borrowATokenBalance - _before.lender.borrowATokenBalance,
+                _after.sender.borrowTokenBalance - _before.sender.borrowTokenBalance,
+                _after.lender.borrowTokenBalance - _before.lender.borrowTokenBalance,
                 PARTIAL_REPAY_01
             );
             if (_after.sender.account != _before.lender.account) {
-                lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, PARTIAL_REPAY_02);
+                lt(_after.sender.borrowTokenBalance, _before.sender.borrowTokenBalance, PARTIAL_REPAY_02);
             }
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, PARTIAL_REPAY_03);
             eq(uint256(_after.loanStatus), uint256(_before.loanStatus), PARTIAL_REPAY_04);
@@ -540,11 +543,10 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
     }
 
     function updateConfig(uint256 i, uint256 value) public clear {
-        string[12] memory keys = [
+        string[11] memory keys = [
             "crOpening",
             "crLiquidation",
-            "minimumCreditBorrowAToken",
-            "borrowATokenCap",
+            "minimumCreditBorrowToken",
             "minTenor",
             "maxTenor",
             "swapFeeAPR",
@@ -554,10 +556,9 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
             "collateralProtocolPercent",
             "variablePoolBorrowRateStaleRateInterval"
         ];
-        uint256[12] memory maxValues = [
+        uint256[11] memory maxValues = [
             MAX_PERCENT,
             MAX_PERCENT,
-            MAX_AMOUNT_USDC,
             MAX_AMOUNT_USDC,
             MAX_DURATION,
             MAX_DURATION,

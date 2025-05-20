@@ -14,8 +14,6 @@ contract SetUserConfigurationTest is BaseTest {
         _setPrice(1e18);
         _updateConfig("fragmentationFee", 0);
 
-        _updateConfig("borrowATokenCap", type(uint256).max);
-
         _deposit(alice, usdc, 1000e6);
         _deposit(bob, weth, 1600e18);
         _deposit(james, weth, 1600e18);
@@ -32,7 +30,7 @@ contract SetUserConfigurationTest is BaseTest {
 
         CreditPosition memory creditPosition = size.getCreditPosition(creditPositionId1_1);
         assertEq(creditPosition.lender, alice);
-        _setUserConfiguration(alice, 0, true, false, new uint256[](0));
+        _setUserConfiguration(alice, address(0), 0, true, false, new uint256[](0));
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CREDIT_NOT_FOR_SALE.selector, creditPositionId1_1));
         _buyCreditMarket(james, alice, creditPositionId1_1, futureValue, tenor, false);
@@ -41,8 +39,6 @@ contract SetUserConfigurationTest is BaseTest {
     function test_SetUserConfiguration_setCreditForSale_disable_single() public {
         _setPrice(1e18);
         _updateConfig("fragmentationFee", 0);
-
-        _updateConfig("borrowATokenCap", type(uint256).max);
 
         _deposit(alice, usdc, 2 * 1000e6);
         _deposit(bob, weth, 2 * 1600e18);
@@ -63,7 +59,7 @@ contract SetUserConfigurationTest is BaseTest {
 
         uint256[] memory creditPositionIds = new uint256[](1);
         creditPositionIds[0] = creditPositionId1_1;
-        _setUserConfiguration(alice, 0, false, false, creditPositionIds);
+        _setUserConfiguration(alice, address(0), 0, false, false, creditPositionIds);
 
         // vm.expectRevert(abi.encodeWithSelector(Errors.CREDIT_NOT_FOR_SALE.selector, creditPositionId1_1));
         vm.expectRevert();

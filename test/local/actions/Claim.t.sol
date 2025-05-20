@@ -27,7 +27,7 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + futureValue);
+        assertEq(_after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance + futureValue);
         assertEq(size.getCreditPosition(creditId).credit, 0);
     }
 
@@ -57,7 +57,7 @@ contract ClaimTest is BaseTest {
         Vars memory _after = _state();
 
         uint256 credit = futureValue - futureValueExited;
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + credit);
+        assertEq(_after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance + credit);
         assertEq(size.getCreditPosition(creditId).credit, 0);
     }
 
@@ -85,8 +85,8 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - futureValue);
-        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + exit);
+        assertEq(_after.bob.borrowTokenBalance, _before.bob.borrowTokenBalance - futureValue);
+        assertEq(_after.candy.borrowTokenBalance, _before.candy.borrowTokenBalance + exit);
     }
 
     function test_Claim_claim_twice_does_not_work() public {
@@ -109,8 +109,8 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + 200e6);
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - 200e6);
+        assertEq(_after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance + 200e6);
+        assertEq(_after.bob.borrowTokenBalance, _before.bob.borrowTokenBalance - 200e6);
 
         vm.expectRevert();
         _claim(alice, creditId);
@@ -136,8 +136,8 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + 200e6);
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - 200e6);
+        assertEq(_after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance + 200e6);
+        assertEq(_after.bob.borrowTokenBalance, _before.bob.borrowTokenBalance - 200e6);
         assertEq(_after.bob.collateralTokenBalance, _before.bob.collateralTokenBalance);
         assertEq(_after.feeRecipient.collateralTokenBalance, _before.feeRecipient.collateralTokenBalance);
     }
@@ -163,7 +163,7 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + futureValue);
+        assertEq(_after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance + futureValue);
     }
 
     function test_Claim_claim_at_different_times_may_have_different_interest() public {
@@ -183,17 +183,17 @@ contract ClaimTest is BaseTest {
 
         Vars memory _s1 = _state();
 
-        assertEq(_s1.alice.borrowATokenBalance, 100e6, "Alice borrowed 100e6");
-        assertEq(_s1.size.borrowATokenBalance, 0, "Size has 0");
+        assertEq(_s1.alice.borrowTokenBalance, 100e6, "Alice borrowed 100e6");
+        assertEq(_s1.size.borrowTokenBalance, 0, "Size has 0");
 
         _setLiquidityIndex(2e27);
         _repay(alice, debtPositionId, alice);
 
         Vars memory _s2 = _state();
 
-        assertEq(_s2.alice.borrowATokenBalance, 100e6, "Alice borrowed 100e6 and it 2x, but she repaid 100e6");
+        assertEq(_s2.alice.borrowTokenBalance, 100e6, "Alice borrowed 100e6 and it 2x, but she repaid 100e6");
         assertEq(
-            _s2.size.borrowATokenBalance,
+            _s2.size.borrowTokenBalance,
             100e6,
             "Alice repaid amount is now on Size for claiming for DebtPosition/CreditPosition"
         );
@@ -203,9 +203,9 @@ contract ClaimTest is BaseTest {
 
         Vars memory _s3 = _state();
 
-        assertEq(_s3.candy.borrowATokenBalance, 40e6, "Candy borrowed 10e6 4x, so it is now 40e6");
+        assertEq(_s3.candy.borrowTokenBalance, 40e6, "Candy borrowed 10e6 4x, so it is now 40e6");
         assertEq(
-            _s3.size.borrowATokenBalance,
+            _s3.size.borrowTokenBalance,
             360e6,
             "Size had 100e6 for claiming, it 4x to 400e6, and Candy claimed 40e6, now there's 360e6 left for claiming"
         );
@@ -216,12 +216,12 @@ contract ClaimTest is BaseTest {
         Vars memory _s4 = _state();
 
         assertEq(
-            _s4.bob.borrowATokenBalance,
+            _s4.bob.borrowTokenBalance,
             80e6 + 800e6,
             "Bob lent 100e6 and was repaid and it 8x, and it borrowed 10e6 and it 8x, so it is now 880e6"
         );
-        assertEq(_s4.candy.borrowATokenBalance, 80e6, "Candy borrowed 40e6 2x, so it is now 80e6");
-        assertEq(_s4.size.borrowATokenBalance, 0, "Size has 0 because everything was claimed");
+        assertEq(_s4.candy.borrowTokenBalance, 80e6, "Candy borrowed 40e6 2x, so it is now 80e6");
+        assertEq(_s4.size.borrowTokenBalance, 0, "Size has 0 because everything was claimed");
     }
 
     function test_Claim_isClaimable() public {
@@ -261,8 +261,6 @@ contract ClaimTest is BaseTest {
     function test_Claim_test_borrow_repay_claim() public {
         _setPrice(1e18);
 
-        _updateConfig("borrowATokenCap", type(uint256).max);
-
         _deposit(alice, usdc, 120e6);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
         _deposit(james, weth, 5000e18);
@@ -276,7 +274,7 @@ contract ClaimTest is BaseTest {
         assertEq(creditPosition.credit, debtPosition.futureValue);
 
         _deposit(bob, usdc, 100e6);
-        assertEq(_state().bob.borrowATokenBalance, 100e6);
+        assertEq(_state().bob.borrowTokenBalance, 100e6);
         _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.02e18));
         _sellCreditMarket(alice, bob, creditPositionId, 50e6, 365 days);
 

@@ -25,14 +25,14 @@ struct NetworkConfiguration {
     uint256 fragmentationFee;
     uint256 crOpening;
     uint256 crLiquidation;
-    uint256 minimumCreditBorrowAToken;
-    uint256 borrowATokenCap;
+    uint256 minimumCreditBorrowToken;
     PriceFeedParams priceFeedParams;
 }
 
 enum Contract {
     WETH,
     SIZE_FACTORY,
+    SIZE_GOVERNANCE,
     MORPHO_CHAINLINK_ORACLE_V2_FACTORY
 }
 
@@ -54,6 +54,10 @@ abstract contract Networks {
         contracts[BASE_MAINNET][Contract.SIZE_FACTORY] = 0x330Dc31dB45672c1F565cf3EC91F9a01f8f3DF0b;
         contracts[BASE_SEPOLIA][Contract.SIZE_FACTORY] = 0xB653e1eda8AB42ddF6B82696a4045A029D5f9d8c;
 
+        contracts[ETHEREUM_MAINNET][Contract.SIZE_GOVERNANCE] = 0x462B545e8BBb6f9E5860928748Bfe9eCC712c3a7;
+        contracts[BASE_MAINNET][Contract.SIZE_GOVERNANCE] = 0x462B545e8BBb6f9E5860928748Bfe9eCC712c3a7;
+        contracts[BASE_SEPOLIA][Contract.SIZE_GOVERNANCE] = 0xf7164d2fC05350C75387Fa6C0Cc4F97634cA9451;
+
         contracts[ETHEREUM_MAINNET][Contract.MORPHO_CHAINLINK_ORACLE_V2_FACTORY] =
             0x3A7bB36Ee3f3eE32A60e9f2b33c1e5f2E83ad766;
         contracts[BASE_MAINNET][Contract.MORPHO_CHAINLINK_ORACLE_V2_FACTORY] = address(0);
@@ -70,8 +74,7 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -94,8 +97,7 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -118,8 +120,7 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -142,8 +143,7 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -166,8 +166,7 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -190,8 +189,7 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -214,8 +212,7 @@ abstract contract Networks {
                 fragmentationFee: 0.0005e18,
                 crOpening: 1.3e18,
                 crLiquidation: 1.1e18,
-                minimumCreditBorrowAToken: 0.005e18,
-                borrowATokenCap: 500e18,
+                minimumCreditBorrowToken: 0.005e18,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -238,8 +235,7 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.3e18,
                 crLiquidation: 1.1e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -443,15 +439,5 @@ abstract contract Networks {
         morphoOracle = IMorphoChainlinkOracleV2(0x9c0363336Bf9DaF57a16BB4e2867459bf4Dd5EB0);
         baseToken = IERC20Metadata(0x50D2C7992b802Eef16c04FeADAB310f31866a545);
         quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
-    }
-
-    function multiSendCallOnly(string memory network) public pure returns (IMultiSendCallOnly) {
-        if (Strings.equal(network, "base-production")) {
-            return IMultiSendCallOnly(0xA1dabEF33b3B82c7814B6D82A79e50F4AC44102B);
-        } else if (Strings.equal(network, "mainnet")) {
-            return IMultiSendCallOnly(0x40A2aCCbd92BCA938b02010E17A5b8929b49130D);
-        } else {
-            revert InvalidNetworkConfiguration(network);
-        }
     }
 }

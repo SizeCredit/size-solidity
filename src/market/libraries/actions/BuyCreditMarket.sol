@@ -207,7 +207,6 @@ library BuyCreditMarket {
     /// @param externalParams The input parameters for buying credit as a market order
     function executeBuyCreditMarket(State storage state, BuyCreditMarketOnBehalfOfParams calldata externalParams)
         external
-        returns (uint256 netCashAmountIn)
     {
         BuyCreditMarketParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
@@ -245,10 +244,10 @@ library BuyCreditMarket {
             });
         }
 
-        state.data.borrowATokenV1_5.transferFrom(
+        state.data.borrowTokenVault.transferFrom(
             onBehalfOf, swapData.borrower, swapData.cashAmountIn - swapData.swapFee - swapData.fragmentationFee
         );
-        state.data.borrowATokenV1_5.transferFrom(
+        state.data.borrowTokenVault.transferFrom(
             onBehalfOf, state.feeConfig.feeRecipient, swapData.swapFee + swapData.fragmentationFee
         );
 
@@ -266,7 +265,5 @@ library BuyCreditMarket {
             swapData.fragmentationFee,
             swapData.tenor
         );
-
-        return swapData.cashAmountIn - swapData.swapFee - swapData.fragmentationFee;
     }
 }

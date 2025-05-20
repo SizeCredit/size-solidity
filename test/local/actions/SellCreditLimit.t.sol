@@ -63,7 +63,7 @@ contract SellCreditLimitTest is BaseTest {
         aprs[0] = 0e18;
         aprs[1] = 1e18;
         uint256[] memory marketRateMultipliers = new uint256[](2);
-        _setUserConfiguration(alice, 1.7e18, false, false, new uint256[](0));
+        _setUserConfiguration(alice, address(0), 1.7e18, false, false, new uint256[](0));
         _sellCreditLimit(
             alice,
             block.timestamp + 365 days,
@@ -97,7 +97,7 @@ contract SellCreditLimitTest is BaseTest {
         aprs[0] = 0e18;
         aprs[1] = 1e18;
         uint256[] memory marketRateMultipliers = new uint256[](2);
-        _setUserConfiguration(alice, 1.3e18, false, false, new uint256[](0));
+        _setUserConfiguration(alice, address(0), 1.3e18, false, false, new uint256[](0));
         _sellCreditLimit(
             alice,
             block.timestamp + 365 days,
@@ -147,7 +147,7 @@ contract SellCreditLimitTest is BaseTest {
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _compensate(bob, creditPositionId, creditPositionId2);
 
-        assertEqApprox(_state().bob.borrowATokenBalance, 42e6, 1e6);
+        assertEqApprox(_state().bob.borrowTokenBalance, 42e6, 1e6);
         assertEq(_state().bob.debtBalance, 0);
     }
 }

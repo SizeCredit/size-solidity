@@ -21,19 +21,17 @@ contract WithdrawTest is BaseTest {
         _deposit(alice, usdc, 12e6);
         _deposit(alice, weth, 23e18);
         UserView memory aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowATokenBalance, 12e6);
+        assertEq(aliceUser.borrowTokenBalance, 12e6);
         assertEq(aliceUser.collateralTokenBalance, 23e18);
 
         _withdraw(alice, usdc, 9e6);
         _withdraw(alice, weth, 7e18);
         aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowATokenBalance, 3e6);
+        assertEq(aliceUser.borrowTokenBalance, 3e6);
         assertEq(aliceUser.collateralTokenBalance, 16e18);
     }
 
     function testFuzz_Withdraw_withdraw_decreases_user_balance(uint256 x, uint256 y, uint256 z, uint256 w) public {
-        _updateConfig("borrowATokenCap", type(uint256).max);
-
         x = bound(x, 1, type(uint96).max);
         y = bound(y, 1, type(uint96).max);
         z = bound(z, 1, type(uint128).max);
@@ -42,7 +40,7 @@ contract WithdrawTest is BaseTest {
         _deposit(alice, usdc, x * 1e6);
         _deposit(alice, weth, y * 1e18);
         UserView memory aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowATokenBalance, x * 1e6);
+        assertEq(aliceUser.borrowTokenBalance, x * 1e6);
         assertEq(aliceUser.collateralTokenBalance, y * 1e18);
 
         z = bound(z, 1, x);
@@ -51,12 +49,11 @@ contract WithdrawTest is BaseTest {
         _withdraw(alice, usdc, z * 1e6);
         _withdraw(alice, weth, w * 1e18);
         aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowATokenBalance, (x - z) * 1e6);
+        assertEq(aliceUser.borrowTokenBalance, (x - z) * 1e6);
         assertEq(aliceUser.collateralTokenBalance, (y - w) * 1e18);
     }
 
     function testFuzz_Withdraw_deposit_withdraw_identity(uint256 valueUSDC, uint256 valueWETH) public {
-        _updateConfig("borrowATokenCap", type(uint256).max);
         IAToken aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
 
         valueUSDC = bound(valueUSDC, 1, type(uint96).max);
@@ -91,7 +88,6 @@ contract WithdrawTest is BaseTest {
         uint256 valueWETH,
         uint256 index
     ) public {
-        _updateConfig("borrowATokenCap", type(uint256).max);
         IAToken aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
         index = bound(index, WadRayMath.RAY, WadRayMath.RAY * 2);
         _setLiquidityIndex(index);
@@ -219,7 +215,7 @@ contract WithdrawTest is BaseTest {
         _withdraw(liquidator, usdc, type(uint256).max);
 
         assertEq(usdc.balanceOf(liquidator), liquidatorAmount - futureValue);
-        assertEq(_state().variablePool.borrowATokenBalance, 0);
+        assertEq(_state().variablePool.borrowTokenBalance, 0);
         assertGt(_state().feeRecipient.collateralTokenBalance, 0);
     }
 
@@ -231,7 +227,7 @@ contract WithdrawTest is BaseTest {
         _sellCreditLimit(alice, block.timestamp + 365 days, 1e18, 12 days);
         _buyCreditMarket(alice, alice, 100e6, 12 days);
         _withdraw(alice, usdc, 10e6);
-        assertLt(size.data().borrowAToken.totalSupply(), size.data().debtToken.totalSupply());
+        assertLt(size.data().borrowTokenVault.totalSupply(), size.data().debtToken.totalSupply());
     }
 
     function test_Withdraw_withdraw_can_leave_borrow_tokens_lower_than_debt_tokens_in_case_of_borrow_followed_by_withdraw(
@@ -243,7 +239,7 @@ contract WithdrawTest is BaseTest {
         _sellCreditLimit(bob, block.timestamp + 365 days, 1e18, 12 days);
         _buyCreditMarket(alice, bob, 100e6, 12 days);
         _withdraw(bob, usdc, 10e6);
-        assertLt(size.data().borrowAToken.totalSupply(), size.data().debtToken.totalSupply());
+        assertLt(size.data().borrowTokenVault.totalSupply(), size.data().debtToken.totalSupply());
     }
 
     function testFuzz_Withdraw_withdraw_more_than_balance(uint256 index, uint256 delta) public {
