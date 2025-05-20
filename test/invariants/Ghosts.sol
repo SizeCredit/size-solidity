@@ -20,7 +20,6 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
         UserView lender;
         UserView feeRecipient;
         LoanStatus loanStatus;
-        // TODO all vaults before/after
         bool[3] isUserUnderwater;
         bool isBorrowerUnderwater;
         uint256 senderCollateralAmount;

@@ -91,7 +91,7 @@ After v1.7, the `SizeFactory` also holds the access control for all Size markets
 
 #### Copy trading
 
-Since Size v1.6.1, users can copy other users' limit orders.
+In Size v1.6.1, a `copyLimitOrders` function was introduced so that users could copy other users' limit orders. The feature behaved like the following:
 
 - Users can copy borrow/loan offers from other users
 - Users can copy both or a single offer from a single address
@@ -108,6 +108,8 @@ Notes
 1. Copying another account's limit orders introduces the risk of them placing suboptimal rates and executing market orders against delegators, incurring monetary losses. Only trusted addresses should be copied.
 2. The max/min params from the `copyLimitOrder` method are not global max/min for the user-defined limit orders; they are specific to copy offers. Once the copy address offer is no longer valid, max/min guards for mismatched curves will not be applied. The only reason to stop market orders is in the event of "self arbitrage," i.e., for a given tenor, when the borrow curve >= lending curve, since these users could be drained by an attacker by borrowing high and lending low in a single transaction.
 3. The offset APR parameters are not validated and can cause market orders reverts depending on the final APR result
+
+After v1.8, the `CollectionsManager` core contract was introduced, and some of this behavior changed. See the corresponding section further down below for more information.
 
 #### Authorization
 
@@ -149,6 +151,35 @@ To keep accounting in check, several mappings are : from user to vault, from use
 In some cases, [withdrawing from the vault may leave "dust" shares](https://slowmist.medium.com/slowmist-aave-v2-security-audit-checklist-0d9ef442436b#5aed) with the user, which are then burned so that they do not roll over during a vault change. These dust shares are tracked in a specific-purpose mapping, and can be used by the admin if needed.
 
 Since there can be an unlimited number of whitelisted vaults, the amount of underlying held by `NonTransferrableRebasingTokenVault` cannot be computed in constant time, so  `totalSupply` loops ver all vaults to calculate the underlying sum. Because of that, it SHOULD NOT be used onchain. In addition, due to the rounding of scaled/shares accounting, the invariant `SUM(balanceOf) == totalSupply()` may not hold true. However, we should still have `SUM(balanceOf) <= totalSupply()`, since `balanceOf` rounds down, and also to guarantee the solvency of the protocol.
+
+#### Collections, curators and rate providers
+
+Since Size v1.8, collections of markets, curators and rate providers are core entities of the ecosystem. This builds up on `copyLimitOrders`, but with more functionality:
+
+- A *collection* is a set of markets grouped under a curator.
+- A *Curator* defines *rate providers* (RPs) for each market, which sets yield curves and competes in pricing credit.
+- Collections are defined on-chain. Updates made by curators are automatically reflected across all subscribed users without backend or user intervention, since users' yield curves are just pointers.
+- When a curator updates the RP for a market, all users subscribed to that collection inherit the new configuration.
+- Delegation logic remains under the control of curators, not rate providers, ensuring curators can update or reassign markets freely. In a sense, a curator "owns" the liquidity of users subscribing to their collections. If a RP is not performing well, they can be replaced without compromise to the curator.
+- Each market may support multiple rate providers. When overlapping offers exist, market order "takers" can pick the best available rate to them (e.g., lowest loan offer APR during a sell credit market order).
+- Curators can define copy limit order configurations, which includes safeguard parameters for each market (min/max APR, min/max tenor), in addition to an offset APR, which is applied at end of the yield curve linear interpolation.
+- These copy limit order configurations apply when the user has not defined their own.
+- Users can also define their own yield curves and safeguards at the market level. If set, these take precedence over curator defaults.
+- If users want to rely exclusively on curator-defined curves, they must explicitly unset their own limit orders (changed behavior from v1.6).
+- Users now support multiple yield curves per market, one per collection they are subscribed to, plus an optional personal configuration.
+- Curators can transfer ownership of their collections.
+- Since users cn subscribe to many collections, each having many rate providers, the "borrow offer should be lower than loan offer" check now has O(C * R) complexity. Users should be aware not to subscribe to too many collections or collections with too many rate providers, or market orders targeting them might revert due to gas costs.
+
+##### Breaking changes
+
+- Copy trading behavior was updated: rate providers' limit orders no longer take precedence over a user's own yield curve.
+- During reinitialization:
+  - All users who previously used the `copyLimitOrder` feature are now subscribed to a new collection that mirrors the rate provider they had copied.
+  - Their existing limit orders are cleared, since these may now be used by the taker side of a market order.
+  - By default, market orders now select the user-defined yield curve. Since migrated users will have no personal curve set, market orders will revert unless integrators pass an explicit collection parameter.
+- To indicate "no copy," users should pass a `CopyLimitOrderConfig` with all fields set to null except `offsetAPR`. Passing zero min/max bounds will cause reverts—even if the curator has configured valid bounds.
+- For the sake of clarity, `getLoanOfferAPR` and `getBorrowOfferAPR` on the `SizeView` contract were renamed to `getUserDefinedLoanOfferAPR` and `getUserDefinedBorrowOfferAPR` to be explicit about whether the yield curve is from a rate provider or from the user themselves.
+- Some infrequently utilized `SizeView` functions were removed to make room for the additional `WithCollection` functions and not break the max contract size limit.
 
 ## Test
 

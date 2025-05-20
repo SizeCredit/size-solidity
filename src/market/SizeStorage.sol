@@ -6,7 +6,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {IWETH} from "@src/market/interfaces/IWETH.sol";
 
 import {CreditPosition, DebtPosition} from "@src/market/libraries/LoanLibrary.sol";
-import {CopyLimitOrder, LimitOrder} from "@src/market/libraries/OfferLibrary.sol";
+import {CopyLimitOrderConfig, LimitOrder} from "@src/market/libraries/OfferLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
@@ -27,12 +27,12 @@ struct User {
 }
 
 struct UserCopyLimitOrders {
-    // the address to copy the limit orders from
-    address copyAddress;
-    // the loan offer copy parameters (null means no copy)
-    CopyLimitOrder copyLoanOffer;
-    // the borrow offer copy parameters (null means no copy)
-    CopyLimitOrder copyBorrowOffer;
+    // deprecated in v1.8
+    address ___deprecated_copyAddress;
+    // the loan offer copy parameters
+    CopyLimitOrderConfig copyLoanOfferConfig;
+    // the borrow offer copy parameters
+    CopyLimitOrderConfig copyBorrowOfferConfig;
 }
 
 struct FeeConfig {
@@ -105,7 +105,7 @@ struct Data {
     bool ___deprecated_isMulticall;
     // Size deposit underlying borrow token (upgraded in v1.8)
     NonTransferrableRebasingTokenVault borrowTokenVault;
-    // mapping of copy limit orders (added in v1.6.1)
+    // mapping of copy limit orders (added in v1.6.1, updated in v1.8)
     mapping(address => UserCopyLimitOrders) usersCopyLimitOrders;
     // Size Factory (added in v1.7)
     ISizeFactory sizeFactory;

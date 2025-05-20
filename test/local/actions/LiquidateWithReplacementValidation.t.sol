@@ -128,9 +128,7 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         );
 
         vm.prank(liquidator);
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.MISMATCHED_CURVES.selector, candy, 2 * 365 days, 0.03e18, 0.03e18)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVERTED_CURVES.selector, candy, 2 * 365 days));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,

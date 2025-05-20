@@ -42,7 +42,7 @@ import {UpdateConfigParams} from "@src/market/libraries/actions/UpdateConfig.sol
 import {ExpectedErrors} from "@test/invariants/ExpectedErrors.sol";
 import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol";
 
-import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
+import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 import {CopyLimitOrdersParams} from "@src/market/libraries/actions/CopyLimitOrders.sol";
 import {PartialRepayParams} from "@src/market/libraries/actions/PartialRepay.sol";
 
@@ -449,12 +449,11 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         __after();
     }
 
-    function copyLimitOrders(address copyAddress, int256 loanOffsetAPR, int256 borrowOffsetAPR)
+    function copyLimitOrders(int256 loanOffsetAPR, int256 borrowOffsetAPR)
         public
         getSender
         checkExpectedErrors(COPY_LIMIT_ORDERS_ERRORS)
     {
-        copyAddress = _getRandomUser(copyAddress);
         loanOffsetAPR = between(loanOffsetAPR, -int256(MAX_PERCENT), int256(MAX_PERCENT));
         borrowOffsetAPR = between(borrowOffsetAPR, -int256(MAX_PERCENT), int256(MAX_PERCENT));
 
@@ -465,15 +464,14 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
             abi.encodeCall(
                 size.copyLimitOrders,
                 CopyLimitOrdersParams({
-                    copyAddress: copyAddress,
-                    copyLoanOffer: CopyLimitOrder({
+                    copyLoanOfferConfig: CopyLimitOrderConfig({
                         minTenor: 0,
                         maxTenor: type(uint256).max,
                         minAPR: 0,
                         maxAPR: type(uint256).max,
                         offsetAPR: loanOffsetAPR
                     }),
-                    copyBorrowOffer: CopyLimitOrder({
+                    copyBorrowOfferConfig: CopyLimitOrderConfig({
                         minTenor: 0,
                         maxTenor: type(uint256).max,
                         minAPR: 0,
