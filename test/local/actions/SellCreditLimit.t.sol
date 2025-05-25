@@ -80,7 +80,9 @@ contract SellCreditLimitTest is BaseTest {
                 tenor: 1 days,
                 deadline: block.timestamp,
                 minAPR: 0,
-                exactAmountIn: true
+                exactAmountIn: true,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
     }
@@ -113,7 +115,9 @@ contract SellCreditLimitTest is BaseTest {
                 tenor: 1 days,
                 deadline: block.timestamp,
                 minAPR: 0,
-                exactAmountIn: true
+                exactAmountIn: true,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
     }

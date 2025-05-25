@@ -23,8 +23,7 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 
 import {
     SellCreditMarketOnBehalfOfParams,
-    SellCreditMarketParams,
-    SellCreditMarketWithCollectionParams
+    SellCreditMarketParams
 } from "@src/market/libraries/actions/SellCreditMarket.sol";
 
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
@@ -114,16 +113,14 @@ contract ForkCollectionsTest is ForkTest, Networks {
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, users[0]));
         size.sellCreditMarketOnBehalfOf(
             SellCreditMarketOnBehalfOfParams({
-                withCollectionParams: SellCreditMarketWithCollectionParams({
-                    params: SellCreditMarketParams({
-                        lender: users[0],
-                        creditPositionId: RESERVED_ID,
-                        amount: 10e6,
-                        tenor: tenor,
-                        maxAPR: type(uint256).max,
-                        deadline: block.timestamp,
-                        exactAmountIn: false
-                    }),
+                params: SellCreditMarketParams({
+                    lender: users[0],
+                    creditPositionId: RESERVED_ID,
+                    amount: 10e6,
+                    tenor: tenor,
+                    maxAPR: type(uint256).max,
+                    deadline: block.timestamp,
+                    exactAmountIn: false,
                     collectionId: RESERVED_ID,
                     rateProvider: address(0)
                 }),
@@ -135,16 +132,14 @@ contract ForkCollectionsTest is ForkTest, Networks {
         vm.prank(alice);
         size.sellCreditMarketOnBehalfOf(
             SellCreditMarketOnBehalfOfParams({
-                withCollectionParams: SellCreditMarketWithCollectionParams({
-                    params: SellCreditMarketParams({
-                        lender: users[0],
-                        creditPositionId: RESERVED_ID,
-                        amount: 10e6,
-                        tenor: tenor,
-                        maxAPR: type(uint256).max,
-                        deadline: block.timestamp,
-                        exactAmountIn: false
-                    }),
+                params: SellCreditMarketParams({
+                    lender: users[0],
+                    creditPositionId: RESERVED_ID,
+                    amount: 10e6,
+                    tenor: tenor,
+                    maxAPR: type(uint256).max,
+                    deadline: block.timestamp,
+                    exactAmountIn: false,
                     collectionId: collectionId,
                     rateProvider: rateProvider
                 }),

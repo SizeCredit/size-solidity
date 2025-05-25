@@ -125,7 +125,9 @@ contract CompensateTest is BaseTest {
                 tenor: 365 days,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: false
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         ) {
             uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
@@ -423,7 +425,9 @@ contract CompensateTest is BaseTest {
                 amount: 200e6,
                 deadline: block.timestamp,
                 minAPR: 0,
-                exactAmountIn: true
+                exactAmountIn: true,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
     }
@@ -597,7 +601,9 @@ contract CompensateTest is BaseTest {
                 amount: 100e6,
                 exactAmountIn: true,
                 deadline: block.timestamp,
-                maxAPR: type(uint256).max
+                maxAPR: type(uint256).max,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -612,7 +618,9 @@ contract CompensateTest is BaseTest {
                 tenor: 365 days,
                 deadline: block.timestamp,
                 minAPR: 0,
-                exactAmountIn: false
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -682,7 +690,9 @@ contract CompensateTest is BaseTest {
                 tenor: 365 days,
                 deadline: block.timestamp,
                 minAPR: 0,
-                exactAmountIn: true
+                exactAmountIn: true,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -697,7 +707,9 @@ contract CompensateTest is BaseTest {
                 tenor: 365 days,
                 deadline: block.timestamp,
                 minAPR: 0,
-                exactAmountIn: true
+                exactAmountIn: true,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -712,7 +724,9 @@ contract CompensateTest is BaseTest {
                 tenor: 365 days,
                 deadline: block.timestamp,
                 minAPR: 0,
-                exactAmountIn: false
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -775,7 +789,9 @@ contract CompensateTest is BaseTest {
                 tenor: 365 days,
                 deadline: block.timestamp,
                 minAPR: 0,
-                exactAmountIn: true
+                exactAmountIn: true,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -790,7 +806,9 @@ contract CompensateTest is BaseTest {
                 tenor: 365 days,
                 deadline: block.timestamp,
                 minAPR: 0,
-                exactAmountIn: false
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
         (, uint256 creditPositionCount) = size.getPositionsCount();
@@ -868,7 +886,9 @@ contract CompensateTest is BaseTest {
                 amount: amount,
                 exactAmountIn: true,
                 deadline: block.timestamp,
-                maxAPR: type(uint256).max
+                maxAPR: type(uint256).max,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -918,7 +938,9 @@ contract CompensateTest is BaseTest {
                 tenor: 365 days,
                 deadline: block.timestamp,
                 minAPR: 0,
-                exactAmountIn: false
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
         (, uint256 creditPositionCount) = size.getPositionsCount();

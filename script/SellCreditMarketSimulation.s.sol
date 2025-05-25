@@ -28,7 +28,9 @@ contract SellCreditMarketSimulationScript is Script, Logger {
             amount: amount,
             deadline: block.timestamp,
             maxAPR: apr,
-            exactAmountIn: false
+            exactAmountIn: false,
+            collectionId: RESERVED_ID,
+            rateProvider: address(0)
         });
 
         vm.recordLogs();

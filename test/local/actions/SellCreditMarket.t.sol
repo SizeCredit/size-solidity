@@ -12,11 +12,7 @@ import {
 } from "@src/market/libraries/LoanLibrary.sol";
 import {PERCENT, YEAR} from "@src/market/libraries/Math.sol";
 import {LimitOrder, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
-import {
-    SellCreditMarket,
-    SellCreditMarketParams,
-    SellCreditMarketWithCollectionParams
-} from "@src/market/libraries/actions/SellCreditMarket.sol";
+import {SellCreditMarket, SellCreditMarketParams} from "@src/market/libraries/actions/SellCreditMarket.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Math} from "@src/market/libraries/Math.sol";
@@ -239,7 +235,9 @@ contract SellCreditMarketTest is BaseTest {
                 tenor: tenor,
                 deadline: block.timestamp,
                 maxAPR: apr,
-                exactAmountIn: false
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
     }
@@ -264,7 +262,9 @@ contract SellCreditMarketTest is BaseTest {
                 tenor: tenor,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: false
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
     }
@@ -378,7 +378,9 @@ contract SellCreditMarketTest is BaseTest {
                 tenor: tenor,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: false
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -511,25 +513,22 @@ contract SellCreditMarketTest is BaseTest {
         Vars memory _before = _state();
         bytes4[2] memory expectedErrors = [Errors.NOT_ENOUGH_CASH.selector, Errors.NOT_ENOUGH_CREDIT.selector];
 
-        SellCreditMarketWithCollectionParams memory withCollectionParams = SellCreditMarketWithCollectionParams({
-            params: SellCreditMarketParams({
-                lender: candy,
-                creditPositionId: local.creditPositionId,
-                amount: input.A2,
-                tenor: type(uint256).max,
-                deadline: block.timestamp,
-                maxAPR: type(uint256).max,
-                exactAmountIn: true
-            }),
+        SellCreditMarketParams memory params = SellCreditMarketParams({
+            lender: candy,
+            creditPositionId: local.creditPositionId,
+            amount: input.A2,
+            tenor: type(uint256).max,
+            deadline: block.timestamp,
+            maxAPR: type(uint256).max,
+            exactAmountIn: true,
             collectionId: RESERVED_ID,
             rateProvider: address(0)
         });
 
-        try size.getSellCreditMarketSwapData(withCollectionParams) returns (
-            SellCreditMarket.SwapDataSellCreditMarket memory expected
-        ) {
+        try size.getSellCreditMarketSwapData(params) returns (SellCreditMarket.SwapDataSellCreditMarket memory expected)
+        {
             vm.prank(alice);
-            try size.sellCreditMarket(withCollectionParams.params) {
+            try size.sellCreditMarket(params) {
                 Vars memory _after = _state();
 
                 uint256 fragmentationFee = (input.A2 == input.A1 ? 0 : size.feeConfig().fragmentationFee); /* f */
@@ -628,25 +627,22 @@ contract SellCreditMarketTest is BaseTest {
             Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector
         ];
 
-        SellCreditMarketWithCollectionParams memory withCollectionParams = SellCreditMarketWithCollectionParams({
-            params: SellCreditMarketParams({
-                lender: candy,
-                creditPositionId: local.creditPositionId,
-                amount: input.V2,
-                tenor: type(uint256).max,
-                deadline: block.timestamp,
-                maxAPR: type(uint256).max,
-                exactAmountIn: false
-            }),
+        SellCreditMarketParams memory params = SellCreditMarketParams({
+            lender: candy,
+            creditPositionId: local.creditPositionId,
+            amount: input.V2,
+            tenor: type(uint256).max,
+            deadline: block.timestamp,
+            maxAPR: type(uint256).max,
+            exactAmountIn: false,
             collectionId: RESERVED_ID,
             rateProvider: address(0)
         });
 
-        try size.getSellCreditMarketSwapData(withCollectionParams) returns (
-            SellCreditMarket.SwapDataSellCreditMarket memory expected
-        ) {
+        try size.getSellCreditMarketSwapData(params) returns (SellCreditMarket.SwapDataSellCreditMarket memory expected)
+        {
             vm.prank(alice);
-            try size.sellCreditMarket(withCollectionParams.params) {
+            try size.sellCreditMarket(params) {
                 Vars memory _after = _state();
                 uint256 kDeltaT2 = Math.mulDivUp(size.feeConfig().swapFeeAPR, /* k */ input.deltaT2, YEAR);
 

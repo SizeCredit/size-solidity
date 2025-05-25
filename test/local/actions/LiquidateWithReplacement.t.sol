@@ -129,7 +129,9 @@ contract LiquidateWithReplacementTest is BaseTest {
                 borrower: candy,
                 deadline: block.timestamp,
                 minAPR: 0,
-                minimumCollateralProfit: 0
+                minimumCollateralProfit: 0,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
     }
@@ -164,7 +166,9 @@ contract LiquidateWithReplacementTest is BaseTest {
                 borrower: candy,
                 deadline: block.timestamp,
                 minAPR: 0,
-                minimumCollateralProfit: 0
+                minimumCollateralProfit: 0,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
     }

@@ -130,7 +130,9 @@ contract VaultsTest is BaseTest {
                 tenor: tenor,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: false
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -163,7 +165,9 @@ contract VaultsTest is BaseTest {
                 tenor: tenor,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: false
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
     }
@@ -442,7 +446,9 @@ contract VaultsTest is BaseTest {
                 tenor: tenor,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: false
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         ) {
             assertTrue(!_isDustShares([alice, bob, candy, liquidator]), err);
@@ -463,7 +469,9 @@ contract VaultsTest is BaseTest {
                     tenor: tenor,
                     deadline: block.timestamp,
                     maxAPR: type(uint256).max,
-                    exactAmountIn: true
+                    exactAmountIn: true,
+                    collectionId: RESERVED_ID,
+                    rateProvider: address(0)
                 })
             ) {
                 assertTrue(!_isDustShares([alice, bob, candy, liquidator]), err);

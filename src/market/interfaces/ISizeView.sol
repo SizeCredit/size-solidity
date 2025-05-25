@@ -5,15 +5,13 @@ import {UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
 
 import {DataView, UserView} from "@src/market/SizeViewData.sol";
 import {CreditPosition, DebtPosition, LoanStatus} from "@src/market/libraries/LoanLibrary.sol";
-import {BuyCreditMarket, BuyCreditMarketWithCollectionParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
+import {BuyCreditMarket, BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/market/libraries/actions/Initialize.sol";
-import {
-    SellCreditMarket, SellCreditMarketWithCollectionParams
-} from "@src/market/libraries/actions/SellCreditMarket.sol";
+import {SellCreditMarket, SellCreditMarketParams} from "@src/market/libraries/actions/SellCreditMarket.sol";
 
 import {ISizeViewV1_7} from "@src/market/interfaces/v1.7/ISizeViewV1_7.sol";
 import {ISizeViewV1_8} from "@src/market/interfaces/v1.8/ISizeViewV1_8.sol";
@@ -94,17 +92,17 @@ interface ISizeView is ISizeViewV1_7, ISizeViewV1_8 {
     function getPositionsCount() external view returns (uint256, uint256);
 
     /// @notice Gets the swap data for buying credit as a market order
-    /// @param withCollectionParams The input parameters for buying credit as a market order
+    /// @param params The input parameters for buying credit as a market order
     /// @return swapData The swap data for buying credit as a market order
-    function getBuyCreditMarketSwapData(BuyCreditMarketWithCollectionParams memory withCollectionParams)
+    function getBuyCreditMarketSwapData(BuyCreditMarketParams memory params)
         external
         view
         returns (BuyCreditMarket.SwapDataBuyCreditMarket memory);
 
     /// @notice Returns the swap data for selling credit as a market order
-    /// @param withCollectionParams The input parameters for selling credit as a market order
+    /// @param params The input parameters for selling credit as a market order
     /// @return swapData The swap data for selling credit as a market order
-    function getSellCreditMarketSwapData(SellCreditMarketWithCollectionParams memory withCollectionParams)
+    function getSellCreditMarketSwapData(SellCreditMarketParams memory params)
         external
         view
         returns (SellCreditMarket.SwapDataSellCreditMarket memory);

@@ -139,7 +139,9 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                     tenor: tenor,
                     deadline: block.timestamp,
                     maxAPR: type(uint256).max,
-                    exactAmountIn: exactAmountIn
+                    exactAmountIn: exactAmountIn,
+                    collectionId: RESERVED_ID,
+                    rateProvider: address(0)
                 })
             )
         );
@@ -209,7 +211,9 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                     amount: amount,
                     deadline: block.timestamp,
                     minAPR: 0,
-                    exactAmountIn: exactAmountIn
+                    exactAmountIn: exactAmountIn,
+                    collectionId: RESERVED_ID,
+                    rateProvider: address(0)
                 })
             )
         );
@@ -368,7 +372,9 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                     minAPR: 0,
                     deadline: block.timestamp,
                     borrower: borrower,
-                    minimumCollateralProfit: minimumCollateralProfit
+                    minimumCollateralProfit: minimumCollateralProfit,
+                    collectionId: RESERVED_ID,
+                    rateProvider: address(0)
                 })
             )
         );

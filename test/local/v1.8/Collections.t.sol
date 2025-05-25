@@ -12,15 +12,12 @@ import {OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
 import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
 
 import {
-    BuyCreditMarketOnBehalfOfParams,
-    BuyCreditMarketParams,
-    BuyCreditMarketWithCollectionParams
+    BuyCreditMarketOnBehalfOfParams, BuyCreditMarketParams
 } from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {CopyLimitOrdersParams} from "@src/market/libraries/actions/CopyLimitOrders.sol";
 import {
     SellCreditMarketOnBehalfOfParams,
-    SellCreditMarketParams,
-    SellCreditMarketWithCollectionParams
+    SellCreditMarketParams
 } from "@src/market/libraries/actions/SellCreditMarket.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
@@ -476,16 +473,14 @@ contract CollectionsTest is BaseTest {
         vm.prank(candy);
         size.buyCreditMarketOnBehalfOf(
             BuyCreditMarketOnBehalfOfParams({
-                withCollectionParams: BuyCreditMarketWithCollectionParams({
-                    params: BuyCreditMarketParams({
-                        borrower: alice,
-                        creditPositionId: RESERVED_ID,
-                        amount: 500e6,
-                        tenor: 30 days,
-                        minAPR: 0,
-                        deadline: block.timestamp + 365 days,
-                        exactAmountIn: false
-                    }),
+                params: BuyCreditMarketParams({
+                    borrower: alice,
+                    creditPositionId: RESERVED_ID,
+                    amount: 500e6,
+                    tenor: 30 days,
+                    minAPR: 0,
+                    deadline: block.timestamp + 365 days,
+                    exactAmountIn: false,
                     collectionId: collectionId,
                     rateProvider: bob
                 }),
@@ -498,16 +493,14 @@ contract CollectionsTest is BaseTest {
         vm.prank(candy);
         size.sellCreditMarketOnBehalfOf(
             SellCreditMarketOnBehalfOfParams({
-                withCollectionParams: SellCreditMarketWithCollectionParams({
-                    params: SellCreditMarketParams({
-                        lender: alice,
-                        creditPositionId: RESERVED_ID,
-                        amount: 500e6,
-                        tenor: 30 days,
-                        maxAPR: type(uint256).max,
-                        deadline: block.timestamp + 365 days,
-                        exactAmountIn: false
-                    }),
+                params: SellCreditMarketParams({
+                    lender: alice,
+                    creditPositionId: RESERVED_ID,
+                    amount: 500e6,
+                    tenor: 30 days,
+                    maxAPR: type(uint256).max,
+                    deadline: block.timestamp + 365 days,
+                    exactAmountIn: false,
                     collectionId: collectionId,
                     rateProvider: bob
                 }),
@@ -595,16 +588,14 @@ contract CollectionsTest is BaseTest {
         vm.prank(candy);
         size.sellCreditMarketOnBehalfOf(
             SellCreditMarketOnBehalfOfParams({
-                withCollectionParams: SellCreditMarketWithCollectionParams({
-                    params: SellCreditMarketParams({
-                        lender: alice,
-                        creditPositionId: RESERVED_ID,
-                        amount: 10e6,
-                        tenor: 5 days,
-                        maxAPR: type(uint256).max,
-                        deadline: block.timestamp,
-                        exactAmountIn: false
-                    }),
+                params: SellCreditMarketParams({
+                    lender: alice,
+                    creditPositionId: RESERVED_ID,
+                    amount: 10e6,
+                    tenor: 5 days,
+                    maxAPR: type(uint256).max,
+                    deadline: block.timestamp,
+                    exactAmountIn: false,
                     collectionId: collectionId,
                     rateProvider: bob
                 }),
@@ -619,16 +610,14 @@ contract CollectionsTest is BaseTest {
         vm.prank(candy);
         size.sellCreditMarketOnBehalfOf(
             SellCreditMarketOnBehalfOfParams({
-                withCollectionParams: SellCreditMarketWithCollectionParams({
-                    params: SellCreditMarketParams({
-                        lender: alice,
-                        creditPositionId: RESERVED_ID,
-                        amount: 10e6,
-                        tenor: 5 days,
-                        maxAPR: type(uint256).max,
-                        deadline: block.timestamp,
-                        exactAmountIn: false
-                    }),
+                params: SellCreditMarketParams({
+                    lender: alice,
+                    creditPositionId: RESERVED_ID,
+                    amount: 10e6,
+                    tenor: 5 days,
+                    maxAPR: type(uint256).max,
+                    deadline: block.timestamp,
+                    exactAmountIn: false,
                     collectionId: collectionId,
                     rateProvider: bob
                 }),
@@ -670,16 +659,14 @@ contract CollectionsTest is BaseTest {
         vm.prank(candy);
         size.sellCreditMarketOnBehalfOf(
             SellCreditMarketOnBehalfOfParams({
-                withCollectionParams: SellCreditMarketWithCollectionParams({
-                    params: SellCreditMarketParams({
-                        lender: alice,
-                        creditPositionId: RESERVED_ID,
-                        amount: 10e6,
-                        tenor: 5 days,
-                        maxAPR: type(uint256).max,
-                        deadline: block.timestamp,
-                        exactAmountIn: false
-                    }),
+                params: SellCreditMarketParams({
+                    lender: alice,
+                    creditPositionId: RESERVED_ID,
+                    amount: 10e6,
+                    tenor: 5 days,
+                    maxAPR: type(uint256).max,
+                    deadline: block.timestamp,
+                    exactAmountIn: false,
                     collectionId: collectionId,
                     rateProvider: bob
                 }),
@@ -697,16 +684,14 @@ contract CollectionsTest is BaseTest {
         vm.prank(candy);
         size.sellCreditMarketOnBehalfOf(
             SellCreditMarketOnBehalfOfParams({
-                withCollectionParams: SellCreditMarketWithCollectionParams({
-                    params: SellCreditMarketParams({
-                        lender: alice,
-                        creditPositionId: RESERVED_ID,
-                        amount: 10e6,
-                        tenor: 5 days,
-                        maxAPR: type(uint256).max,
-                        deadline: block.timestamp,
-                        exactAmountIn: false
-                    }),
+                params: SellCreditMarketParams({
+                    lender: alice,
+                    creditPositionId: RESERVED_ID,
+                    amount: 10e6,
+                    tenor: 5 days,
+                    maxAPR: type(uint256).max,
+                    deadline: block.timestamp,
+                    exactAmountIn: false,
                     collectionId: collectionId,
                     rateProvider: bob
                 }),

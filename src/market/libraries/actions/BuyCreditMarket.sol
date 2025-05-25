@@ -31,11 +31,6 @@ struct BuyCreditMarketParams {
     uint256 minAPR;
     // Whether amount means cash or credit
     bool exactAmountIn;
-}
-
-struct BuyCreditMarketWithCollectionParams {
-    // The parameters for buying credit as a market order
-    BuyCreditMarketParams params;
     // The collection Id (introduced in v1.8)
     // If collectionId is RESERVED_ID, selects the user-defined yield curve
     uint256 collectionId;
@@ -45,8 +40,8 @@ struct BuyCreditMarketWithCollectionParams {
 }
 
 struct BuyCreditMarketOnBehalfOfParams {
-    // The parameters for the buy credit market order using a collection and rate provider
-    BuyCreditMarketWithCollectionParams withCollectionParams;
+    // The parameters for the buy credit market order
+    BuyCreditMarketParams params;
     // The account to transfer the cash from
     address onBehalfOf;
     // The account to transfer the credit to
@@ -83,8 +78,7 @@ library BuyCreditMarket {
         external
         view
     {
-        BuyCreditMarketWithCollectionParams memory withCollectionParams = externalParams.withCollectionParams;
-        BuyCreditMarketParams memory params = withCollectionParams.params;
+        BuyCreditMarketParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
         address recipient = externalParams.recipient;
 
@@ -148,9 +142,7 @@ library BuyCreditMarket {
         }
 
         // validate minAPR
-        uint256 borrowAPR = state.getBorrowOfferAPR(
-            borrower, withCollectionParams.collectionId, withCollectionParams.rateProvider, tenor
-        );
+        uint256 borrowAPR = state.getBorrowOfferAPR(borrower, params.collectionId, params.rateProvider, tenor);
         if (borrowAPR < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(borrowAPR, params.minAPR);
         }
@@ -170,15 +162,13 @@ library BuyCreditMarket {
 
     /// @notice Gets the swap data for buying credit as a market order
     /// @param state The state
-    /// @param withCollectionParams The input parameters for buying credit as a market order
+    /// @param params The input parameters for buying credit as a market order
     /// @return swapData The swap data for buying credit as a market order
-    function getSwapData(State storage state, BuyCreditMarketWithCollectionParams memory withCollectionParams)
+    function getSwapData(State storage state, BuyCreditMarketParams memory params)
         public
         view
         returns (SwapDataBuyCreditMarket memory swapData)
     {
-        BuyCreditMarketParams memory params = withCollectionParams.params;
-
         if (params.creditPositionId == RESERVED_ID) {
             swapData.borrower = params.borrower;
             swapData.tenor = params.tenor;
@@ -191,7 +181,7 @@ library BuyCreditMarket {
         }
 
         uint256 ratePerTenor = state.getBorrowOfferRatePerTenor(
-            swapData.borrower, withCollectionParams.collectionId, withCollectionParams.rateProvider, swapData.tenor
+            swapData.borrower, params.collectionId, params.rateProvider, swapData.tenor
         );
 
         if (params.exactAmountIn) {
@@ -226,8 +216,7 @@ library BuyCreditMarket {
     function executeBuyCreditMarket(State storage state, BuyCreditMarketOnBehalfOfParams calldata externalParams)
         external
     {
-        BuyCreditMarketWithCollectionParams memory withCollectionParams = externalParams.withCollectionParams;
-        BuyCreditMarketParams memory params = withCollectionParams.params;
+        BuyCreditMarketParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
         address recipient = externalParams.recipient;
 
@@ -242,11 +231,11 @@ library BuyCreditMarket {
             params.deadline,
             params.minAPR,
             params.exactAmountIn,
-            withCollectionParams.collectionId,
-            withCollectionParams.rateProvider
+            params.collectionId,
+            params.rateProvider
         );
 
-        SwapDataBuyCreditMarket memory swapData = getSwapData(state, withCollectionParams);
+        SwapDataBuyCreditMarket memory swapData = getSwapData(state, params);
 
         if (params.creditPositionId == RESERVED_ID) {
             // slither-disable-next-line unused-return

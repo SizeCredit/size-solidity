@@ -42,7 +42,9 @@ contract BuyCreditMarketTest is BaseTest {
                 tenor: tenor,
                 deadline: deadline,
                 minAPR: 0,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -56,7 +58,9 @@ contract BuyCreditMarketTest is BaseTest {
                 tenor: tenor,
                 deadline: deadline,
                 minAPR: 0,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -69,7 +73,9 @@ contract BuyCreditMarketTest is BaseTest {
                 tenor: tenor,
                 deadline: deadline,
                 minAPR: 0,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -86,7 +92,9 @@ contract BuyCreditMarketTest is BaseTest {
                 tenor: 0,
                 deadline: deadline,
                 minAPR: 0,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -105,7 +113,9 @@ contract BuyCreditMarketTest is BaseTest {
                 tenor: 365 days,
                 deadline: deadline,
                 minAPR: 0,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -121,7 +131,9 @@ contract BuyCreditMarketTest is BaseTest {
                 tenor: type(uint256).max,
                 deadline: deadline,
                 minAPR: 0,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -135,7 +147,9 @@ contract BuyCreditMarketTest is BaseTest {
                 tenor: 4 days,
                 deadline: deadline,
                 minAPR: 0,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
         vm.stopPrank();
@@ -150,7 +164,9 @@ contract BuyCreditMarketTest is BaseTest {
                 tenor: 10 days,
                 deadline: deadline - 1,
                 minAPR: 0,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
         vm.stopPrank();
@@ -167,7 +183,9 @@ contract BuyCreditMarketTest is BaseTest {
                 tenor: 365 days,
                 deadline: deadline,
                 minAPR: apr + 1,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
         vm.stopPrank();
@@ -194,7 +212,9 @@ contract BuyCreditMarketTest is BaseTest {
                 tenor: 365 days,
                 deadline: block.timestamp,
                 minAPR: 0,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
         vm.stopPrank();
@@ -218,7 +238,9 @@ contract BuyCreditMarketTest is BaseTest {
                 tenor: 120 days,
                 deadline: block.timestamp,
                 minAPR: 0,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
     }

@@ -84,7 +84,9 @@ contract GetCalldataScript is Script {
                         amount: 1000e6,
                         deadline: type(uint256).max,
                         maxAPR: type(uint256).max,
-                        exactAmountIn: false
+                        exactAmountIn: false,
+                        collectionId: RESERVED_ID,
+                        rateProvider: address(0)
                     })
                 )
             )

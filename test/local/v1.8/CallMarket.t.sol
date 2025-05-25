@@ -29,8 +29,7 @@ import {
 } from "@src/market/libraries/actions/Initialize.sol";
 import {
     SellCreditMarketOnBehalfOfParams,
-    SellCreditMarketParams,
-    SellCreditMarketWithCollectionParams
+    SellCreditMarketParams
 } from "@src/market/libraries/actions/SellCreditMarket.sol";
 import {
     SetUserConfigurationOnBehalfOfParams,
@@ -111,16 +110,14 @@ contract CallMarketTest is BaseTest {
                     ISizeV1_7.sellCreditMarketOnBehalfOf,
                     (
                         SellCreditMarketOnBehalfOfParams({
-                            withCollectionParams: SellCreditMarketWithCollectionParams({
-                                params: SellCreditMarketParams({
-                                    lender: alice,
-                                    creditPositionId: RESERVED_ID,
-                                    amount: usdcAmount,
-                                    tenor: tenor,
-                                    deadline: block.timestamp,
-                                    maxAPR: type(uint256).max,
-                                    exactAmountIn: false
-                                }),
+                            params: SellCreditMarketParams({
+                                lender: alice,
+                                creditPositionId: RESERVED_ID,
+                                amount: usdcAmount,
+                                tenor: tenor,
+                                deadline: block.timestamp,
+                                maxAPR: type(uint256).max,
+                                exactAmountIn: false,
                                 collectionId: RESERVED_ID,
                                 rateProvider: address(0)
                             }),
@@ -154,16 +151,14 @@ contract CallMarketTest is BaseTest {
                     ISizeV1_7.sellCreditMarketOnBehalfOf,
                     (
                         SellCreditMarketOnBehalfOfParams({
-                            withCollectionParams: SellCreditMarketWithCollectionParams({
-                                params: SellCreditMarketParams({
-                                    lender: alice,
-                                    creditPositionId: RESERVED_ID,
-                                    amount: usdcAmount,
-                                    tenor: tenor,
-                                    deadline: block.timestamp,
-                                    maxAPR: type(uint256).max,
-                                    exactAmountIn: false
-                                }),
+                            params: SellCreditMarketParams({
+                                lender: alice,
+                                creditPositionId: RESERVED_ID,
+                                amount: usdcAmount,
+                                tenor: tenor,
+                                deadline: block.timestamp,
+                                maxAPR: type(uint256).max,
+                                exactAmountIn: false,
                                 collectionId: RESERVED_ID,
                                 rateProvider: address(0)
                             }),

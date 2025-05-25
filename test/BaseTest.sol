@@ -230,7 +230,9 @@ contract BaseTest is Test, Deploy, AssertsHelper {
                 tenor: tenor,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
         (uint256 debtPositionsCount,) = size.getPositionsCount();
@@ -335,7 +337,9 @@ contract BaseTest is Test, Deploy, AssertsHelper {
                 amount: amount,
                 exactAmountIn: exactAmountIn,
                 deadline: block.timestamp,
-                minAPR: 0
+                minAPR: 0,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -409,7 +413,9 @@ contract BaseTest is Test, Deploy, AssertsHelper {
                 borrower: borrower,
                 minimumCollateralProfit: minimumCollateralProfit,
                 deadline: block.timestamp,
-                minAPR: 0
+                minAPR: 0,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
     }

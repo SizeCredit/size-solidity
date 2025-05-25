@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {Size} from "@src/market/Size.sol";
 import {Logger} from "@test/Logger.sol";
 
-import {DebtPosition} from "@src/market/libraries/LoanLibrary.sol";
+import {DebtPosition, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 import {LiquidateWithReplacementParams} from "@src/market/libraries/actions/LiquidateWithReplacement.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
@@ -34,7 +34,9 @@ contract LiquidateWithReplacementScript is Script, Logger {
             minAPR: apr,
             deadline: block.timestamp,
             borrower: borrower,
-            minimumCollateralProfit: minimumCollateralProfit
+            minimumCollateralProfit: minimumCollateralProfit,
+            collectionId: RESERVED_ID,
+            rateProvider: address(0)
         });
 
         vm.startBroadcast(deployerPrivateKey);

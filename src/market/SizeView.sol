@@ -28,16 +28,14 @@ import {ISizeViewV1_8} from "@src/market/interfaces/v1.8/ISizeViewV1_8.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {LimitOrder, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
 
-import {BuyCreditMarket, BuyCreditMarketWithCollectionParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
+import {BuyCreditMarket, BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {
     InitializeDataParams,
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/market/libraries/actions/Initialize.sol";
-import {
-    SellCreditMarket, SellCreditMarketWithCollectionParams
-} from "@src/market/libraries/actions/SellCreditMarket.sol";
+import {SellCreditMarket, SellCreditMarketParams} from "@src/market/libraries/actions/SellCreditMarket.sol";
 
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {ISizeViewV1_7} from "@src/market/interfaces/v1.7/ISizeViewV1_7.sol";
@@ -195,21 +193,21 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     /// @inheritdoc ISizeView
-    function getBuyCreditMarketSwapData(BuyCreditMarketWithCollectionParams memory withCollectionParams)
+    function getBuyCreditMarketSwapData(BuyCreditMarketParams memory params)
         external
         view
         returns (BuyCreditMarket.SwapDataBuyCreditMarket memory)
     {
-        return BuyCreditMarket.getSwapData(state, withCollectionParams);
+        return BuyCreditMarket.getSwapData(state, params);
     }
 
     /// @inheritdoc ISizeView
-    function getSellCreditMarketSwapData(SellCreditMarketWithCollectionParams memory withCollectionParams)
+    function getSellCreditMarketSwapData(SellCreditMarketParams memory params)
         external
         view
         returns (SellCreditMarket.SwapDataSellCreditMarket memory)
     {
-        return SellCreditMarket.getSwapData(state, withCollectionParams);
+        return SellCreditMarket.getSwapData(state, params);
     }
 
     /// @inheritdoc ISizeView

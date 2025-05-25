@@ -27,11 +27,6 @@ struct LiquidateWithReplacementParams {
     uint256 deadline;
     // The minimum APR for the loan
     uint256 minAPR;
-}
-
-struct LiquidateWithReplacementWithCollectionParams {
-    // The parameters for liquidating a debt position with a replacement borrower
-    LiquidateWithReplacementParams params;
     // The collection Id (introduced in v1.8)
     // If collectionId is RESERVED_ID, selects the user-defined yield curve
     uint256 collectionId;
@@ -55,12 +50,11 @@ library LiquidateWithReplacement {
 
     /// @notice Validates the input parameters for liquidating a debt position with a replacement borrower
     /// @param state The state
-    /// @param withCollectionParams The input parameters for liquidating a debt position with a replacement borrower
-    function validateLiquidateWithReplacement(
-        State storage state,
-        LiquidateWithReplacementWithCollectionParams calldata withCollectionParams
-    ) external view {
-        LiquidateWithReplacementParams memory params = withCollectionParams.params;
+    /// @param params The input parameters for liquidating a debt position with a replacement borrower
+    function validateLiquidateWithReplacement(State storage state, LiquidateWithReplacementParams calldata params)
+        external
+        view
+    {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
 
         // validate liquidate
@@ -127,14 +121,13 @@ library LiquidateWithReplacement {
 
     /// @notice Executes the liquidation of a debt position with a replacement borrower
     /// @param state The state
-    /// @param withCollectionParams The input parameters for liquidating a debt position with a replacement borrower
+    /// @param params The input parameters for liquidating a debt position with a replacement borrower
     /// @return liquidatorProfitCollateralToken The profit in collateral tokens expected by the liquidator
     /// @return liquidatorProfitBorrowToken The profit in borrow tokens expected by the liquidator
-    function executeLiquidateWithReplacement(
-        State storage state,
-        LiquidateWithReplacementWithCollectionParams calldata withCollectionParams
-    ) external returns (uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken) {
-        LiquidateWithReplacementParams memory params = withCollectionParams.params;
+    function executeLiquidateWithReplacement(State storage state, LiquidateWithReplacementParams calldata params)
+        external
+        returns (uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken)
+    {
         emit Events.LiquidateWithReplacement(
             msg.sender,
             params.debtPositionId,
@@ -142,8 +135,8 @@ library LiquidateWithReplacement {
             params.minimumCollateralProfit,
             params.deadline,
             params.minAPR,
-            withCollectionParams.collectionId,
-            withCollectionParams.rateProvider
+            params.collectionId,
+            params.rateProvider
         );
 
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
@@ -158,9 +151,8 @@ library LiquidateWithReplacement {
             })
         );
 
-        uint256 ratePerTenor = state.getBorrowOfferRatePerTenor(
-            params.borrower, withCollectionParams.collectionId, withCollectionParams.rateProvider, tenor
-        );
+        uint256 ratePerTenor =
+            state.getBorrowOfferRatePerTenor(params.borrower, params.collectionId, params.rateProvider, tenor);
         uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.futureValue, PERCENT, PERCENT + ratePerTenor);
         liquidatorProfitBorrowToken = debtPositionCopy.futureValue - issuanceValue;
 
