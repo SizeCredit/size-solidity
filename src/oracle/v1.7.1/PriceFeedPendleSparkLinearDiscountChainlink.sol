@@ -27,7 +27,6 @@ contract PriceFeedPendleSparkLinearDiscountChainlink is IPriceFeedV1_7_1 {
     uint256 public constant decimals = 18;
     PendleSparkLinearDiscountOracle public immutable ptToUnderlyingPriceFeed;
     ChainlinkPriceFeed public immutable underlyingToQuotePriceFeed;
-
     /* solhint-enable */
 
     constructor(
