@@ -22,6 +22,16 @@ import {IMorphoChainlinkOracleV2} from "@src/oracle/adapters/morpho/IMorphoChain
 import {PriceFeedMorphoChainlinkOracleV2} from "@src/oracle/v1.7.1/PriceFeedMorphoChainlinkOracleV2.sol";
 import {Tenderly} from "@tenderly-utils/Tenderly.sol";
 
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
+import {PendleChainlinkOracle} from "@pendle/contracts/oracles/PtYtLpOracle/chainlink/PendleChainlinkOracle.sol";
+import {PendleSparkLinearDiscountOracle} from "@pendle/contracts/oracles/internal/PendleSparkLinearDiscountOracle.sol";
+import {PriceFeedPendleSparkLinearDiscountChainlink} from
+    "@src/oracle/v1.7.1/PriceFeedPendleSparkLinearDiscountChainlink.sol";
+import {PriceFeedPendleTWAPChainlink} from "@src/oracle/v1.7.2/PriceFeedPendleTWAPChainlink.sol";
+
 import {console} from "forge-std/console.sol";
 
 contract ProposeSafeTxDeployPTMarketsScript is BaseScript, Networks {
@@ -51,37 +61,85 @@ contract ProposeSafeTxDeployPTMarketsScript is BaseScript, Networks {
         _;
     }
 
-    function run() external parseEnv ignoreGas {
-        (IPriceFeed priceFeed,, IERC20Metadata baseToken,) = priceFeedMorphoPtSusde29May2025UsdcMainnet();
+    function run() external parseEnv deleteVirtualTestnets {
+        vm.startBroadcast();
 
-        address weth = contracts[block.chainid][Contract.WETH];
+        (
+            PendleSparkLinearDiscountOracle pendleOracle,
+            AggregatorV3Interface underlyingChainlinkOracle,
+            AggregatorV3Interface quoteChainlinkOracle,
+            uint256 underlyingStalePriceInterval,
+            uint256 quoteStalePriceInterval,
+            IERC20Metadata baseToken,
+        ) = priceFeedPendleChainlinkPtSusde30July2025UsdcMainnet();
+
+        PriceFeedPendleSparkLinearDiscountChainlink ptSusde30July2025UsdcPriceFeed = new PriceFeedPendleSparkLinearDiscountChainlink(
+            pendleOracle,
+            underlyingChainlinkOracle,
+            quoteChainlinkOracle,
+            underlyingStalePriceInterval,
+            quoteStalePriceInterval
+        );
+
+        console.log("ptSusde30July2025UsdcPriceFeed", address(ptSusde30July2025UsdcPriceFeed));
+        console.log("ptSusde30July2025UsdcPriceFeed price", ptSusde30July2025UsdcPriceFeed.getPrice());
+
+        (
+            PendleChainlinkOracle pendleOracle2,
+            AggregatorV3Interface underlyingChainlinkOracle2,
+            AggregatorV3Interface quoteChainlinkOracle2,
+            uint256 underlyingStalePriceInterval2,
+            uint256 quoteStalePriceInterval2,
+            IERC20Metadata baseToken2,
+        ) = priceFeedPendleChainlinkWstusrUsdc24Sep2025Mainnet();
+
+        PriceFeedPendleTWAPChainlink wstusrUsdc24Sep2025PriceFeed = new PriceFeedPendleTWAPChainlink(
+            pendleOracle2,
+            underlyingChainlinkOracle2,
+            quoteChainlinkOracle2,
+            underlyingStalePriceInterval2,
+            quoteStalePriceInterval2
+        );
+
+        console.log("wstusrUsdc24Sep2025PriceFeed", address(wstusrUsdc24Sep2025PriceFeed));
+        console.log("wstusrUsdc24Sep2025PriceFeed price", wstusrUsdc24Sep2025PriceFeed.getPrice());
+
+        vm.stopBroadcast();
 
         ISize market = sizeFactory.getMarket(0);
         InitializeFeeConfigParams memory feeConfigParams = market.feeConfig();
 
-        InitializeRiskConfigParams memory riskConfigParams = market.riskConfig();
+        InitializeRiskConfigParams memory riskConfigParams = market.riskConfig(); // crOpening, crLiquidation replaced below
         riskConfigParams.crOpening = 1.12e18;
         riskConfigParams.crLiquidation = 1.09e18;
 
-        InitializeOracleParams memory oracleParams = market.oracle();
-        oracleParams.priceFeed = address(priceFeed);
+        InitializeOracleParams memory oracleParams = market.oracle(); // priceFeed replaced below
 
         DataView memory dataView = market.data();
         InitializeDataParams memory dataParams = InitializeDataParams({
-            weth: weth,
-            underlyingCollateralToken: address(baseToken),
+            weth: contracts[block.chainid][Contract.WETH],
+            underlyingCollateralToken: address(0), // underlyingCollateralToken replaced below
             underlyingBorrowToken: address(dataView.underlyingBorrowToken),
             variablePool: address(dataView.variablePool),
             borrowATokenV1_5: address(dataView.borrowAToken),
             sizeFactory: address(sizeFactory)
         });
-        bytes memory data =
+        bytes[] memory datas = new bytes[](2);
+        oracleParams.priceFeed = address(ptSusde30July2025UsdcPriceFeed);
+        dataParams.underlyingCollateralToken = address(baseToken);
+        datas[0] =
             abi.encodeCall(ISizeFactory.createMarket, (feeConfigParams, riskConfigParams, oracleParams, dataParams));
-        address to = address(sizeFactory);
-        safe.proposeTransaction(to, data, signer, derivationPath);
-        Tenderly.VirtualTestnet memory vnet = tenderly.createVirtualTestnet("pt-markets-vnet", block.chainid);
-        bytes memory execTransactionData = safe.getExecTransactionData(to, data, signer, derivationPath);
+        oracleParams.priceFeed = address(wstusrUsdc24Sep2025PriceFeed);
+        dataParams.underlyingCollateralToken = address(baseToken2);
+        datas[1] =
+            abi.encodeCall(ISizeFactory.createMarket, (feeConfigParams, riskConfigParams, oracleParams, dataParams));
+        address[] memory targets = new address[](2);
+        targets[0] = address(sizeFactory);
+        targets[1] = address(sizeFactory);
+        safe.proposeTransactions(targets, datas, signer, derivationPath);
+        Tenderly.VirtualTestnet memory vnet = tenderly.createVirtualTestnet("pt-markets-2-vnet", block.chainid);
+        bytes memory execTransactionsData = safe.getExecTransactionsData(targets, datas, signer, derivationPath);
         tenderly.setStorageAt(vnet, safe.instance().safe, bytes32(uint256(4)), bytes32(uint256(1)));
-        tenderly.sendTransaction(vnet.id, signer, safe.instance().safe, execTransactionData);
+        tenderly.sendTransaction(vnet.id, signer, safe.instance().safe, execTransactionsData);
     }
 }
