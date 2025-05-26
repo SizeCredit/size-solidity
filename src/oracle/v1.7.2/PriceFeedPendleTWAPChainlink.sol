@@ -5,34 +5,36 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {PendlePrincipalToken} from "@pendle/contracts/core/YieldContracts/PendlePrincipalToken.sol";
+
+import {IPMarket} from "@pendle/contracts/interfaces/IPMarket.sol";
+import {IPPrincipalToken} from "@pendle/contracts/interfaces/IPPrincipalToken.sol";
 import {IStandardizedYield} from "@pendle/contracts/interfaces/IStandardizedYield.sol";
-import {PendleSparkLinearDiscountOracle} from "@pendle/contracts/oracles/internal/PendleSparkLinearDiscountOracle.sol";
+
+import {PendleChainlinkOracle} from "@pendle/contracts/oracles/PtYtLpOracle/chainlink/PendleChainlinkOracle.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 
 import {Math} from "@src/market/libraries/Math.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {ChainlinkPriceFeed} from "@src/oracle/adapters/ChainlinkPriceFeed.sol";
-import {IPriceFeedV1_7_1} from "@src/oracle/v1.7.1/IPriceFeedV1_7_1.sol";
+import {IPriceFeedV1_7_2} from "@src/oracle/v1.7.2/IPriceFeedV1_7_2.sol";
 
-/// @title PriceFeedPendleChainlink
+/// @title PriceFeedPendleTWAPChainlink
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice A contract that provides the price of a `base` PT asset in terms of a `quote` asset, scaled to 18 decimals,
 ///           using a Pendle oracle for the `base` to `underlying` asset and a ChainlinkPriceFeed for the `underlying` to `quote` asset
 ///         Note: this price feed is supposed to be only used on mainnet
 /// @dev `decimals` must be 18 to comply with Size contracts
-contract PriceFeedPendleChainlink is IPriceFeedV1_7_1 {
-    // slither-disable-start uninitialized-state
+contract PriceFeedPendleTWAPChainlink is IPriceFeedV1_7_2 {
     /* solhint-disable */
     uint256 public constant decimals = 18;
-    PendleSparkLinearDiscountOracle public immutable ptToUnderlyingPriceFeed;
+    PendleChainlinkOracle public immutable ptToUnderlyingPriceFeed;
     ChainlinkPriceFeed public immutable underlyingToQuotePriceFeed;
-    // slither-disable-end uninitialized-state
+
     /* solhint-enable */
 
     constructor(
-        PendleSparkLinearDiscountOracle _pendleOracle,
+        PendleChainlinkOracle _pendleOracle,
         AggregatorV3Interface _underlyingChainlinkOracle,
         AggregatorV3Interface _quoteChainlinkOracle,
         uint256 _underlyingStalePriceInterval,
@@ -63,13 +65,14 @@ contract PriceFeedPendleChainlink is IPriceFeedV1_7_1 {
     }
 
     function description() external view override returns (string memory) {
-        PendlePrincipalToken pt = PendlePrincipalToken(ptToUnderlyingPriceFeed.PT());
-        IStandardizedYield sy = IStandardizedYield(pt.SY());
+        IPMarket market = IPMarket(ptToUnderlyingPriceFeed.market());
+        // slither-disable-next-line unused-return
+        (IStandardizedYield sy, IPPrincipalToken pt,) = market.readTokens();
         // slither-disable-next-line unused-return
         (, address asset,) = sy.assetInfo();
         IERC20Metadata underlying = IERC20Metadata(asset);
         return string.concat(
-            "PriceFeedPendleChainlink | (",
+            "PriceFeedPendleTWAPChainlink | (",
             pt.symbol(),
             "/",
             underlying.symbol(),
