@@ -362,7 +362,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
 
     /// @inheritdoc ISize
     function liquidateWithReplacement(LiquidateWithReplacementParams calldata params)
-        public
+        external
         payable
         override(ISize)
         whenNotPaused
