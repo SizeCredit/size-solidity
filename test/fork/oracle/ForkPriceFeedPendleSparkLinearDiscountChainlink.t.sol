@@ -9,7 +9,8 @@ import {PendleSparkLinearDiscountOracle} from "@pendle/contracts/oracles/interna
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {PriceFeedPendleChainlink} from "@src/oracle/v1.7.1/PriceFeedPendleChainlink.sol";
+import {PriceFeedPendleSparkLinearDiscountChainlink} from
+    "@src/oracle/v1.7.1/PriceFeedPendleSparkLinearDiscountChainlink.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {ForkTest} from "@test/fork/ForkTest.sol";
 
@@ -18,8 +19,8 @@ import {console} from "forge-std/console.sol";
 
 import {Networks} from "@script/Networks.sol";
 
-contract ForkPriceFeedPendleChainlinkTest is ForkTest, Networks {
-    PriceFeedPendleChainlink public priceFeedPendleChainlink;
+contract ForkPriceFeedPendleSparkLinearDiscountChainlinkTest is ForkTest, Networks {
+    PriceFeedPendleSparkLinearDiscountChainlink public priceFeedPendleChainlink;
 
     function setUp() public override(ForkTest) {
         super.setUp();
@@ -38,7 +39,7 @@ contract ForkPriceFeedPendleChainlinkTest is ForkTest, Networks {
             ,
         ) = priceFeedPendleChainlink29May2025UsdcMainnet();
 
-        priceFeedPendleChainlink = new PriceFeedPendleChainlink(
+        priceFeedPendleChainlink = new PriceFeedPendleSparkLinearDiscountChainlink(
             pendleOracle,
             underlyingChainlinkOracle,
             quoteChainlinkOracle,
@@ -47,15 +48,15 @@ contract ForkPriceFeedPendleChainlinkTest is ForkTest, Networks {
         );
     }
 
-    function testFork_ForkPriceFeedPendleChainlink_getPrice() public view {
+    function testFork_ForkPriceFeedPendleSparkLinearDiscountChainlink_getPrice() public view {
         uint256 price = priceFeedPendleChainlink.getPrice();
         assertEqApprox(price, 0.972e18, 0.001e18);
     }
 
-    function testFork_ForkPriceFeedPendleChainlink_description() public view {
+    function testFork_ForkPriceFeedPendleSparkLinearDiscountChainlink_description() public view {
         assertEq(
             priceFeedPendleChainlink.description(),
-            "PriceFeedPendleChainlink | (PT-sUSDE-29MAY2025/USDe) * ((USDe / USD)/(USDC / USD))"
+            "PriceFeedPendleSparkLinearDiscountChainlink | (PT-sUSDE-29MAY2025/USDe) * ((USDe / USD)/(USDC / USD))"
         );
     }
 }
