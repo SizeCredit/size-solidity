@@ -76,6 +76,16 @@ contract ForkVaultsTest is ForkTest, Networks {
         assertEq(usdc.balanceOf(alice), 100e6);
     }
 
+    function testFuzzFork_ForkVaults_aave_deposit_withdraw(uint256 amount) public {
+        amount = bound(amount, 1e6, 100e6);
+        _deposit(alice, usdc, 2 * amount);
+        _withdraw(alice, usdc, amount);
+    }
+
+    function testFork_ForkVaults_aave_deposit_withdraw_concrete() public {
+        testFuzzFork_ForkVaults_aave_deposit_withdraw(978402975432085823771835641085079416658343680694610975968609);
+    }
+
     function testFork_ForkVaults_eUSDC22() public {
         NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
 

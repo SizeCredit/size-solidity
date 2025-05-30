@@ -94,7 +94,7 @@ contract AaveAdapter is Ownable, IAdapter {
         tokenVault.requestApprove(DEFAULT_VAULT, amount);
         IERC20Metadata(address(aToken)).safeTransferFrom(address(tokenVault), address(this), amount);
         // slither-disable-next-line unused-return
-        aavePool.withdraw(address(underlyingToken), amount, to);
+        aavePool.withdraw(address(underlyingToken), type(uint256).max, to);
 
         uint256 shares = vars.sharesBefore - aToken.scaledBalanceOf(address(tokenVault));
         assets = _unscale(vault, shares);
