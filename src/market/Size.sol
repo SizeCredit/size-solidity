@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -79,6 +80,7 @@ import {IMulticall} from "@src/market/interfaces/IMulticall.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {ISizeAdmin} from "@src/market/interfaces/ISizeAdmin.sol";
 import {ISizeV1_7} from "@src/market/interfaces/v1.7/ISizeV1_7.sol";
+import {ISizeV1_8} from "@src/market/interfaces/v1.8/ISizeV1_8.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 
 import {
@@ -89,7 +91,15 @@ import {
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice See the documentation in {ISize}.
-contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, PausableUpgradeable, UUPSUpgradeable {
+contract Size is
+    ISize,
+    SizeView,
+    Initializable,
+    AccessControlUpgradeable,
+    PausableUpgradeable,
+    ReentrancyGuardUpgradeable,
+    UUPSUpgradeable
+{
     using Initialize for State;
     using UpdateConfig for State;
     using Deposit for State;
@@ -126,6 +136,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
 
         __AccessControl_init();
         __Pausable_init();
+        __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 
         state.executeInitialize(f, r, o, d);
@@ -133,6 +144,11 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         _grantRole(PAUSER_ROLE, owner);
         _grantRole(KEEPER_ROLE, owner);
         _grantRole(BORROW_RATE_UPDATER_ROLE, owner);
+    }
+
+    /// @inheritdoc ISizeV1_8
+    function reinitialize() external onlyRole(DEFAULT_ADMIN_ROLE) reinitializer(1_08_00) {
+        __ReentrancyGuard_init();
     }
 
     function _hasRole(bytes32 role, address account) internal view returns (bool) {
@@ -172,6 +188,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     function updateConfig(UpdateConfigParams calldata params)
         external
         override(ISizeAdmin)
+        nonReentrant
         onlyRoleOrSizeFactoryHasRole(DEFAULT_ADMIN_ROLE)
     {
         state.validateUpdateConfig(params);
@@ -182,6 +199,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     function setVariablePoolBorrowRate(uint128 borrowRate)
         external
         override(ISizeAdmin)
+        nonReentrant
         onlyRoleOrSizeFactoryHasRole(BORROW_RATE_UPDATER_ROLE)
     {
         uint128 oldBorrowRate = state.oracle.variablePoolBorrowRate;
@@ -191,12 +209,12 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISizeAdmin
-    function pause() public override(ISizeAdmin) onlyRoleOrSizeFactoryHasRole(PAUSER_ROLE) {
+    function pause() public override(ISizeAdmin) nonReentrant onlyRoleOrSizeFactoryHasRole(PAUSER_ROLE) {
         _pause();
     }
 
     /// @inheritdoc ISizeAdmin
-    function unpause() public override(ISizeAdmin) onlyRoleOrSizeFactoryHasRole(PAUSER_ROLE) {
+    function unpause() public override(ISizeAdmin) nonReentrant onlyRoleOrSizeFactoryHasRole(PAUSER_ROLE) {
         _unpause();
     }
 
@@ -205,6 +223,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(IMulticall)
+        nonReentrant
         whenNotPaused
         returns (bytes[] memory results)
     {
@@ -221,6 +240,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
         state.validateDeposit(params);
@@ -237,6 +257,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
         state.validateWithdraw(externalParams);
@@ -253,6 +274,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
         state.validateBuyCreditLimit(externalParams);
@@ -269,6 +291,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
         state.validateSellCreditLimit(externalParams);
@@ -287,6 +310,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
         state.validateBuyCreditMarket(externalParams);
@@ -308,6 +332,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
         state.validateSellCreditMarket(externalParams);
@@ -318,13 +343,13 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function repay(RepayParams calldata params) external payable override(ISize) whenNotPaused {
+    function repay(RepayParams calldata params) external payable override(ISize) nonReentrant whenNotPaused {
         state.validateRepay(params);
         state.executeRepay(params);
     }
 
     /// @inheritdoc ISize
-    function claim(ClaimParams calldata params) external payable override(ISize) whenNotPaused {
+    function claim(ClaimParams calldata params) external payable override(ISize) nonReentrant whenNotPaused {
         state.validateClaim(params);
         state.executeClaim(params);
     }
@@ -334,6 +359,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         external
         payable
         override(ISize)
+        nonReentrant
         whenNotPaused
         returns (uint256 liquidatorProfitCollateralToken)
     {
@@ -354,6 +380,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
         state.validateSelfLiquidate(externalParams);
@@ -365,6 +392,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         external
         payable
         override(ISize)
+        nonReentrant
         whenNotPaused
         onlyRoleOrSizeFactoryHasRole(KEEPER_ROLE)
         returns (uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken)
@@ -385,6 +413,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
         mustImproveCollateralRatio(externalParams.onBehalfOf)
     {
@@ -393,7 +422,13 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function partialRepay(PartialRepayParams calldata params) external payable override(ISize) whenNotPaused {
+    function partialRepay(PartialRepayParams calldata params)
+        external
+        payable
+        override(ISize)
+        nonReentrant
+        whenNotPaused
+    {
         state.validatePartialRepay(params);
         state.executePartialRepay(params);
     }
@@ -408,6 +443,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
         state.validateSetUserConfiguration(externalParams);
@@ -424,6 +460,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
         state.validateCopyLimitOrders(externalParams);

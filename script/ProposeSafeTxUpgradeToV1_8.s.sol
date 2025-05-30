@@ -30,6 +30,7 @@ import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
 
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {ISizeV1_8} from "@src/market/interfaces/v1.8/ISizeV1_8.sol";
 
 contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
     using Tenderly for *;
@@ -132,10 +133,13 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         targets = new address[](markets.length + 2);
         datas = new bytes[](markets.length + 2);
 
-        // Size.upgradeToAndCall(v1_8, 0x) for all markets
+        // Size.upgradeToAndCall(v1_8, reinitialize) for all markets
         for (uint256 i = 0; i < markets.length; i++) {
             targets[i] = address(markets[i]);
-            datas[i] = abi.encodeCall(UUPSUpgradeable.upgradeToAndCall, (address(sizeV1_8Implementation), bytes("")));
+            datas[i] = abi.encodeCall(
+                UUPSUpgradeable.upgradeToAndCall,
+                (address(sizeV1_8Implementation), abi.encodeCall(ISizeV1_8.reinitialize, ()))
+            );
         }
 
         // NonTransferrableScaledTokenV1_5.upgradeToAndCall(v1_8, reinitialize(name, symbol))

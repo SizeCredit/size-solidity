@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
 import {PERCENT} from "@src/market/libraries/Math.sol";
@@ -28,10 +29,12 @@ import {ControlledAsyncDeposit} from "@ERC-7540-Reference/src/ControlledAsyncDep
 import {ControlledAsyncRedeem} from "@ERC-7540-Reference/src/ControlledAsyncRedeem.sol";
 import {FullyAsyncVault} from "@ERC-7540-Reference/src/FullyAsyncVault.sol";
 
+import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
 import {FeeOnEntryExitERC4626} from "@test/mocks/vaults/FeeOnEntryExitERC4626.sol";
 import {FeeOnTransferERC4626} from "@test/mocks/vaults/FeeOnTransferERC4626.sol";
 import {LimitsERC4626} from "@test/mocks/vaults/LimitsERC4626.sol";
 import {MaliciousERC4626} from "@test/mocks/vaults/MaliciousERC4626.sol";
+import {ReentrancyMaliciousERC4626} from "@test/mocks/vaults/ReentrancyMaliciousERC4626.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {Events} from "@src/market/libraries/Events.sol";
@@ -517,5 +520,39 @@ contract VaultsTest is BaseTest {
         borrowTokenVault.setAdapter(bytes32("ERC4626Adapter"), newAdapter);
 
         _withdraw(alice, usdc, type(uint256).max);
+    }
+
+    function test_Vaults_reentrancy_malicious_erc4626() public {
+        ReentrancyMaliciousERC4626 maliciousVault = new ReentrancyMaliciousERC4626(address(usdc), size, alice);
+        vm.label(address(maliciousVault), "ReentrancyMaliciousERC4626");
+
+        _setVaultAdapter(address(maliciousVault), "ERC4626Adapter");
+        _setAuthorization(alice, address(maliciousVault), Authorization.getActionsBitmap(Action.SET_USER_CONFIGURATION));
+        _setUserConfiguration(alice, address(maliciousVault), 1.5e18, false, false, new uint256[](0));
+        NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
+
+        uint256 bobBalance = 1_000_000e6;
+        uint256 aliceBalanceBefore = 1e6;
+
+        _deposit(bob, usdc, bobBalance);
+        assertEq(borrowTokenVault.vaultOf(bob), address(0), "bob vault is Aave");
+
+        _mint(address(usdc), alice, aliceBalanceBefore);
+        _approve(alice, address(usdc), address(size), aliceBalanceBefore);
+        vm.prank(alice);
+        vm.expectRevert(ReentrancyGuardUpgradeable.ReentrancyGuardReentrantCall.selector);
+        size.deposit(DepositParams({token: address(usdc), amount: aliceBalanceBefore, to: alice}));
+        assertEq(
+            borrowTokenVault.vaultOf(alice),
+            address(maliciousVault),
+            "alice vault is still ReentrancyMaliciousERC4626 (after nonReentrant addition)"
+        );
+
+        _withdraw(alice, usdc, bobBalance);
+        assertEq(
+            usdc.balanceOf(alice),
+            aliceBalanceBefore,
+            "alice did not drain the aave vault (after nonReentrant addition)"
+        );
     }
 }

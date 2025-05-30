@@ -34,6 +34,7 @@ import {SetUserConfigurationParams} from "@src/market/libraries/actions/SetUserC
 
 import {ISizeAdmin} from "@src/market/interfaces/ISizeAdmin.sol";
 import {ISizeV1_7} from "@src/market/interfaces/v1.7/ISizeV1_7.sol";
+import {ISizeV1_8} from "@src/market/interfaces/v1.8/ISizeV1_8.sol";
 
 string constant VERSION = "v1.7";
 
@@ -43,7 +44,7 @@ string constant VERSION = "v1.7";
 /// @notice This interface is the main interface for all user-facing methods of the Size protocol
 /// @dev All functions are `payable` to allow for ETH deposits in a `multicall` pattern.
 ///      See `Multicall.sol`
-interface ISize is ISizeView, ISizeAdmin, IMulticall, ISizeV1_7 {
+interface ISize is ISizeView, ISizeAdmin, IMulticall, ISizeV1_7, ISizeV1_8 {
     /// @notice Deposit underlying borrow/collateral tokens to the protocol (e.g. USDC, WETH)
     ///         Borrow tokens are always deposited into the Aave Variable Pool or User Vault
     ///         Collateral tokens are deposited into the Size contract
