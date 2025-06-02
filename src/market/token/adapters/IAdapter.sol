@@ -42,11 +42,6 @@ interface IAdapter {
     /// @param amount The amount of assets to transfer
     function transferFrom(address vault, address from, address to, uint256 amount) external;
 
-    /// @notice Returns the price per share of the vault
-    /// @param vault The address of the vault
-    /// @return The price per share of the vault, in RAY
-    function pricePerShare(address vault) external view returns (uint256);
-
     /// @notice Returns the asset of the vault
     /// @param vault The address of the vault
     /// @return The asset of the vault

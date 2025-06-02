@@ -116,11 +116,6 @@ contract ERC4626Adapter is Ownable, IAdapter {
     }
 
     /// @inheritdoc IAdapter
-    function pricePerShare(address vault) public view returns (uint256) {
-        return Math.mulDivDown(IERC4626(vault).totalAssets(), WadRayMath.RAY, IERC4626(vault).totalSupply());
-    }
-
-    /// @inheritdoc IAdapter
     function getAsset(address vault) external view returns (address) {
         return IERC4626(vault).asset();
     }

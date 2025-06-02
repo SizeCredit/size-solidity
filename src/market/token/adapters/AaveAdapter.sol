@@ -12,6 +12,8 @@ import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.so
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
+
+import {IAaveAdapter} from "@src/market/token/adapters/IAaveAdapter.sol";
 import {IAdapter} from "@src/market/token/adapters/IAdapter.sol";
 
 import {Math} from "@src/market/libraries/Math.sol";
@@ -19,7 +21,7 @@ import {
     DEFAULT_VAULT, NonTransferrableRebasingTokenVault
 } from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
-contract AaveAdapter is Ownable, IAdapter {
+contract AaveAdapter is Ownable, IAaveAdapter {
     using SafeERC20 for IERC20Metadata;
 
     struct Vars {
@@ -58,8 +60,8 @@ contract AaveAdapter is Ownable, IAdapter {
     }
 
     /// @inheritdoc IAdapter
-    function balanceOf(address vault, address account) public view returns (uint256) {
-        return _unscale(vault, tokenVault.sharesOf(account));
+    function balanceOf(address, /*vault*/ address account) public view returns (uint256) {
+        return _unscale(tokenVault.sharesOf(account));
     }
 
     /// @inheritdoc IAdapter
@@ -73,7 +75,7 @@ contract AaveAdapter is Ownable, IAdapter {
         aavePool.supply(address(underlyingToken), amount, address(tokenVault), 0);
 
         uint256 shares = aToken.scaledBalanceOf(address(tokenVault)) - vars.sharesBefore;
-        assets = _unscale(vault, shares);
+        assets = _unscale(shares);
 
         tokenVault.setSharesOf(to, vars.userSharesBefore + shares);
     }
@@ -95,7 +97,7 @@ contract AaveAdapter is Ownable, IAdapter {
         tokenVault.requestAaveWithdraw(amount, to);
 
         uint256 shares = vars.sharesBefore - aToken.scaledBalanceOf(address(tokenVault));
-        assets = _unscale(vault, shares);
+        assets = _unscale(shares);
 
         if (vars.userSharesBefore < shares) {
             revert IERC20Errors.ERC20InsufficientBalance(from, balanceOf(vault, from), amount);
@@ -115,7 +117,7 @@ contract AaveAdapter is Ownable, IAdapter {
             revert InsufficientTotalAssets(DEFAULT_VAULT, underlyingToken.balanceOf(address(aToken)), value);
         }
 
-        uint256 shares = Math.mulDivDown(value, WadRayMath.RAY, pricePerShare(vault));
+        uint256 shares = Math.mulDivDown(value, WadRayMath.RAY, liquidityIndex());
         if (tokenVault.sharesOf(from) < shares) {
             revert IERC20Errors.ERC20InsufficientBalance(from, balanceOf(vault, from), value);
         }
@@ -124,16 +126,16 @@ contract AaveAdapter is Ownable, IAdapter {
     }
 
     /// @inheritdoc IAdapter
-    function pricePerShare(address /*vault*/ ) public view returns (uint256) {
-        return aavePool.getReserveNormalizedIncome(address(underlyingToken));
-    }
-
-    /// @inheritdoc IAdapter
     function getAsset(address /*vault*/ ) external view returns (address) {
         return address(underlyingToken);
     }
 
-    function _unscale(address vault, uint256 scaledAmount) internal view returns (uint256) {
-        return Math.mulDivDown(scaledAmount, pricePerShare(vault), WadRayMath.RAY);
+    /// @inheritdoc IAaveAdapter
+    function liquidityIndex() public view returns (uint256) {
+        return aavePool.getReserveNormalizedIncome(address(underlyingToken));
+    }
+
+    function _unscale(uint256 scaledAmount) internal view returns (uint256) {
+        return Math.mulDivDown(scaledAmount, liquidityIndex(), WadRayMath.RAY);
     }
 }

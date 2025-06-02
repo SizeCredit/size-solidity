@@ -24,6 +24,7 @@ import {Math} from "@src/market/libraries/Math.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 
+import {IAaveAdapter} from "@src/market/token/adapters/IAaveAdapter.sol";
 import {IAdapter} from "@src/market/token/adapters/IAdapter.sol";
 
 address constant DEFAULT_VAULT = address(0);
@@ -370,8 +371,7 @@ contract NonTransferrableRebasingTokenVault is
     /// @notice Returns the current liquidity index of the variable pool
     /// @return The current liquidity index of the variable pool
     function liquidityIndex() public view returns (uint256) {
-        IAdapter adapter = getWhitelistedVaultAdapter(DEFAULT_VAULT);
-        return adapter.pricePerShare(DEFAULT_VAULT);
+        return IAaveAdapter(address(getWhitelistedVaultAdapter(DEFAULT_VAULT))).liquidityIndex();
     }
 
     /// @notice Returns true if the vault is whitelisted

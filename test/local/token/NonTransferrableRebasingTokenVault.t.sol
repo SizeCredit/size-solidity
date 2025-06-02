@@ -256,8 +256,6 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
 
         vm.prank(owner);
         token.setAdapter(bytes32("ERC4626Adapter"), adapter);
-
-        assertEq(adapter.pricePerShare(address(vault)), 1e27);
     }
 
     function test_NonTransferrableRebasingTokenVault_update_AaveAdapter() public {
@@ -274,8 +272,6 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
 
         vm.prank(owner);
         token.setAdapter(bytes32("AaveAdapter"), adapter);
-
-        assertEq(adapter.pricePerShare(address(vault)), 1e27);
     }
 
     function test_NonTransferrableRebasingTokenVault_setVault_1() public {
