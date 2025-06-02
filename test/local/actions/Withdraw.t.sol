@@ -119,6 +119,22 @@ contract WithdrawTest is BaseTest {
         assertEq(weth.balanceOf(address(bob)), valueWETH);
     }
 
+    function test_Withdraw_deposit_withdraw_setLiquidityIndex_identity_concrete_1() public {
+        testFuzz_Withdraw_deposit_withdraw_setLiquidityIndex_identity(
+            240665229787025923894969835986637711683438229369953462978482111214877,
+            546454498297902177490771418735938698675,
+            132329563862830725481443783215662050139893382
+        );
+    }
+
+    function test_Withdraw_deposit_withdraw_setLiquidityIndex_identity_concrete_2() public {
+        testFuzz_Withdraw_deposit_withdraw_setLiquidityIndex_identity(
+            1196298595841948479552798679702009011288196259,
+            274312389586062068567365074599156,
+            109707701498074119408543280622396094368556946982543638488679784803114946
+        );
+    }
+
     function test_Withdraw_user_cannot_withdraw_if_that_would_leave_them_underwater() public {
         _setPrice(1e18);
         _deposit(alice, usdc, 150e6);
@@ -249,7 +265,12 @@ contract WithdrawTest is BaseTest {
         _deposit(bob, usdc, 1_000e6);
         _setLiquidityIndex(index);
         _deposit(alice, usdc, 100e6);
-        _withdraw(alice, usdc, 100e6 + delta);
-        assertTrue(usdc.balanceOf(address(alice)) == 100e6 || usdc.balanceOf(address(alice)) == 100e6 - 1);
+        uint256 balance = size.data().borrowTokenVault.balanceOf(address(alice));
+        _withdraw(alice, usdc, balance + delta);
+        assertEqApprox(usdc.balanceOf(address(alice)), balance, 1);
+    }
+
+    function test_Withdraw_withdraw_more_than_balance_concrete() public {
+        testFuzz_Withdraw_withdraw_more_than_balance(1423333596818580790382976518983399804468545732669, 11916);
     }
 }

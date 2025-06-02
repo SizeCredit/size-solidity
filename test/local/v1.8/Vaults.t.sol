@@ -41,6 +41,11 @@ import {Events} from "@src/market/libraries/Events.sol";
 import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
 
 contract VaultsTest is BaseTest {
+    function setUp() public override {
+        super.setUp();
+        _deploySizeMarket2();
+    }
+
     function test_Vaults_borrower_vault_lender_aave() public {
         _deposit(alice, usdc, 200e6);
         _deposit(bob, weth, 100e18);
@@ -522,8 +527,42 @@ contract VaultsTest is BaseTest {
         _withdraw(alice, usdc, type(uint256).max);
     }
 
-    function test_Vaults_reentrancy_malicious_erc4626() public {
+    function test_Vaults_reentrancy_malicious_erc4626_same_market() public {
         ReentrancyMaliciousERC4626 maliciousVault = new ReentrancyMaliciousERC4626(address(usdc), size, alice);
+        vm.label(address(maliciousVault), "ReentrancyMaliciousERC4626");
+
+        _setVaultAdapter(address(maliciousVault), "ERC4626Adapter");
+        _setAuthorization(alice, address(maliciousVault), Authorization.getActionsBitmap(Action.SET_USER_CONFIGURATION));
+        _setUserConfiguration(alice, address(maliciousVault), 1.5e18, false, false, new uint256[](0));
+        NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
+
+        uint256 bobBalance = 1_000_000e6;
+        uint256 aliceBalanceBefore = 1e6;
+
+        _deposit(bob, usdc, bobBalance);
+        assertEq(borrowTokenVault.vaultOf(bob), address(0), "bob vault is Aave");
+
+        _mint(address(usdc), alice, aliceBalanceBefore);
+        _approve(alice, address(usdc), address(size), aliceBalanceBefore);
+        vm.prank(alice);
+        vm.expectRevert(ReentrancyGuardUpgradeable.ReentrancyGuardReentrantCall.selector);
+        size.deposit(DepositParams({token: address(usdc), amount: aliceBalanceBefore, to: alice}));
+        assertEq(
+            borrowTokenVault.vaultOf(alice),
+            address(maliciousVault),
+            "alice vault is still ReentrancyMaliciousERC4626 (after nonReentrant addition)"
+        );
+
+        _withdraw(alice, usdc, bobBalance);
+        assertEq(
+            usdc.balanceOf(alice),
+            aliceBalanceBefore,
+            "alice did not drain the aave vault (after nonReentrant addition)"
+        );
+    }
+
+    function test_Vaults_reentrancy_malicious_erc4626_multiple_markets() public {
+        ReentrancyMaliciousERC4626 maliciousVault = new ReentrancyMaliciousERC4626(address(usdc), size2, alice);
         vm.label(address(maliciousVault), "ReentrancyMaliciousERC4626");
 
         _setVaultAdapter(address(maliciousVault), "ERC4626Adapter");

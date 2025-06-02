@@ -79,6 +79,7 @@ contract AaveAdapter is Ownable, IAdapter {
     }
 
     /// @inheritdoc IAdapter
+    /// @dev By withdrawing `type(uint256).max`, it is possible that the recipient receives amount +- 1 due to rounding
     function withdraw(address vault, address from, address to, uint256 amount)
         external
         onlyOwner
@@ -91,10 +92,7 @@ contract AaveAdapter is Ownable, IAdapter {
         vars.sharesBefore = aToken.scaledBalanceOf(address(tokenVault));
         vars.userSharesBefore = tokenVault.sharesOf(from);
 
-        tokenVault.requestApprove(DEFAULT_VAULT, amount);
-        IERC20Metadata(address(aToken)).safeTransferFrom(address(tokenVault), address(this), amount);
-        // slither-disable-next-line unused-return
-        aavePool.withdraw(address(underlyingToken), type(uint256).max, to);
+        tokenVault.requestAaveWithdraw(amount, to);
 
         uint256 shares = vars.sharesBefore - aToken.scaledBalanceOf(address(tokenVault));
         assets = _unscale(vault, shares);

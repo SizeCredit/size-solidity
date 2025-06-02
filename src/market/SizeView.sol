@@ -23,11 +23,11 @@ import {DataView, UserView} from "@src/market/SizeViewData.sol";
 import {AccountingLibrary} from "@src/market/libraries/AccountingLibrary.sol";
 import {RiskLibrary} from "@src/market/libraries/RiskLibrary.sol";
 
+import {ReentrancyGuardUpgradeableWithViewModifier} from "@src/helpers/ReentrancyGuardUpgradeableWithViewModifier.sol";
 import {ISizeView} from "@src/market/interfaces/ISizeView.sol";
 import {ISizeViewV1_8} from "@src/market/interfaces/v1.8/ISizeViewV1_8.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {LimitOrder, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
-
 import {BuyCreditMarket, BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {
     InitializeDataParams,
@@ -46,7 +46,7 @@ import {VERSION} from "@src/market/interfaces/ISize.sol";
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice View methods for the Size protocol
-abstract contract SizeView is SizeStorage, ISizeView {
+abstract contract SizeView is SizeStorage, ReentrancyGuardUpgradeableWithViewModifier, ISizeView {
     using OfferLibrary for LimitOrder;
     using OfferLibrary for State;
     using LoanLibrary for DebtPosition;
@@ -106,7 +106,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     /// @inheritdoc ISizeView
-    function getUserView(address user) external view returns (UserView memory) {
+    function getUserView(address user) external view nonReentrantView returns (UserView memory) {
         return UserView({
             user: state.data.users[user],
             account: user,

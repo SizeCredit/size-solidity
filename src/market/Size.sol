@@ -2,7 +2,6 @@
 pragma solidity 0.8.23;
 
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -50,6 +49,7 @@ import {
 } from "@src/market/libraries/actions/BuyCreditLimit.sol";
 import {Liquidate, LiquidateParams} from "@src/market/libraries/actions/Liquidate.sol";
 
+import {ReentrancyGuardUpgradeableWithViewModifier} from "@src/helpers/ReentrancyGuardUpgradeableWithViewModifier.sol";
 import {State} from "@src/market/SizeStorage.sol";
 import {Multicall} from "@src/market/libraries/Multicall.sol";
 import {Compensate, CompensateOnBehalfOfParams, CompensateParams} from "@src/market/libraries/actions/Compensate.sol";
@@ -87,6 +87,9 @@ import {
     BORROW_RATE_UPDATER_ROLE, ISizeFactory, KEEPER_ROLE, PAUSER_ROLE
 } from "@src/factory/interfaces/ISizeFactory.sol";
 
+import {UserView} from "@src/market/SizeViewData.sol";
+import {ISizeView} from "@src/market/interfaces/ISizeView.sol";
+
 /// @title Size
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
@@ -94,10 +97,9 @@ import {
 contract Size is
     ISize,
     SizeView,
-    Initializable,
     AccessControlUpgradeable,
     PausableUpgradeable,
-    ReentrancyGuardUpgradeable,
+    /*ReentrancyGuardUpgradeableWithViewModifier,*/
     UUPSUpgradeable
 {
     using Initialize for State;
@@ -188,7 +190,6 @@ contract Size is
     function updateConfig(UpdateConfigParams calldata params)
         external
         override(ISizeAdmin)
-        nonReentrant
         onlyRoleOrSizeFactoryHasRole(DEFAULT_ADMIN_ROLE)
     {
         state.validateUpdateConfig(params);
@@ -209,12 +210,12 @@ contract Size is
     }
 
     /// @inheritdoc ISizeAdmin
-    function pause() public override(ISizeAdmin) nonReentrant onlyRoleOrSizeFactoryHasRole(PAUSER_ROLE) {
+    function pause() public override(ISizeAdmin) onlyRoleOrSizeFactoryHasRole(PAUSER_ROLE) {
         _pause();
     }
 
     /// @inheritdoc ISizeAdmin
-    function unpause() public override(ISizeAdmin) nonReentrant onlyRoleOrSizeFactoryHasRole(PAUSER_ROLE) {
+    function unpause() public override(ISizeAdmin) onlyRoleOrSizeFactoryHasRole(PAUSER_ROLE) {
         _unpause();
     }
 
@@ -223,7 +224,6 @@ contract Size is
         public
         payable
         override(IMulticall)
-        nonReentrant
         whenNotPaused
         returns (bytes[] memory results)
     {

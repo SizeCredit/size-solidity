@@ -8,8 +8,11 @@ import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.so
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuardUpgradeableWithViewModifier} from "@src/helpers/ReentrancyGuardUpgradeableWithViewModifier.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 
@@ -41,6 +44,7 @@ contract NonTransferrableRebasingTokenVault is
     IERC20Metadata,
     IERC20Errors,
     Ownable2StepUpgradeable,
+    ReentrancyGuardUpgradeableWithViewModifier,
     UUPSUpgradeable
 {
     using SafeERC20 for IERC20Metadata;
@@ -99,6 +103,13 @@ contract NonTransferrableRebasingTokenVault is
         _;
     }
 
+    modifier onlyAdapterId(bytes32 id) {
+        if (adapterToIdMap.get(msg.sender) != id) {
+            revert Errors.UNAUTHORIZED(msg.sender);
+        }
+        _;
+    }
+
     /*//////////////////////////////////////////////////////////////
                             CONSTRUCTOR/INITIALIZER
     //////////////////////////////////////////////////////////////*/
@@ -120,6 +131,7 @@ contract NonTransferrableRebasingTokenVault is
     ) external initializer {
         __Ownable_init(owner_);
         __Ownable2Step_init();
+        __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 
         if (
@@ -152,6 +164,8 @@ contract NonTransferrableRebasingTokenVault is
         name = name_;
         symbol = symbol_;
 
+        __ReentrancyGuard_init();
+
         _setAdapter(bytes32("AaveAdapter"), aaveAdapter);
         _setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
 
@@ -162,26 +176,26 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @notice Sets the adapter with id
     /// @dev The adapter contract must be trusted, since it can call sensitive functions guarded by the `onlyAdapter` modifier
-    function setAdapter(bytes32 id, IAdapter adapter) external onlyOwner {
+    function setAdapter(bytes32 id, IAdapter adapter) external nonReentrant onlyOwner {
         _setAdapter(id, adapter);
     }
 
     /// @notice Removes the adapter
     /// @dev Removing an adapter will brick the vault
-    function removeAdapter(bytes32 id) external onlyOwner {
+    function removeAdapter(bytes32 id) external nonReentrant onlyOwner {
         _removeAdapter(id);
     }
 
     /// @notice Sets the adapter for a vault
     /// @dev Setting a wrong adapter may brick the vault (`IAdapter` functions may revert or return incorrect values)
-    function setVaultAdapter(address vault, bytes32 id) external onlyOwner {
+    function setVaultAdapter(address vault, bytes32 id) external nonReentrant onlyOwner {
         _setVaultAdapter(vault, id);
     }
 
     /// @notice Removes a vault from the whitelist
     /// @dev Removing a vault will brick the vault (all `IAdapter` functions will revert,
     ///        and `vaultToIdMap.at()` will not return the vault, so `totalSupply()` will ignore it)
-    function removeVault(address vault) external onlyOwner {
+    function removeVault(address vault) external nonReentrant onlyOwner {
         _removeVault(vault);
     }
 
@@ -190,7 +204,13 @@ contract NonTransferrableRebasingTokenVault is
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IERC20
-    function transferFrom(address from, address to, uint256 value) public virtual onlyMarket returns (bool) {
+    function transferFrom(address from, address to, uint256 value)
+        public
+        virtual
+        onlyMarket
+        nonReentrant
+        returns (bool)
+    {
         if (from == address(0)) {
             revert ERC20InvalidSender(address(0));
         }
@@ -221,7 +241,7 @@ contract NonTransferrableRebasingTokenVault is
     }
 
     /// @inheritdoc IERC20
-    function balanceOf(address account) public view returns (uint256) {
+    function balanceOf(address account) public view nonReentrantView returns (uint256) {
         IAdapter adapter = getWhitelistedVaultAdapter(vaultOf[account]);
         return adapter.balanceOf(vaultOf[account], account);
     }
@@ -231,7 +251,7 @@ contract NonTransferrableRebasingTokenVault is
     ///      The invariant `SUM(balanceOf) == totalSupply()` may not hold true due to rounding errors in scaled amounts/shares accounting.
     ///        However, we should still have `SUM(balanceOf) <= totalSupply()`, since `balanceOf` rounds down, and also to guarantee the solvency of the protocol.
     // slither-disable-next-line calls-loop
-    function totalSupply() public view returns (uint256) {
+    function totalSupply() public view nonReentrantView returns (uint256) {
         uint256 assets = 0;
         for (uint256 i = 0; i < vaultToIdMap.length(); i++) {
             // slither-disable-next-line unused-return
@@ -268,7 +288,7 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @notice Deposit underlying tokens into the variable pool and mint scaled tokens
     /// @dev The actual deposited amount can be lower than the input amount based on the vault deposit and rounding logic
-    function deposit(address to, uint256 amount) external onlyMarket returns (uint256 assets) {
+    function deposit(address to, uint256 amount) external onlyMarket nonReentrant returns (uint256 assets) {
         if (to == address(0)) {
             revert ERC20InvalidReceiver(address(0));
         }
@@ -290,7 +310,12 @@ contract NonTransferrableRebasingTokenVault is
     ///        held by the new vault may not accurately reflect the current vault assignment, leading to
     ///        misattribution of assets. The dust is sent to the vaultDust[vault] mapping.
     ///        See https://slowmist.medium.com/slowmist-aave-v2-security-audit-checklist-0d9ef442436b#5aed
-    function withdraw(address from, address to, uint256 amount) external onlyMarket returns (uint256 assets) {
+    function withdraw(address from, address to, uint256 amount)
+        external
+        onlyMarket
+        nonReentrant
+        returns (uint256 assets)
+    {
         if (from == address(0)) {
             revert ERC20InvalidSender(address(0));
         }
@@ -310,24 +335,32 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @notice Sets the shares of a user
     /// @dev Only callable by the adapter
+    ///      Adapter helper functions operate via reentrancy, so they do not have the nonReentrant modifier
     function setSharesOf(address user, uint256 shares) public onlyAdapter {
         sharesOf[user] = shares;
     }
 
     /// @notice Sets the dust of a vault
     /// @dev Only callable by the adapter
+    ///      Adapter helper functions operate via reentrancy, so they do not have the nonReentrant modifier
     function setVaultDust(address vault, uint256 dust) public onlyAdapter {
         vaultDust[vault] = dust;
     }
 
     /// @notice Increases the allowance of the vault
     /// @dev Only callable by the adapter
+    ///      Adapter helper functions operate via reentrancy, so they do not have the nonReentrant modifier
     function requestApprove(address vault, uint256 amount) public onlyAdapter {
-        if (vault == DEFAULT_VAULT) {
-            IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
-            vault = address(aToken);
-        }
         IERC20Metadata(vault).forceApprove(msg.sender, amount);
+    }
+
+    /// @notice Requests a withdraw from the Aave pool
+    /// @dev Only callable by the adapter
+    ///      Adapter helper functions operate via reentrancy, so they do not have the nonReentrant modifier
+    ///      This function is utilized instead of `requestApprove` in order to avoid an extra `AToken.transferFrom` call, which can cause rounding errors due to WadRay math.
+    function requestAaveWithdraw(uint256 amount, address to) public onlyAdapterId("AaveAdapter") {
+        // slither-disable-next-line unused-return
+        aavePool.withdraw(address(underlyingToken), amount, to);
     }
 
     /*//////////////////////////////////////////////////////////////
