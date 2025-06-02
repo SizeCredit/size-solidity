@@ -47,6 +47,9 @@ contract ERC4626Adapter is Ownable, IAdapter {
 
     /// @inheritdoc IAdapter
     function balanceOf(address vault, address account) public view returns (uint256) {
+        if (tokenVault.getWhitelistedVaultAdapter(vault) != this || tokenVault.vaultOf(account) != vault) {
+            return 0;
+        }
         return IERC4626(vault).convertToAssets(tokenVault.sharesOf(account));
     }
 

@@ -541,4 +541,28 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         assertEq(adapterTypes.length, 1);
         assertEq(adapterTypes[0], bytes32("AaveAdapter"));
     }
+
+    function test_NonTransferrableRebasingTokenVault_balanceOf_directly_through_adapter() public {
+        vm.prank(address(owner));
+        token.setVaultAdapter(address(vault), "ERC4626Adapter");
+
+        _deposit(alice, address(underlying), 40e6);
+
+        IAdapter adapterVault = token.getWhitelistedVaultAdapter(address(vault));
+        IAdapter adapterAave = token.getWhitelistedVaultAdapter(DEFAULT_VAULT);
+        assertEq(adapterVault.balanceOf(address(vault), alice), 0);
+        assertEq(adapterVault.balanceOf(DEFAULT_VAULT, alice), 0);
+        assertEq(adapterAave.balanceOf(address(vault), alice), 0);
+        assertEq(adapterAave.balanceOf(DEFAULT_VAULT, alice), 40e6);
+
+        vm.prank(address(size));
+        token.setVault(bob, address(vault));
+
+        _deposit(bob, address(underlying), 30e6);
+
+        assertEq(adapterVault.balanceOf(address(vault), bob), 30e6);
+        assertEq(adapterVault.balanceOf(DEFAULT_VAULT, bob), 0);
+        assertEq(adapterAave.balanceOf(address(vault), bob), 0);
+        assertEq(adapterAave.balanceOf(DEFAULT_VAULT, bob), 0);
+    }
 }

@@ -60,12 +60,15 @@ contract AaveAdapter is Ownable, IAaveAdapter {
     }
 
     /// @inheritdoc IAdapter
-    function balanceOf(address, /*vault*/ address account) public view returns (uint256) {
+    function balanceOf(address vault, address account) public view returns (uint256) {
+        if (tokenVault.getWhitelistedVaultAdapter(vault) != this || tokenVault.vaultOf(account) != vault) {
+            return 0;
+        }
         return _unscale(tokenVault.sharesOf(account));
     }
 
     /// @inheritdoc IAdapter
-    function deposit(address vault, address to, uint256 amount) external onlyOwner returns (uint256 assets) {
+    function deposit(address, /*vault*/ address to, uint256 amount) external onlyOwner returns (uint256 assets) {
         // slither-disable-next-line uninitialized-local
         Vars memory vars;
         vars.sharesBefore = aToken.scaledBalanceOf(address(tokenVault));
