@@ -439,12 +439,10 @@ contract NonTransferrableRebasingTokenVault is
     // slither-disable-end unused-return
 
     /// @notice Sets the adapter for a vault
-    ///  @dev Setting the vault to `address(0)` will use the default variable pool
+    /// @dev Setting the vault to `address(0)` will use the default variable pool
     function _setVaultAdapter(address vault, bytes32 id) private {
         IAdapter adapter = IAdapter(IdToAdapterMap.get(id));
-        if (adapter.getAsset(vault) != address(underlyingToken)) {
-            revert Errors.INVALID_VAULT(address(vault));
-        }
+        adapter.validate(vault);
 
         // slither-disable-next-line unused-return
         vaultToIdMap.set(vault, id);

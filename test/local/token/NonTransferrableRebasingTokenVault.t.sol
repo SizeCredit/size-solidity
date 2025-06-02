@@ -542,7 +542,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         assertEq(adapterTypes[0], bytes32("AaveAdapter"));
     }
 
-    function test_NonTransferrableRebasingTokenVault_balanceOf_directly_through_adapter() public {
+    function test_NonTransferrableRebasingTokenVault_balanceOf_totalSupply_directly_through_adapter() public {
         vm.prank(address(owner));
         token.setVaultAdapter(address(vault), "ERC4626Adapter");
 
@@ -550,19 +550,43 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
 
         IAdapter adapterVault = token.getWhitelistedVaultAdapter(address(vault));
         IAdapter adapterAave = token.getWhitelistedVaultAdapter(DEFAULT_VAULT);
-        assertEq(adapterVault.balanceOf(address(vault), alice), 0);
-        assertEq(adapterVault.balanceOf(DEFAULT_VAULT, alice), 0);
-        assertEq(adapterAave.balanceOf(address(vault), alice), 0);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vault)));
+        adapterVault.balanceOf(address(vault), alice);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, DEFAULT_VAULT));
+        adapterVault.balanceOf(DEFAULT_VAULT, alice);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vault)));
+        adapterAave.balanceOf(address(vault), alice);
+
         assertEq(adapterAave.balanceOf(DEFAULT_VAULT, alice), 40e6);
+
+        assertEq(adapterVault.totalSupply(address(vault)), 0);
+        assertEq(adapterAave.totalSupply(DEFAULT_VAULT), 40e6);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, DEFAULT_VAULT));
+        adapterVault.totalSupply(DEFAULT_VAULT);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vault)));
+        adapterAave.totalSupply(address(vault));
 
         vm.prank(address(size));
         token.setVault(bob, address(vault));
 
         _deposit(bob, address(underlying), 30e6);
 
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, DEFAULT_VAULT));
+        adapterVault.balanceOf(DEFAULT_VAULT, bob);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, DEFAULT_VAULT));
+        adapterAave.balanceOf(DEFAULT_VAULT, bob);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vault)));
+        adapterAave.balanceOf(address(vault), bob);
+
         assertEq(adapterVault.balanceOf(address(vault), bob), 30e6);
-        assertEq(adapterVault.balanceOf(DEFAULT_VAULT, bob), 0);
-        assertEq(adapterAave.balanceOf(address(vault), bob), 0);
-        assertEq(adapterAave.balanceOf(DEFAULT_VAULT, bob), 0);
+
+        assertEq(adapterVault.totalSupply(address(vault)), 30e6);
+        assertEq(adapterAave.totalSupply(DEFAULT_VAULT), 40e6);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, DEFAULT_VAULT));
+        adapterVault.totalSupply(DEFAULT_VAULT);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vault)));
+        adapterAave.totalSupply(address(vault));
     }
 }

@@ -42,15 +42,20 @@ contract ERC4626Adapter is Ownable, IAdapter {
 
     /// @inheritdoc IAdapter
     function totalSupply(address vault) external view returns (uint256) {
-        return IERC4626(vault).maxWithdraw(address(tokenVault));
+        if (tokenVault.getWhitelistedVaultAdapter(vault) != this) {
+            revert Errors.INVALID_VAULT(vault);
+        } else {
+            return IERC4626(vault).maxWithdraw(address(tokenVault));
+        }
     }
 
     /// @inheritdoc IAdapter
     function balanceOf(address vault, address account) public view returns (uint256) {
         if (tokenVault.getWhitelistedVaultAdapter(vault) != this || tokenVault.vaultOf(account) != vault) {
-            return 0;
+            revert Errors.INVALID_VAULT(vault);
+        } else {
+            return IERC4626(vault).convertToAssets(tokenVault.sharesOf(account));
         }
-        return IERC4626(vault).convertToAssets(tokenVault.sharesOf(account));
     }
 
     /// @inheritdoc IAdapter
@@ -119,7 +124,9 @@ contract ERC4626Adapter is Ownable, IAdapter {
     }
 
     /// @inheritdoc IAdapter
-    function getAsset(address vault) external view returns (address) {
-        return IERC4626(vault).asset();
+    function validate(address vault) external {
+        if (IERC4626(vault).asset() != address(underlyingToken)) {
+            revert Errors.INVALID_VAULT(vault);
+        }
     }
 }

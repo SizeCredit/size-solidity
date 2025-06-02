@@ -42,8 +42,8 @@ interface IAdapter {
     /// @param amount The amount of assets to transfer
     function transferFrom(address vault, address from, address to, uint256 amount) external;
 
-    /// @notice Returns the asset of the vault
+    /// @notice Validates the vault
     /// @param vault The address of the vault
-    /// @return The asset of the vault
-    function getAsset(address vault) external view returns (address);
+    /// @dev This function is used to validate the vault, including whether the underlying token is the same as the NonTransferrableRebasingTokenVault's underlying token
+    function validate(address vault) external;
 }

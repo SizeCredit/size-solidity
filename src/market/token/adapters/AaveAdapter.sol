@@ -55,16 +55,21 @@ contract AaveAdapter is Ownable, IAaveAdapter {
     }
 
     /// @inheritdoc IAdapter
-    function totalSupply(address /*vault*/ ) external view returns (uint256) {
-        return aToken.balanceOf(address(tokenVault));
+    function totalSupply(address vault) external view returns (uint256) {
+        if (tokenVault.getWhitelistedVaultAdapter(vault) != this) {
+            revert Errors.INVALID_VAULT(vault);
+        } else {
+            return aToken.balanceOf(address(tokenVault));
+        }
     }
 
     /// @inheritdoc IAdapter
     function balanceOf(address vault, address account) public view returns (uint256) {
         if (tokenVault.getWhitelistedVaultAdapter(vault) != this || tokenVault.vaultOf(account) != vault) {
-            return 0;
+            revert Errors.INVALID_VAULT(vault);
+        } else {
+            return _unscale(tokenVault.sharesOf(account));
         }
-        return _unscale(tokenVault.sharesOf(account));
     }
 
     /// @inheritdoc IAdapter
@@ -129,8 +134,10 @@ contract AaveAdapter is Ownable, IAaveAdapter {
     }
 
     /// @inheritdoc IAdapter
-    function getAsset(address /*vault*/ ) external view returns (address) {
-        return address(underlyingToken);
+    function validate(address vault) external {
+        if (vault != DEFAULT_VAULT) {
+            revert Errors.INVALID_VAULT(vault);
+        }
     }
 
     /// @inheritdoc IAaveAdapter
@@ -138,7 +145,7 @@ contract AaveAdapter is Ownable, IAaveAdapter {
         return aavePool.getReserveNormalizedIncome(address(underlyingToken));
     }
 
-    function _unscale(uint256 scaledAmount) internal view returns (uint256) {
+    function _unscale(uint256 scaledAmount) private view returns (uint256) {
         return Math.mulDivDown(scaledAmount, liquidityIndex(), WadRayMath.RAY);
     }
 }
