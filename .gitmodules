@@ -46,3 +46,6 @@
 [submodule "lib/solidity-http"]
 	path = lib/solidity-http
 	url = https://github.com/Recon-Fuzz/solidity-http
+[submodule "lib/solmate"]
+	path = lib/solmate
+	url = https://github.com/transmissions11/solmate

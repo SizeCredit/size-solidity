@@ -124,7 +124,7 @@ contract ERC4626Adapter is Ownable, IAdapter {
     }
 
     /// @inheritdoc IAdapter
-    function validate(address vault) external {
+    function validate(address vault) external view {
         if (IERC4626(vault).asset() != address(underlyingToken)) {
             revert Errors.INVALID_VAULT(vault);
         }

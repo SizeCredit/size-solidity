@@ -134,7 +134,7 @@ contract AaveAdapter is Ownable, IAaveAdapter {
     }
 
     /// @inheritdoc IAdapter
-    function validate(address vault) external {
+    function validate(address vault) external pure {
         if (vault != DEFAULT_VAULT) {
             revert Errors.INVALID_VAULT(vault);
         }
