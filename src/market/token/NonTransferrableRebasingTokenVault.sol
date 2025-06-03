@@ -177,26 +177,26 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @notice Sets the adapter with id
     /// @dev The adapter contract must be trusted, since it can call sensitive functions guarded by the `onlyAdapter` modifier
-    function setAdapter(bytes32 id, IAdapter adapter) external nonReentrant onlyOwner {
+    function setAdapter(bytes32 id, IAdapter adapter) external onlyOwner {
         _setAdapter(id, adapter);
     }
 
     /// @notice Removes the adapter
     /// @dev Removing an adapter will brick the vault
-    function removeAdapter(bytes32 id) external nonReentrant onlyOwner {
+    function removeAdapter(bytes32 id) external onlyOwner {
         _removeAdapter(id);
     }
 
     /// @notice Sets the adapter for a vault
     /// @dev Setting a wrong adapter may brick the vault (`IAdapter` functions may revert or return incorrect values)
-    function setVaultAdapter(address vault, bytes32 id) external nonReentrant onlyOwner {
+    function setVaultAdapter(address vault, bytes32 id) external onlyOwner {
         _setVaultAdapter(vault, id);
     }
 
     /// @notice Removes a vault from the whitelist
     /// @dev Removing a vault will brick the vault (all `IAdapter` functions will revert,
     ///        and `vaultToIdMap.at()` will not return the vault, so `totalSupply()` will ignore it)
-    function removeVault(address vault) external nonReentrant onlyOwner {
+    function removeVault(address vault) external onlyOwner {
         _removeVault(vault);
     }
 
@@ -272,8 +272,6 @@ contract NonTransferrableRebasingTokenVault is
     ///      Setting the vault to `address(0)` will use the default variable pool
     ///      Setting the vault to a different address will withdraw all the user's assets
     ///        from the previous vault and deposit them into the new vault
-    ///      Reverts if the vault asset is not the same as the NonTransferrableRebasingTokenVault's underlying token
-    ///      vaultOf[user] is set at the end of the function so that we can withdraw from existing vault
     ///      This function is virtual to allow for custom logic in test contracts
     function setVault(address user, address vault) public virtual onlyMarket {
         if (user == address(0)) {
@@ -312,7 +310,7 @@ contract NonTransferrableRebasingTokenVault is
     ///        inconsistencies when the user changes vaults. For example, if the user switches to a new
     ///        vault but still holds a dust amount of shares in the previous one, the underlying tokens
     ///        held by the new vault may not accurately reflect the current vault assignment, leading to
-    ///        misattribution of assets. The dust is sent to the vaultDust[vault] mapping.
+    ///        misattribution of assets.
     ///        See https://slowmist.medium.com/slowmist-aave-v2-security-audit-checklist-0d9ef442436b#5aed
     function withdraw(address from, address to, uint256 amount)
         external
