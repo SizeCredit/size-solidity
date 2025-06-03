@@ -62,6 +62,7 @@ abstract contract PropertiesSpecifications {
     string internal constant VAULTS_01 = "VAULTS_01: SUM(balanceOf) <= totalSupply()";
     string internal constant VAULTS_02 = "VAULTS_02: Changing a user vault does not leave dust shares";
     string internal constant VAULTS_03 = "VAULTS_03: underlying.balanceOf(borrowTokenVault) == 0";
+    string internal constant VAULTS_04 = "VAULTS_04: deposit/withdraw/transferFrom does not change the vault";
 
     string internal constant FEES_01 =
         "FEES_01: Fragmentation fees are applied whenever there is a credit fractionalization";

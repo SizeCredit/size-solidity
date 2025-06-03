@@ -5,10 +5,13 @@ import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferr
 import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
 
 contract NonTransferrableRebasingTokenVaultMock is NonTransferrableRebasingTokenVault, PropertiesSpecifications {
-    mapping(address user => uint256 shares) public sharesOfBefore;
-    mapping(address user => uint256 shares) public sharesOfAfter;
-    mapping(address user => address vault) public vaultOfBefore;
-    mapping(address user => address vault) public vaultOfAfter;
+    struct Vars {
+        uint256 shareOf;
+        address vaultOf;
+    }
+
+    mapping(address user => Vars vars) internal _before;
+    mapping(address user => Vars vars) internal _after;
     uint256 public countSetVaultOf;
     uint256 public countSetSharesOf;
 
@@ -24,36 +27,44 @@ contract NonTransferrableRebasingTokenVaultMock is NonTransferrableRebasingToken
         uint256 countSetSharesOf
     );
 
-    modifier resetState(address user) {
-        sharesOfBefore[user] = 0;
-        vaultOfBefore[user] = INVALID_VAULT;
-        sharesOfAfter[user] = 0;
-        vaultOfAfter[user] = INVALID_VAULT;
+    modifier resetVars(address user) {
+        _before[user].shareOf = 0;
+        _before[user].vaultOf = INVALID_VAULT;
+        _after[user].shareOf = 0;
+        _after[user].vaultOf = INVALID_VAULT;
         countSetVaultOf = 0;
         countSetSharesOf = 0;
         _;
     }
 
-    function setVault(address user, address vault) public override resetState(user) {
-        sharesOfBefore[user] = sharesOf[user];
-        vaultOfBefore[user] = vaultOf[user];
+    function __setVars(Vars storage vars, address user) internal {
+        vars.shareOf = sharesOf[user];
+        vars.vaultOf = vaultOf[user];
+    }
 
+    function __before(address user) internal {
+        __setVars(_before[user], user);
+    }
+
+    function __after(address user) internal {
+        __setVars(_after[user], user);
+    }
+
+    function setVault(address user, address vault) public override resetVars(user) {
+        __before(user);
         super.setVault(user, vault);
-
-        sharesOfAfter[user] = sharesOf[user];
-        vaultOfAfter[user] = vaultOf[user];
+        __after(user);
 
         if (
-            sharesOfBefore[user] > 0 && vaultOfBefore[user] != vaultOfAfter[user]
+            _before[user].shareOf > 0 && _before[user].vaultOf != _after[user].vaultOf
                 && (countSetVaultOf != 1 || countSetSharesOf == 0)
         ) {
-            // TODO this can also be violated in `deposit` and `withdraw`
             revert InvariantViolated(
                 VAULTS_02,
-                sharesOfBefore[user],
-                sharesOfAfter[user],
-                vaultOfBefore[user],
-                vaultOfAfter[user],
+                _before[user].shareOf,
+                _after[user].shareOf,
+                _before[user].vaultOf,
+                _after[user].vaultOf,
                 countSetVaultOf,
                 countSetSharesOf
             );
@@ -68,5 +79,87 @@ contract NonTransferrableRebasingTokenVaultMock is NonTransferrableRebasingToken
     function _setSharesOf(address user, uint256 shares) internal virtual override {
         countSetSharesOf++;
         super._setSharesOf(user, shares);
+    }
+
+    function deposit(address to, uint256 amount) public override resetVars(to) returns (uint256 assets) {
+        __before(to);
+
+        assets = super.deposit(to, amount);
+
+        __after(to);
+
+        if (_before[to].vaultOf != _after[to].vaultOf) {
+            revert InvariantViolated(
+                VAULTS_04,
+                _before[to].shareOf,
+                _after[to].shareOf,
+                _before[to].vaultOf,
+                _after[to].vaultOf,
+                countSetVaultOf,
+                countSetSharesOf
+            );
+        }
+
+        return assets;
+    }
+
+    function withdraw(address from, address to, uint256 amount)
+        public
+        override
+        resetVars(from)
+        resetVars(to)
+        returns (uint256 assets)
+    {
+        __before(from);
+        __before(to);
+
+        assets = super.withdraw(from, to, amount);
+
+        __after(from);
+        __after(to);
+
+        if (_before[from].vaultOf != _after[from].vaultOf || _before[to].vaultOf != _after[to].vaultOf) {
+            revert InvariantViolated(
+                VAULTS_04,
+                _before[from].shareOf,
+                _after[from].shareOf,
+                _before[from].vaultOf,
+                _after[from].vaultOf,
+                countSetVaultOf,
+                countSetSharesOf
+            );
+        }
+
+        return assets;
+    }
+
+    function transferFrom(address from, address to, uint256 amount)
+        public
+        override
+        resetVars(from)
+        resetVars(to)
+        returns (bool)
+    {
+        __before(from);
+        __before(to);
+
+        bool success = super.transferFrom(from, to, amount);
+
+        __after(from);
+        __after(to);
+
+        if (_before[from].vaultOf != _after[from].vaultOf || _before[to].vaultOf != _after[to].vaultOf) {
+            revert InvariantViolated(
+                VAULTS_04,
+                _before[from].shareOf,
+                _after[from].shareOf,
+                _before[from].vaultOf,
+                _after[from].vaultOf,
+                countSetVaultOf,
+                countSetSharesOf
+            );
+        }
+
+        return success;
     }
 }

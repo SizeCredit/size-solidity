@@ -290,7 +290,7 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @notice Deposit underlying tokens into the variable pool and mint scaled tokens
     /// @dev The actual deposited amount can be lower than the input amount based on the vault deposit and rounding logic
-    function deposit(address to, uint256 amount) external onlyMarket nonReentrant returns (uint256 assets) {
+    function deposit(address to, uint256 amount) public virtual onlyMarket nonReentrant returns (uint256 assets) {
         if (to == address(0)) {
             revert ERC20InvalidReceiver(address(0));
         }
@@ -313,7 +313,8 @@ contract NonTransferrableRebasingTokenVault is
     ///        misattribution of assets.
     ///        See https://slowmist.medium.com/slowmist-aave-v2-security-audit-checklist-0d9ef442436b#5aed
     function withdraw(address from, address to, uint256 amount)
-        external
+        public
+        virtual
         onlyMarket
         nonReentrant
         returns (uint256 assets)
