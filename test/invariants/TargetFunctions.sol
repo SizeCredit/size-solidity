@@ -45,6 +45,7 @@ import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol
 import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 import {CopyLimitOrdersParams} from "@src/market/libraries/actions/CopyLimitOrders.sol";
 import {PartialRepayParams} from "@src/market/libraries/actions/PartialRepay.sol";
+import {SetVaultParams} from "@src/market/libraries/actions/SetVault.sol";
 
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
@@ -430,27 +431,36 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         }
     }
 
-    function setUserConfiguration(
-        address _vault,
-        uint256 _openingLimitBorrowCR,
-        bool _allCreditPositionsForSaleDisabled
-    ) public getSender checkExpectedErrors(SET_USER_CONFIGURATION_ERRORS) {
+    function setUserConfiguration(uint256 _openingLimitBorrowCR, bool _allCreditPositionsForSaleDisabled)
+        public
+        getSender
+        checkExpectedErrors(SET_USER_CONFIGURATION_ERRORS)
+    {
         __before();
-
-        _vault = _getRandomVault(_vault);
 
         hevm.prank(sender);
         (success, returnData) = address(size).call(
             abi.encodeCall(
                 size.setUserConfiguration,
                 SetUserConfigurationParams({
-                    vault: _vault,
                     openingLimitBorrowCR: _openingLimitBorrowCR,
                     allCreditPositionsForSaleDisabled: _allCreditPositionsForSaleDisabled,
                     creditPositionIdsForSale: false,
                     creditPositionIds: new uint256[](0)
                 })
             )
+        );
+        __after();
+    }
+
+    function setVault(address _vault, bool _forfeitOldShares) public getSender checkExpectedErrors(SET_VAULT_ERRORS) {
+        __before();
+
+        _vault = _getRandomVault(_vault);
+
+        hevm.prank(sender);
+        (success, returnData) = address(size).call(
+            abi.encodeCall(size.setVault, SetVaultParams({vault: _vault, forfeitOldShares: _forfeitOldShares}))
         );
         __after();
     }

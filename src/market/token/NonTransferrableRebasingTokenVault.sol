@@ -273,16 +273,20 @@ contract NonTransferrableRebasingTokenVault is
     ///      Setting the vault to a different address will withdraw all the user's assets
     ///        from the previous vault and deposit them into the new vault
     ///      This function is virtual to allow for custom logic in test contracts
-    function setVault(address user, address vault) public virtual onlyMarket {
+    ///      If `forfeitOldShares` is true, the user's old shares are forfeited and the user's balance is reset to 0.
+    ///        This can be used to recover from compromised or removed vaults, allowing users to move their positions
+    ///        to a different vault without requiring interaction with the old vault, which may be inaccessible or
+    ///        compromised. This prevents users from being permanently locked out of the protocol when their chosen
+    ///        vault becomes unavailable.
+    function setVault(address user, address vault, bool forfeitOldShares) public virtual onlyMarket {
         if (user == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
         if (vaultToIdMap.contains(vault) && vaultOf[user] != vault) {
-            uint256 userBalance = balanceOf(user);
-            if (userBalance == 0) {
+            if (forfeitOldShares || balanceOf(user) == 0) {
                 _setSharesOf(user, 0);
             } else {
-                _transferFrom(vaultOf[user], vault, user, user, userBalance);
+                _transferFrom(vaultOf[user], vault, user, user, balanceOf(user));
             }
             _setVaultOf(user, vault);
         }

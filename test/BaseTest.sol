@@ -41,6 +41,7 @@ import {SelfLiquidateParams} from "@src/market/libraries/actions/SelfLiquidate.s
 
 import {BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {SetUserConfigurationParams} from "@src/market/libraries/actions/SetUserConfiguration.sol";
+import {SetVaultParams} from "@src/market/libraries/actions/SetVault.sol";
 
 import {KEEPER_ROLE} from "@src/factory/SizeFactory.sol";
 import {UserView} from "@src/market/SizeView.sol";
@@ -444,7 +445,6 @@ contract BaseTest is Test, Deploy, AssertsHelper {
 
     function _setUserConfiguration(
         address user,
-        address vault,
         uint256 openingLimitBorrowCR,
         bool allCreditPositionsForSaleDisabled,
         bool creditPositionIdsForSale,
@@ -453,13 +453,17 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         vm.prank(user);
         size.setUserConfiguration(
             SetUserConfigurationParams({
-                vault: vault,
                 openingLimitBorrowCR: openingLimitBorrowCR,
                 allCreditPositionsForSaleDisabled: allCreditPositionsForSaleDisabled,
                 creditPositionIdsForSale: creditPositionIdsForSale,
                 creditPositionIds: creditPositionIds
             })
         );
+    }
+
+    function _setVault(address user, address vault, bool forfeitOldShares) internal {
+        vm.prank(user);
+        size.setVault(SetVaultParams({vault: vault, forfeitOldShares: forfeitOldShares}));
     }
 
     function _copyLimitOrders(

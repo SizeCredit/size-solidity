@@ -94,7 +94,7 @@ contract ForkVaultsTest is ForkTest, Networks {
         vm.prank(owner);
         borrowTokenVault.setVaultAdapter(address(eUSDC22), "ERC4626Adapter");
 
-        _setUserConfiguration(alice, address(eUSDC22), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(eUSDC22), false);
 
         _deposit(alice, usdc, 100e6);
 
@@ -115,7 +115,7 @@ contract ForkVaultsTest is ForkTest, Networks {
         vm.prank(owner);
         borrowTokenVault.setVaultAdapter(address(morphoUSUALUSDCplus), "ERC4626Adapter");
 
-        _setUserConfiguration(alice, address(morphoUSUALUSDCplus), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(morphoUSUALUSDCplus), false);
 
         _deposit(alice, usdc, 100e6);
 
@@ -138,7 +138,7 @@ contract ForkVaultsTest is ForkTest, Networks {
         vm.expectRevert();
         borrowTokenVault.setVaultAdapter(address(liquidUSD), "ERC4626Adapter");
 
-        _setUserConfiguration(alice, address(liquidUSD), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(liquidUSD), false);
 
         _deposit(alice, usdc, 100e6);
 

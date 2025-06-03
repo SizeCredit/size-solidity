@@ -40,6 +40,7 @@ import {
     SetUserConfigurationOnBehalfOfParams,
     SetUserConfigurationParams
 } from "@src/market/libraries/actions/SetUserConfiguration.sol";
+import {SetVault, SetVaultOnBehalfOfParams, SetVaultParams} from "@src/market/libraries/actions/SetVault.sol";
 import {Withdraw, WithdrawOnBehalfOfParams, WithdrawParams} from "@src/market/libraries/actions/Withdraw.sol";
 
 import {
@@ -121,6 +122,7 @@ contract Size is
     using RiskLibrary for State;
     using Multicall for State;
     using CopyLimitOrders for State;
+    using SetVault for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -448,6 +450,23 @@ contract Size is
     {
         state.validateSetUserConfiguration(externalParams);
         state.executeSetUserConfiguration(externalParams);
+    }
+
+    /// @inheritdoc ISizeV1_8
+    function setVault(SetVaultParams calldata params) external payable override(ISizeV1_8) {
+        setVaultOnBehalfOf(SetVaultOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
+    }
+
+    /// @inheritdoc ISizeV1_8
+    function setVaultOnBehalfOf(SetVaultOnBehalfOfParams memory externalParams)
+        public
+        payable
+        override(ISizeV1_8)
+        nonReentrant
+        whenNotPaused
+    {
+        state.validateSetVault(externalParams);
+        state.executeSetVault(externalParams);
     }
 
     /// @inheritdoc ISize

@@ -25,6 +25,7 @@ enum Action {
     COMPENSATE,
     SET_USER_CONFIGURATION,
     COPY_LIMIT_ORDERS,
+    SET_VAULT,
     // add more actions here
     NUMBER_OF_ACTIONS
 }

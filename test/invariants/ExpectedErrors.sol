@@ -29,6 +29,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
     bytes4[] internal SET_USER_CONFIGURATION_ERRORS;
     bytes4[] internal COPY_LIMIT_ORDERS_ERRORS;
     bytes4[] internal PARTIAL_REPAY_ERRORS;
+    bytes4[] internal SET_VAULT_ERRORS;
 
     constructor() {
         // DEPOSIT_ERRORS
@@ -151,6 +152,9 @@ abstract contract ExpectedErrors is Deploy, Properties {
         PARTIAL_REPAY_ERRORS.push(Errors.NULL_AMOUNT.selector);
         PARTIAL_REPAY_ERRORS.push(Errors.INVALID_AMOUNT.selector);
         PARTIAL_REPAY_ERRORS.push(Errors.INVALID_BORROWER.selector);
+
+        // SET_VAULT_ERRORS
+        // TODO
     }
 
     modifier checkExpectedErrors(bytes4[] storage errors) {

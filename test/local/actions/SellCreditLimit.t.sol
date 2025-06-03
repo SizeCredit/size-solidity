@@ -63,7 +63,7 @@ contract SellCreditLimitTest is BaseTest {
         aprs[0] = 0e18;
         aprs[1] = 1e18;
         uint256[] memory marketRateMultipliers = new uint256[](2);
-        _setUserConfiguration(alice, address(0), 1.7e18, false, false, new uint256[](0));
+        _setUserConfiguration(alice, 1.7e18, false, false, new uint256[](0));
         _sellCreditLimit(
             alice,
             block.timestamp + 365 days,
@@ -99,7 +99,7 @@ contract SellCreditLimitTest is BaseTest {
         aprs[0] = 0e18;
         aprs[1] = 1e18;
         uint256[] memory marketRateMultipliers = new uint256[](2);
-        _setUserConfiguration(alice, address(0), 1.3e18, false, false, new uint256[](0));
+        _setUserConfiguration(alice, 1.3e18, false, false, new uint256[](0));
         _sellCreditLimit(
             alice,
             block.timestamp + 365 days,

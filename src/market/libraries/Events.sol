@@ -78,8 +78,7 @@ library Events {
     event SelfLiquidate(
         address indexed sender, address indexed lender, uint256 indexed creditPositionId, address recipient
     );
-    // introduced in v1.8
-    event LiquidateWithReplacement( // introduced in v1.8
+    event LiquidateWithReplacement(
         address indexed sender,
         uint256 indexed debtPositionId,
         address indexed borrower,
@@ -96,10 +95,9 @@ library Events {
         uint256 creditPositionToCompensateId,
         uint256 amount
     );
-    event SetUserConfiguration( // updated in v1.8
+    event SetUserConfiguration(
         address indexed sender,
         address indexed onBehalfOf,
-        address indexed vault,
         uint256 openingLimitBorrowCR,
         bool allCreditPositionsForSaleDisabled,
         bool creditPositionIdsForSale,
@@ -119,6 +117,9 @@ library Events {
         uint256 maxAPRBorrowOffer,
         int256 offsetAPRBorrowOffer
     ); // v1.6.1, updated in v1.8
+
+    // introduced in v1.8
+    event SetVault(address indexed sender, address indexed onBehalfOf, address indexed vault, bool forfeitOldShares);
 
     // creates
 

@@ -11,6 +11,7 @@ import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
 import {DataView} from "@src/market/SizeViewData.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {ISizeV1_7} from "@src/market/interfaces/v1.7/ISizeV1_7.sol";
+import {ISizeV1_8} from "@src/market/interfaces/v1.8/ISizeV1_8.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
@@ -35,6 +36,7 @@ import {
     SetUserConfigurationOnBehalfOfParams,
     SetUserConfigurationParams
 } from "@src/market/libraries/actions/SetUserConfiguration.sol";
+import {SetVaultOnBehalfOfParams, SetVaultParams} from "@src/market/libraries/actions/SetVault.sol";
 import {WithdrawOnBehalfOfParams, WithdrawParams} from "@src/market/libraries/actions/Withdraw.sol";
 
 import {BaseTest} from "@test/BaseTest.sol";
@@ -290,7 +292,7 @@ contract CallMarketTest is BaseTest {
         _mint(address(usdc), candy, depositAmount);
 
         Action[] memory actions = new Action[](3);
-        actions[0] = Action.SET_USER_CONFIGURATION;
+        actions[0] = Action.SET_VAULT;
         actions[1] = Action.DEPOSIT;
         actions[2] = Action.COPY_LIMIT_ORDERS;
 
@@ -303,16 +305,10 @@ contract CallMarketTest is BaseTest {
             (
                 size1,
                 abi.encodeCall(
-                    ISizeV1_7.setUserConfigurationOnBehalfOf,
+                    ISizeV1_8.setVaultOnBehalfOf,
                     (
-                        SetUserConfigurationOnBehalfOfParams({
-                            params: SetUserConfigurationParams({
-                                vault: address(vault2),
-                                openingLimitBorrowCR: 1.5e18,
-                                allCreditPositionsForSaleDisabled: false,
-                                creditPositionIdsForSale: false,
-                                creditPositionIds: new uint256[](0)
-                            }),
+                        SetVaultOnBehalfOfParams({
+                            params: SetVaultParams({vault: address(vault2), forfeitOldShares: false}),
                             onBehalfOf: candy
                         })
                     )

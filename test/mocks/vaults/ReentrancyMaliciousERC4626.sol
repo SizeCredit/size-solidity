@@ -3,10 +3,7 @@ pragma solidity 0.8.23;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
-import {
-    SetUserConfigurationOnBehalfOfParams,
-    SetUserConfigurationParams
-} from "@src/market/libraries/actions/SetUserConfiguration.sol";
+import {SetVaultOnBehalfOfParams, SetVaultParams} from "@src/market/libraries/actions/SetVault.sol";
 
 contract ReentrancyMaliciousERC4626 is Ownable {
     address public immutable asset;
@@ -26,15 +23,12 @@ contract ReentrancyMaliciousERC4626 is Ownable {
     }
 
     function deposit(uint256 amount, address) public returns (uint256) {
-        SetUserConfigurationParams memory params = SetUserConfigurationParams({
-            vault: address(0),
-            openingLimitBorrowCR: 1.5e18,
-            allCreditPositionsForSaleDisabled: false,
-            creditPositionIdsForSale: false,
-            creditPositionIds: new uint256[](0)
-        });
-        SetUserConfigurationOnBehalfOfParams memory config = SetUserConfigurationOnBehalfOfParams(params, owner());
-        size.setUserConfigurationOnBehalfOf(config);
+        size.setVaultOnBehalfOf(
+            SetVaultOnBehalfOfParams({
+                params: SetVaultParams({vault: address(0), forfeitOldShares: false}),
+                onBehalfOf: owner()
+            })
+        );
         counter++;
         return amount;
     }

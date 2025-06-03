@@ -55,7 +55,7 @@ contract VaultsTest is BaseTest {
         uint256 tenor = 365 days;
 
         _setVaultAdapter(vault, "ERC4626Adapter");
-        _setUserConfiguration(bob, address(vault), 1.5e18, false, false, new uint256[](0));
+        _setVault(bob, address(vault), false);
 
         _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
     }
@@ -69,7 +69,7 @@ contract VaultsTest is BaseTest {
         uint256 tenor = 365 days;
 
         _setVaultAdapter(vault, "ERC4626Adapter");
-        _setUserConfiguration(alice, address(vault), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(vault), false);
 
         _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
     }
@@ -83,8 +83,8 @@ contract VaultsTest is BaseTest {
         uint256 tenor = 365 days;
 
         _setVaultAdapter(vault, "ERC4626Adapter");
-        _setUserConfiguration(alice, address(vault), 1.5e18, false, false, new uint256[](0));
-        _setUserConfiguration(bob, address(vault), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(vault), false);
+        _setVault(bob, address(vault), false);
 
         _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
     }
@@ -98,8 +98,8 @@ contract VaultsTest is BaseTest {
         uint256 tenor = 365 days;
 
         _setVaultAdapter(vault, "ERC4626Adapter");
-        _setUserConfiguration(alice, address(vault), 1.5e18, false, false, new uint256[](0));
-        _setUserConfiguration(bob, address(vault), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(vault), false);
+        _setVault(bob, address(vault), false);
 
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
@@ -107,15 +107,15 @@ contract VaultsTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _repay(bob, debtPositionId, bob);
 
-        _setUserConfiguration(alice, address(0), 1.5e18, false, false, new uint256[](0));
-        _setUserConfiguration(alice, address(vault2), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(0), false);
+        _setVault(alice, address(vault2), false);
 
         _claim(alice, creditPositionId);
     }
 
     function test_Vaults_lender_vault_low_liquidity() public {
         _setVaultAdapter(vault, "ERC4626Adapter");
-        _setUserConfiguration(alice, address(vault), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(vault), false);
 
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -154,7 +154,7 @@ contract VaultsTest is BaseTest {
 
     function test_Vaults_malicious_vault() public {
         _setVaultAdapter(vaultMalicious, "ERC4626Adapter");
-        _setUserConfiguration(alice, address(vaultMalicious), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(vaultMalicious), false);
 
         _deposit(alice, usdc, 200e6);
         _deposit(bob, weth, 100e18);
@@ -184,7 +184,7 @@ contract VaultsTest is BaseTest {
         _updateConfig("swapFeeAPR", 0);
 
         _setVaultAdapter(vaultFeeOnTransfer, "ERC4626Adapter");
-        _setUserConfiguration(alice, address(vaultFeeOnTransfer), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(vaultFeeOnTransfer), false);
 
         _mint(address(usdc), alice, 200e6);
         _approve(alice, address(usdc), address(size), 200e6);
@@ -242,7 +242,7 @@ contract VaultsTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vaultInvalidUnderlying)));
         borrowTokenVault.setVaultAdapter(address(vaultInvalidUnderlying), "ERC4626Adapter");
 
-        _setUserConfiguration(alice, address(vaultInvalidUnderlying), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(vaultInvalidUnderlying), false);
     }
 
     function test_Vaults_non_erc4626_contract() public {
@@ -252,14 +252,14 @@ contract VaultsTest is BaseTest {
         vm.expectRevert();
         borrowTokenVault.setVaultAdapter(address(vaultNonERC4626), "ERC4626Adapter");
 
-        _setUserConfiguration(alice, address(vaultNonERC4626), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(vaultNonERC4626), false);
     }
 
     function test_Vaults_erc7540_fully_async_contract() public {
         // fully async ERC7540 vaults revert on deposit/withdraw
 
         _setVaultAdapter(vaultERC7540FullyAsync, "ERC4626Adapter");
-        _setUserConfiguration(alice, address(vaultERC7540FullyAsync), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(vaultERC7540FullyAsync), false);
 
         _mint(address(usdc), alice, 200e6);
         _approve(alice, address(usdc), address(size), 200e6);
@@ -272,9 +272,7 @@ contract VaultsTest is BaseTest {
         // controlled async deposit ERC7540 vaults revert on deposit
 
         _setVaultAdapter(vaultERC7540ControlledAsyncDeposit, "ERC4626Adapter");
-        _setUserConfiguration(
-            alice, address(vaultERC7540ControlledAsyncDeposit), 1.5e18, false, false, new uint256[](0)
-        );
+        _setVault(alice, address(vaultERC7540ControlledAsyncDeposit), false);
 
         _mint(address(usdc), alice, 200e6);
         _approve(alice, address(usdc), address(size), 200e6);
@@ -289,16 +287,9 @@ contract VaultsTest is BaseTest {
         _updateConfig("swapFeeAPR", 0);
 
         _setVaultAdapter(vaultERC7540ControlledAsyncRedeem, "ERC4626Adapter");
-        _setUserConfiguration(alice, address(vaultERC7540ControlledAsyncRedeem), 1.5e18, false, false, new uint256[](0));
-        _setUserConfiguration(bob, address(vaultERC7540ControlledAsyncRedeem), 1.5e18, false, false, new uint256[](0));
-        _setUserConfiguration(
-            size.feeConfig().feeRecipient,
-            address(vaultERC7540ControlledAsyncRedeem),
-            1.5e18,
-            false,
-            false,
-            new uint256[](0)
-        );
+        _setVault(alice, address(vaultERC7540ControlledAsyncRedeem), false);
+        _setVault(bob, address(vaultERC7540ControlledAsyncRedeem), false);
+        _setVault(size.feeConfig().feeRecipient, address(vaultERC7540ControlledAsyncRedeem), false);
 
         Vars memory _before = _state();
 
@@ -333,9 +324,9 @@ contract VaultsTest is BaseTest {
 
     function test_Vaults_limits_vault() public {
         _setVaultAdapter(vaultLimits, "ERC4626Adapter");
-        _setUserConfiguration(alice, address(vaultLimits), 1.5e18, false, false, new uint256[](0));
-        _setUserConfiguration(bob, address(vaultLimits), 1.5e18, false, false, new uint256[](0));
-        _setUserConfiguration(candy, address(vaultLimits), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(vaultLimits), false);
+        _setVault(bob, address(vaultLimits), false);
+        _setVault(candy, address(vaultLimits), false);
 
         _deposit(alice, usdc, 300e6);
         _deposit(bob, usdc, 600e6);
@@ -357,7 +348,7 @@ contract VaultsTest is BaseTest {
 
     function test_Vaults_fee_on_entry_exit_vault() public {
         _setVaultAdapter(vaultFeeOnEntryExit, "ERC4626Adapter");
-        _setUserConfiguration(alice, address(vaultFeeOnEntryExit), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(vaultFeeOnEntryExit), false);
 
         Vars memory _before = _state();
 
@@ -372,7 +363,7 @@ contract VaultsTest is BaseTest {
 
     function test_Vaults_total_supply_across_multiple_vaults() public {
         _setVaultAdapter(vault2, "ERC4626Adapter");
-        _setUserConfiguration(alice, address(vault2), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(vault2), false);
 
         _deposit(alice, usdc, 200e6);
         _deposit(bob, usdc, 100e6);
@@ -414,27 +405,27 @@ contract VaultsTest is BaseTest {
 
         _setVaultAdapter(vault, "ERC4626Adapter");
         _setVaultAdapter(vault2, "ERC4626Adapter");
-        _setUserConfiguration(alice, address(vault), 1.5e18, false, false, new uint256[](0));
-        _setUserConfiguration(bob, address(vault2), 1.5e18, false, false, new uint256[](0));
-        _setUserConfiguration(candy, address(DEFAULT_VAULT), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(vault), false);
+        _setVault(bob, address(vault2), false);
+        _setVault(candy, DEFAULT_VAULT, false);
         _setLiquidityIndex(index);
 
         _deposit(alice, usdc, cash);
         _deposit(bob, weth, 10e18);
         _deposit(candy, usdc, cash * percent / PERCENT);
 
-        _setUserConfiguration(alice, address(DEFAULT_VAULT), 1.5e18, false, false, new uint256[](0));
-        _setUserConfiguration(bob, address(vault), 1.5e18, false, false, new uint256[](0));
-        _setUserConfiguration(candy, address(vault2), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, DEFAULT_VAULT, false);
+        _setVault(bob, address(vault), false);
+        _setVault(candy, address(vault2), false);
         _setLiquidityIndex(index * 1.1e18 / PERCENT);
 
         _deposit(alice, usdc, cash);
         _deposit(bob, weth, 10e18);
         _deposit(candy, usdc, cash * percent / PERCENT);
 
-        _setUserConfiguration(alice, address(DEFAULT_VAULT), 1.5e18, false, false, new uint256[](0));
-        _setUserConfiguration(bob, address(vault), 1.5e18, false, false, new uint256[](0));
-        _setUserConfiguration(candy, address(vault2), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, DEFAULT_VAULT, false);
+        _setVault(bob, address(vault), false);
+        _setVault(candy, address(vault2), false);
         _setLiquidityIndex(index * 1.1e18 / PERCENT);
 
         _buyCreditLimit(alice, block.timestamp + tenor, YieldCurveHelper.pointCurve(tenor, int256(apr)));
@@ -489,7 +480,7 @@ contract VaultsTest is BaseTest {
 
     function test_Vaults_admin_can_DoS_user_operations_with_removeAdapter() public {
         _setVaultAdapter(vault, "ERC4626Adapter");
-        _setUserConfiguration(alice, address(vault), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(vault), false);
 
         _deposit(alice, usdc, 100e6);
 
@@ -502,7 +493,7 @@ contract VaultsTest is BaseTest {
         _withdraw(alice, usdc, type(uint256).max);
 
         vm.expectRevert();
-        _setUserConfiguration(alice, address(DEFAULT_VAULT), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, DEFAULT_VAULT, false);
 
         ERC4626Adapter newAdapter = new ERC4626Adapter(borrowTokenVault, usdc);
 
@@ -517,8 +508,8 @@ contract VaultsTest is BaseTest {
         vm.label(address(maliciousVault), "ReentrancyMaliciousERC4626");
 
         _setVaultAdapter(address(maliciousVault), "ERC4626Adapter");
-        _setAuthorization(alice, address(maliciousVault), Authorization.getActionsBitmap(Action.SET_USER_CONFIGURATION));
-        _setUserConfiguration(alice, address(maliciousVault), 1.5e18, false, false, new uint256[](0));
+        _setAuthorization(alice, address(maliciousVault), Authorization.getActionsBitmap(Action.SET_VAULT));
+        _setVault(alice, address(maliciousVault), false);
         NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
 
         uint256 bobBalance = 1_000_000e6;
@@ -551,8 +542,8 @@ contract VaultsTest is BaseTest {
         vm.label(address(maliciousVault), "ReentrancyMaliciousERC4626");
 
         _setVaultAdapter(address(maliciousVault), "ERC4626Adapter");
-        _setAuthorization(alice, address(maliciousVault), Authorization.getActionsBitmap(Action.SET_USER_CONFIGURATION));
-        _setUserConfiguration(alice, address(maliciousVault), 1.5e18, false, false, new uint256[](0));
+        _setAuthorization(alice, address(maliciousVault), Authorization.getActionsBitmap(Action.SET_VAULT));
+        _setVault(alice, address(maliciousVault), false);
         NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
 
         uint256 bobBalance = 1_000_000e6;
@@ -586,7 +577,7 @@ contract VaultsTest is BaseTest {
         _setVaultAdapter(vault, "ERC4626Adapter");
         _setVaultAdapter(vault3, "ERC4626Adapter");
 
-        _setUserConfiguration(alice, address(vault3), 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, address(vault3), false);
 
         _deposit(alice, usdc, 1);
 
@@ -596,7 +587,7 @@ contract VaultsTest is BaseTest {
             size.data().borrowTokenVault.balanceOf(alice) == 0 && size.data().borrowTokenVault.sharesOf(alice) > 0
         );
 
-        _setUserConfiguration(alice, DEFAULT_VAULT, 1.5e18, false, false, new uint256[](0));
+        _setVault(alice, DEFAULT_VAULT, false);
     }
 
     function test_Vaults_setVault_should_not_allow_dust_shares_concrete() public {
