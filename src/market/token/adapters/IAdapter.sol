@@ -6,11 +6,11 @@ pragma solidity 0.8.23;
 /// @author Size (https://size.credit/)
 /// @notice Interface for the adapter
 interface IAdapter {
-    error InsufficientTotalAssets(address vault, uint256 totalAssets, uint256 amount);
+    error InsufficientAssets(address vault, uint256 assets, uint256 amount);
 
     /// @notice Returns the total supply of the vault
     /// @param vault The address of the vault
-    /// @return The total supply of the vault
+    /// @return The total supply of the vault, including assets that cannot be withdrawn.
     function totalSupply(address vault) external view returns (uint256);
 
     /// @notice Returns the balance of the account

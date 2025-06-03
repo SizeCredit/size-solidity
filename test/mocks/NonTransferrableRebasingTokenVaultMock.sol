@@ -50,9 +50,14 @@ contract NonTransferrableRebasingTokenVaultMock is NonTransferrableRebasingToken
         __setVars(_after[user], user);
     }
 
-    function setVault(address user, address vault, bool forfeitOldShares) public override resetVars(user) {
+    function setVault(address user, address vault, bool forfeitOldShares)
+        public
+        override
+        resetVars(user)
+        returns (address newVault)
+    {
         __before(user);
-        super.setVault(user, vault, forfeitOldShares);
+        newVault = super.setVault(user, vault, forfeitOldShares);
         __after(user);
 
         if (

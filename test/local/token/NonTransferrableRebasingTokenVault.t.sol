@@ -108,7 +108,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         token.transferFrom(user, address(this), 50);
 
         vm.prank(address(size));
-        vm.expectRevert(abi.encodeWithSelector(IAdapter.InsufficientTotalAssets.selector, address(0), 0, 50));
+        vm.expectRevert(abi.encodeWithSelector(IAdapter.InsufficientAssets.selector, address(0), 0, 50));
         token.transferFrom(user, address(this), 50);
 
         uint256 deposit = 100;
@@ -131,11 +131,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         token.setVault(address(this), address(vault), false);
 
         vm.prank(address(size));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAdapter.InsufficientTotalAssets.selector, address(vault), INITIAL_VAULT_ASSETS + deposit, 50e18
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IAdapter.InsufficientAssets.selector, address(vault), deposit, 50e18));
         token.transferFrom(user, address(this), 50e18);
 
         deal(address(underlying), address(size), 100e18);
@@ -458,7 +454,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         assertEq(token.balanceOf(owner), 100);
 
         vm.prank(address(size));
-        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, user, 400, 900));
+        vm.expectRevert(abi.encodeWithSelector(IAdapter.InsufficientAssets.selector, address(vault), 500, 900));
         token.transferFrom(user, owner, 900);
     }
 

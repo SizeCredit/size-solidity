@@ -111,7 +111,7 @@ contract AaveAdapter is Ownable, IAaveAdapter {
     /// @inheritdoc IAdapter
     function transferFrom(address vault, address from, address to, uint256 value) external onlyOwner {
         if (underlyingToken.balanceOf(address(aToken)) < value) {
-            revert InsufficientTotalAssets(DEFAULT_VAULT, underlyingToken.balanceOf(address(aToken)), value);
+            revert InsufficientAssets(DEFAULT_VAULT, underlyingToken.balanceOf(address(aToken)), value);
         }
 
         uint256 shares = Math.mulDivDown(value, WadRayMath.RAY, liquidityIndex());

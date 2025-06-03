@@ -278,18 +278,28 @@ contract NonTransferrableRebasingTokenVault is
     ///        to a different vault without requiring interaction with the old vault, which may be inaccessible or
     ///        compromised. This prevents users from being permanently locked out of the protocol when their chosen
     ///        vault becomes unavailable.
-    function setVault(address user, address vault, bool forfeitOldShares) public virtual onlyMarket {
+    function setVault(address user, address vault, bool forfeitOldShares)
+        public
+        virtual
+        onlyMarket
+        returns (address newVault)
+    {
         if (user == address(0)) {
             revert Errors.NULL_ADDRESS();
-        }
-        if (vaultToIdMap.contains(vault) && vaultOf[user] != vault) {
+        } else if (!vaultToIdMap.contains(vault)) {
+            revert Errors.INVALID_VAULT(vault);
+        } else if (vaultOf[user] != vault) {
             if (forfeitOldShares || balanceOf(user) == 0) {
                 _setSharesOf(user, 0);
             } else {
                 _transferFrom(vaultOf[user], vault, user, user, balanceOf(user));
             }
             _setVaultOf(user, vault);
+        } else {
+            // do not change the user vault
         }
+
+        return vaultOf[user];
     }
 
     /// @notice Deposit underlying tokens into the variable pool and mint scaled tokens

@@ -10,6 +10,7 @@ import {DEFAULT_VAULT} from "@src/market/token/NonTransferrableRebasingTokenVaul
 import {BaseTest, Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
+import {BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {DepositParams} from "@src/market/libraries/actions/Deposit.sol";
 import {SellCreditMarketParams} from "@src/market/libraries/actions/SellCreditMarket.sol";
 
@@ -35,6 +36,8 @@ import {FeeOnTransferERC4626} from "@test/mocks/vaults/FeeOnTransferERC4626.sol"
 import {LimitsERC4626} from "@test/mocks/vaults/LimitsERC4626.sol";
 import {MaliciousERC4626} from "@test/mocks/vaults/MaliciousERC4626.sol";
 import {ReentrancyMaliciousERC4626} from "@test/mocks/vaults/ReentrancyMaliciousERC4626.sol";
+
+import {IAdapter} from "@src/market/token/adapters/IAdapter.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {Events} from "@src/market/libraries/Events.sol";
@@ -108,6 +111,7 @@ contract VaultsTest is BaseTest {
         _repay(bob, debtPositionId, bob);
 
         _setVault(alice, address(0), false);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vault2)));
         _setVault(alice, address(vault2), false);
 
         _claim(alice, creditPositionId);
@@ -242,6 +246,7 @@ contract VaultsTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vaultInvalidUnderlying)));
         borrowTokenVault.setVaultAdapter(address(vaultInvalidUnderlying), "ERC4626Adapter");
 
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vaultInvalidUnderlying)));
         _setVault(alice, address(vaultInvalidUnderlying), false);
     }
 
@@ -252,6 +257,7 @@ contract VaultsTest is BaseTest {
         vm.expectRevert();
         borrowTokenVault.setVaultAdapter(address(vaultNonERC4626), "ERC4626Adapter");
 
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vaultNonERC4626)));
         _setVault(alice, address(vaultNonERC4626), false);
     }
 
@@ -310,15 +316,32 @@ contract VaultsTest is BaseTest {
 
         _before = _state();
 
-        // buyCreditMarket can be used to "exit" from vaults that revert on withdraw
-        _buyCreditMarket(alice, bob, RESERVED_ID, amount, tenor, true);
+        // buyCreditMarket tried to be used to "exit" from vaults that revert on withdraw
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAdapter.InsufficientAssets.selector, address(vaultERC7540ControlledAsyncRedeem), 0, 100e6
+            )
+        );
+        vm.prank(alice);
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: bob,
+                creditPositionId: RESERVED_ID,
+                amount: amount,
+                tenor: tenor,
+                deadline: block.timestamp,
+                minAPR: 0,
+                exactAmountIn: true,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
+            })
+        );
 
         _after = _state();
 
-        assertEq(_after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance - amount);
-        assertEq(_after.bob.borrowTokenBalance, _before.bob.borrowTokenBalance + amount);
+        assertEq(_after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance);
+        assertEq(_after.bob.borrowTokenBalance, _before.bob.borrowTokenBalance);
 
-        vm.expectRevert();
         _withdraw(bob, address(usdc), 100e6);
     }
 
@@ -348,6 +371,26 @@ contract VaultsTest is BaseTest {
         LimitsERC4626(address(vaultLimits)).setLimits(100e6, 100e6, 100e6, 100e6);
 
         assertEq(borrowTokenVault.totalSupply(), 1800e6);
+
+        _deposit(bob, weth, 100e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAdapter.InsufficientAssets.selector, address(vaultLimits), 100e6, 200e6)
+        );
+        vm.prank(bob);
+        size.sellCreditMarket(
+            SellCreditMarketParams({
+                lender: alice,
+                creditPositionId: RESERVED_ID,
+                amount: 200e6,
+                tenor: 365 days,
+                deadline: block.timestamp,
+                maxAPR: type(uint256).max,
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
+            })
+        );
     }
 
     function test_Vaults_fee_on_entry_exit_vault() public {

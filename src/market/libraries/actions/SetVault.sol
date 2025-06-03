@@ -51,8 +51,8 @@ library SetVault {
         SetVaultParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
 
-        state.data.borrowTokenVault.setVault(onBehalfOf, params.vault, params.forfeitOldShares);
+        address newVault = state.data.borrowTokenVault.setVault(onBehalfOf, params.vault, params.forfeitOldShares);
 
-        emit Events.SetVault(msg.sender, onBehalfOf, params.vault, params.forfeitOldShares);
+        emit Events.SetVault(msg.sender, onBehalfOf, newVault, params.forfeitOldShares);
     }
 }

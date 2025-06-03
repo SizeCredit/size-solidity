@@ -104,8 +104,8 @@ contract ERC4626Adapter is Ownable, IAdapter {
 
     /// @inheritdoc IAdapter
     function transferFrom(address vault, address from, address to, uint256 value) external onlyOwner {
-        if (IERC4626(vault).totalAssets() < value) {
-            revert InsufficientTotalAssets(address(vault), IERC4626(vault).totalAssets(), value);
+        if (IERC4626(vault).maxWithdraw(address(tokenVault)) < value) {
+            revert InsufficientAssets(address(vault), IERC4626(vault).maxWithdraw(address(tokenVault)), value);
         }
 
         uint256 shares = IERC4626(vault).convertToShares(value);
