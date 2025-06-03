@@ -127,21 +127,6 @@ abstract contract SizeView is SizeStorage, ReentrancyGuardUpgradeableWithViewMod
     }
 
     /// @inheritdoc ISizeView
-    function vaultOf(address user) external view returns (address) {
-        return state.data.borrowTokenVault.vaultOf(user);
-    }
-
-    /// @inheritdoc ISizeView
-    function isDebtPositionId(uint256 debtPositionId) external view returns (bool) {
-        return state.isDebtPositionId(debtPositionId);
-    }
-
-    /// @inheritdoc ISizeView
-    function isCreditPositionId(uint256 creditPositionId) external view returns (bool) {
-        return state.isCreditPositionId(creditPositionId);
-    }
-
-    /// @inheritdoc ISizeView
     function getDebtPosition(uint256 debtPositionId) external view returns (DebtPosition memory) {
         return state.getDebtPosition(debtPositionId);
     }

@@ -452,23 +452,6 @@ contract Size is
         state.executeSetUserConfiguration(externalParams);
     }
 
-    /// @inheritdoc ISizeV1_8
-    function setVault(SetVaultParams calldata params) external payable override(ISizeV1_8) {
-        setVaultOnBehalfOf(SetVaultOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
-    }
-
-    /// @inheritdoc ISizeV1_8
-    function setVaultOnBehalfOf(SetVaultOnBehalfOfParams memory externalParams)
-        public
-        payable
-        override(ISizeV1_8)
-        nonReentrant
-        whenNotPaused
-    {
-        state.validateSetVault(externalParams);
-        state.executeSetVault(externalParams);
-    }
-
     /// @inheritdoc ISize
     function copyLimitOrders(CopyLimitOrdersParams calldata params) external payable override(ISize) {
         copyLimitOrdersOnBehalfOf(CopyLimitOrdersOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
@@ -484,5 +467,22 @@ contract Size is
     {
         state.validateCopyLimitOrders(externalParams);
         state.executeCopyLimitOrders(externalParams);
+    }
+
+    /// @inheritdoc ISizeV1_8
+    function setVault(SetVaultParams calldata params) external payable override(ISizeV1_8) {
+        setVaultOnBehalfOf(SetVaultOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
+    }
+
+    /// @inheritdoc ISizeV1_8
+    function setVaultOnBehalfOf(SetVaultOnBehalfOfParams memory externalParams)
+        public
+        payable
+        override(ISizeV1_8)
+        nonReentrant
+        whenNotPaused
+    {
+        state.validateSetVault(externalParams);
+        state.executeSetVault(externalParams);
     }
 }

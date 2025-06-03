@@ -39,8 +39,4 @@ contract SizeViewTest is BaseTest {
     function test_SizeView_isDebtPositionId_no_loans() public view {
         assertEq(size.isDebtPositionId(0), false);
     }
-
-    function test_SizeView_vaultOf() public view {
-        assertEq(size.vaultOf(alice), address(0));
-    }
 }

@@ -115,4 +115,12 @@ contract SizeMock is Size {
         DebtPosition memory debtPosition = state.getDebtPosition(debtPositionId);
         return state.getDebtPositionAssignedCollateral(debtPosition);
     }
+
+    function isDebtPositionId(uint256 debtPositionId) external view returns (bool) {
+        return state.isDebtPositionId(debtPositionId);
+    }
+
+    function isCreditPositionId(uint256 creditPositionId) external view returns (bool) {
+        return state.isCreditPositionId(creditPositionId);
+    }
 }

@@ -314,8 +314,11 @@ abstract contract Deploy {
         vaultFeeOnEntryExit = IERC4626(
             address(new FeeOnEntryExitERC4626(usdc, "VaultFeeOnEntryExit", "VAULTFEEONENTRYEXIT", 0.1e4, 0.2e4))
         );
-        vaultLimits =
-            IERC4626(address(new LimitsERC4626(usdc, "VaultLimits", "VAULTLIMITS", 1000e6, 2000e6, 3000e6, 4000e6)));
+        vaultLimits = IERC4626(
+            address(
+                new LimitsERC4626(address(this), usdc, "VaultLimits", "VAULTLIMITS", 1000e6, 2000e6, 3000e6, 4000e6)
+            )
+        );
         vaultNonERC4626 = IERC4626(address(new ERC20Mock()));
         vaultERC7540FullyAsync =
             IERC4626(address(new FullyAsyncVault(ERC20(address(usdc)), "VaultERC7540", "VAULTERC7540")));

@@ -57,21 +57,6 @@ interface ISizeView is ISizeViewV1_7, ISizeViewV1_8 {
     /// @return The user view
     function getUserView(address user) external view returns (UserView memory);
 
-    /// @notice Get the user vault for a given user
-    /// @param user The address of the user
-    /// @return The user vault
-    function vaultOf(address user) external view returns (address);
-
-    /// @notice Check if a given ID is a debt position ID
-    /// @param debtPositionId The ID to check
-    /// @return True if the ID is a debt position ID, false otherwise
-    function isDebtPositionId(uint256 debtPositionId) external view returns (bool);
-
-    /// @notice Check if a given ID is a credit position ID
-    /// @param creditPositionId The ID to check
-    /// @return True if the ID is a credit position ID, false otherwise
-    function isCreditPositionId(uint256 creditPositionId) external view returns (bool);
-
     /// @notice Get the details of a debt position
     /// @param debtPositionId The ID of the debt position
     /// @return The DebtPosition struct containing the details of the debt position

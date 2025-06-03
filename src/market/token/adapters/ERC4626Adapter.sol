@@ -45,7 +45,7 @@ contract ERC4626Adapter is Ownable, IAdapter {
         if (tokenVault.getWhitelistedVaultAdapter(vault) != this) {
             revert Errors.INVALID_VAULT(vault);
         } else {
-            return IERC4626(vault).maxWithdraw(address(tokenVault));
+            return IERC4626(vault).convertToAssets(IERC4626(vault).balanceOf(address(tokenVault)));
         }
     }
 

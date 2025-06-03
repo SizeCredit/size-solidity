@@ -344,6 +344,10 @@ contract VaultsTest is BaseTest {
             )
         );
         size.deposit(DepositParams({token: address(usdc), amount: 1200e6, to: candy}));
+
+        LimitsERC4626(address(vaultLimits)).setLimits(100e6, 100e6, 100e6, 100e6);
+
+        assertEq(borrowTokenVault.totalSupply(), 1800e6);
     }
 
     function test_Vaults_fee_on_entry_exit_vault() public {
