@@ -60,19 +60,17 @@ contract ERC4626Adapter is Ownable, IAdapter {
 
     /// @inheritdoc IAdapter
     function deposit(address vault, address to, uint256 amount) external onlyOwner returns (uint256 assets) {
-        // slither-disable-next-line uninitialized-local
-        Vars memory vars;
-        vars.sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
-        vars.userSharesBefore = tokenVault.sharesOf(to);
+        uint256 sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
+        uint256 userSharesBefore = tokenVault.sharesOf(to);
 
         underlyingToken.forceApprove(vault, amount);
         // slither-disable-next-line unused-return
         IERC4626(vault).deposit(amount, address(tokenVault));
 
-        uint256 shares = IERC4626(vault).balanceOf(address(tokenVault)) - vars.sharesBefore;
+        uint256 shares = IERC4626(vault).balanceOf(address(tokenVault)) - sharesBefore;
         assets = IERC4626(vault).convertToAssets(shares);
 
-        tokenVault.setSharesOf(to, vars.userSharesBefore + shares);
+        tokenVault.setSharesOf(to, userSharesBefore + shares);
     }
 
     /// @inheritdoc IAdapter
@@ -83,27 +81,24 @@ contract ERC4626Adapter is Ownable, IAdapter {
     {
         bool fullWithdraw = amount == balanceOf(vault, from);
 
-        // slither-disable-next-line uninitialized-local
-        Vars memory vars;
-        vars.sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
-        vars.assetsBefore = underlyingToken.balanceOf(address(this));
-        vars.userSharesBefore = tokenVault.sharesOf(from);
+        uint256 sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
+        uint256 assetsBefore = underlyingToken.balanceOf(address(this));
+        uint256 userSharesBefore = tokenVault.sharesOf(from);
 
         tokenVault.requestApprove(vault, type(uint256).max);
         // slither-disable-next-line unused-return
         IERC4626(vault).withdraw(amount, address(this), address(tokenVault));
         tokenVault.requestApprove(vault, 0);
 
-        uint256 shares = vars.sharesBefore - IERC4626(vault).balanceOf(address(tokenVault));
-        assets = underlyingToken.balanceOf(address(this)) - vars.assetsBefore;
+        uint256 shares = sharesBefore - IERC4626(vault).balanceOf(address(tokenVault));
+        assets = underlyingToken.balanceOf(address(this)) - assetsBefore;
 
         underlyingToken.safeTransfer(to, assets);
 
         if (fullWithdraw) {
             tokenVault.setSharesOf(from, 0);
-            tokenVault.setVaultDust(vault, tokenVault.vaultDust(vault) + vars.userSharesBefore - shares);
         } else {
-            tokenVault.setSharesOf(from, vars.userSharesBefore - shares);
+            tokenVault.setSharesOf(from, userSharesBefore - shares);
         }
     }
 

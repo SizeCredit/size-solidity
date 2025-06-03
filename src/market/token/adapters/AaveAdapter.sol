@@ -24,12 +24,6 @@ import {
 contract AaveAdapter is Ownable, IAaveAdapter {
     using SafeERC20 for IERC20Metadata;
 
-    struct Vars {
-        uint256 sharesBefore;
-        uint256 assetsBefore;
-        uint256 userSharesBefore;
-    }
-
     // slither-disable-start uninitialized-state
     // slither-disable-start constable-states
     NonTransferrableRebasingTokenVault public immutable tokenVault;
@@ -74,18 +68,16 @@ contract AaveAdapter is Ownable, IAaveAdapter {
 
     /// @inheritdoc IAdapter
     function deposit(address, /*vault*/ address to, uint256 amount) external onlyOwner returns (uint256 assets) {
-        // slither-disable-next-line uninitialized-local
-        Vars memory vars;
-        vars.sharesBefore = aToken.scaledBalanceOf(address(tokenVault));
-        vars.userSharesBefore = tokenVault.sharesOf(to);
+        uint256 sharesBefore = aToken.scaledBalanceOf(address(tokenVault));
+        uint256 userSharesBefore = tokenVault.sharesOf(to);
 
         underlyingToken.forceApprove(address(aavePool), amount);
         aavePool.supply(address(underlyingToken), amount, address(tokenVault), 0);
 
-        uint256 shares = aToken.scaledBalanceOf(address(tokenVault)) - vars.sharesBefore;
+        uint256 shares = aToken.scaledBalanceOf(address(tokenVault)) - sharesBefore;
         assets = _unscale(shares);
 
-        tokenVault.setSharesOf(to, vars.userSharesBefore + shares);
+        tokenVault.setSharesOf(to, userSharesBefore + shares);
     }
 
     /// @inheritdoc IAdapter
@@ -97,25 +89,22 @@ contract AaveAdapter is Ownable, IAaveAdapter {
     {
         bool fullWithdraw = amount == balanceOf(vault, from);
 
-        // slither-disable-next-line uninitialized-local
-        Vars memory vars;
-        vars.sharesBefore = aToken.scaledBalanceOf(address(tokenVault));
-        vars.userSharesBefore = tokenVault.sharesOf(from);
+        uint256 sharesBefore = aToken.scaledBalanceOf(address(tokenVault));
+        uint256 userSharesBefore = tokenVault.sharesOf(from);
 
         tokenVault.requestAaveWithdraw(amount, to);
 
-        uint256 shares = vars.sharesBefore - aToken.scaledBalanceOf(address(tokenVault));
+        uint256 shares = sharesBefore - aToken.scaledBalanceOf(address(tokenVault));
         assets = _unscale(shares);
 
-        if (vars.userSharesBefore < shares) {
+        if (userSharesBefore < shares) {
             revert IERC20Errors.ERC20InsufficientBalance(from, balanceOf(vault, from), amount);
         }
 
         if (fullWithdraw) {
             tokenVault.setSharesOf(from, 0);
-            tokenVault.setVaultDust(vault, tokenVault.vaultDust(vault) + vars.userSharesBefore - shares);
         } else {
-            tokenVault.setSharesOf(from, vars.userSharesBefore - shares);
+            tokenVault.setSharesOf(from, userSharesBefore - shares);
         }
     }
 

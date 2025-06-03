@@ -6,7 +6,6 @@ import {DataView} from "@src/market/SizeViewData.sol";
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-import {MockERC4626} from "@solady/test/utils/mocks/MockERC4626.sol";
 
 import "@crytic/properties/contracts/util/Hevm.sol";
 
@@ -46,12 +45,15 @@ import {WETH} from "@test/mocks/WETH.sol";
 import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
+import {NonTransferrableRebasingTokenVaultMock} from "@test/mocks/NonTransferrableRebasingTokenVaultMock.sol";
 
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
-import {ERC4626Mock} from "@openzeppelin/contracts/mocks/token/ERC4626Mock.sol";
+import {ERC4626Mock as ERC4626OpenZeppelin} from "@openzeppelin/contracts/mocks/token/ERC4626Mock.sol";
 import {ERC4626} from "@solady/src/tokens/ERC4626.sol";
-import {ERC20} from "solmate/tokens/ERC20.sol";
+import {MockERC4626 as ERC4626Solady} from "@solady/test/utils/mocks/MockERC4626.sol";
+import {MockERC4626 as ERC4626Solmate} from "@solmate/src/test/utils/mocks/MockERC4626.sol";
+import {ERC20} from "@solmate/src/tokens/ERC20.sol";
 
 import {ControlledAsyncDeposit} from "@ERC-7540-Reference/src/ControlledAsyncDeposit.sol";
 import {ControlledAsyncRedeem} from "@ERC-7540-Reference/src/ControlledAsyncRedeem.sol";
@@ -87,6 +89,7 @@ abstract contract Deploy {
 
     IERC4626 internal vault;
     IERC4626 internal vault2;
+    IERC4626 internal vault3;
     IERC4626 internal vaultMalicious;
     IERC4626 internal vaultFeeOnTransfer;
     IERC4626 internal vaultFeeOnEntryExit;
@@ -129,7 +132,7 @@ abstract contract Deploy {
             sizeFactory.setCollectionsManager(collectionsManager);
         }
 
-        address borrowTokenVaultImplementation = address(new NonTransferrableRebasingTokenVault());
+        address borrowTokenVaultImplementation = address(new NonTransferrableRebasingTokenVaultMock());
 
         _deployVaults();
 
@@ -229,9 +232,9 @@ abstract contract Deploy {
             sizeFactory.setCollectionsManager(collectionsManager);
         }
 
-        address borrowTokenVaultImplementation = address(new NonTransferrableRebasingTokenVault());
+        address borrowTokenVaultImplementation = address(new NonTransferrableRebasingTokenVaultMock());
 
-        vault = IERC4626(address(new MockERC4626(address(borrowToken), "Vault", "VAULT", true, 0)));
+        vault = IERC4626(address(new ERC4626Solady(address(borrowToken), "Vault", "VAULT", true, 0)));
 
         hevm.prank(owner);
         sizeFactory.setNonTransferrableRebasingTokenVaultImplementation(borrowTokenVaultImplementation);
@@ -302,8 +305,9 @@ abstract contract Deploy {
     }
 
     function _deployVaults() internal {
-        vault = IERC4626(address(new MockERC4626(address(usdc), "Vault", "VAULT", true, 0)));
-        vault2 = IERC4626(address(new ERC4626Mock(address(usdc))));
+        vault = IERC4626(address(new ERC4626Solady(address(usdc), "Vault", "VAULT", true, 0)));
+        vault2 = IERC4626(address(new ERC4626OpenZeppelin(address(usdc))));
+        vault3 = IERC4626(address(new ERC4626Solmate(ERC20(address(usdc)), "Vault3", "VAULT3")));
         vaultMalicious = IERC4626(address(new MaliciousERC4626(usdc, "VaultMalicious", "VAULTMALICIOUS")));
         vaultFeeOnTransfer =
             IERC4626(address(new FeeOnTransferERC4626(usdc, "VaultFeeOnTransfer", "VAULTFEEONTXFER", 0.1e18)));
@@ -320,7 +324,7 @@ abstract contract Deploy {
         vaultERC7540ControlledAsyncRedeem =
             IERC4626(address(new ControlledAsyncRedeem(ERC20(address(usdc)), "VaultERC7540", "VAULTERC7540")));
         vaultInvalidUnderlying = IERC4626(
-            address(new MockERC4626(address(weth), "VaultInvalidUnderlying", "VAULTINVALIDUNDERLYING", true, 0))
+            address(new ERC4626Solady(address(weth), "VaultInvalidUnderlying", "VAULTINVALIDUNDERLYING", true, 0))
         );
     }
 

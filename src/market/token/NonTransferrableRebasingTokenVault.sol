@@ -69,7 +69,6 @@ contract NonTransferrableRebasingTokenVault is
     mapping(address user => uint256 shares) public sharesOf; // updated in v1.8
     // v1.8
     mapping(address user => address vault) public vaultOf;
-    mapping(address vault => uint256 dust) public vaultDust;
     EnumerableMap.AddressToBytes32Map internal vaultToIdMap;
     EnumerableMap.Bytes32ToAddressMap internal IdToAdapterMap;
     EnumerableMap.AddressToBytes32Map internal adapterToIdMap;
@@ -80,6 +79,7 @@ contract NonTransferrableRebasingTokenVault is
                             EVENTS
     //////////////////////////////////////////////////////////////*/
 
+    event SharesSet(address indexed user, uint256 indexed previousShares, uint256 indexed newShares);
     event VaultSet(address indexed user, address indexed previousVault, address indexed newVault);
     event VaultAdapterSet(address indexed vault, bytes32 indexed id);
     event VaultRemoved(address indexed vault);
@@ -274,16 +274,15 @@ contract NonTransferrableRebasingTokenVault is
     ///        from the previous vault and deposit them into the new vault
     ///      Reverts if the vault asset is not the same as the NonTransferrableRebasingTokenVault's underlying token
     ///      vaultOf[user] is set at the end of the function so that we can withdraw from existing vault
-    function setVault(address user, address vault) external onlyMarket {
+    ///      This function is virtual to allow for custom logic in test contracts
+    function setVault(address user, address vault) public virtual onlyMarket {
         if (user == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
         if (vaultToIdMap.contains(vault) && vaultOf[user] != vault) {
             // slither-disable-next-line reentrancy-no-eth
             _transferFrom(vaultOf[user], vault, user, user, balanceOf(user));
-
-            emit VaultSet(user, vaultOf[user], vault);
-            vaultOf[user] = vault;
+            _setVault(user, vault);
         }
     }
 
@@ -338,14 +337,7 @@ contract NonTransferrableRebasingTokenVault is
     /// @dev Only callable by the adapter
     ///      Adapter helper functions operate via reentrancy, so they do not have the nonReentrant modifier
     function setSharesOf(address user, uint256 shares) public onlyAdapter {
-        sharesOf[user] = shares;
-    }
-
-    /// @notice Sets the dust of a vault
-    /// @dev Only callable by the adapter
-    ///      Adapter helper functions operate via reentrancy, so they do not have the nonReentrant modifier
-    function setVaultDust(address vault, uint256 dust) public onlyAdapter {
-        vaultDust[vault] = dust;
+        _setSharesOf(user, shares);
     }
 
     /// @notice Increases the allowance of the vault
@@ -471,5 +463,19 @@ contract NonTransferrableRebasingTokenVault is
                 adapterTo.deposit(vaultTo, to, value);
             }
         }
+    }
+
+    /// @notice Sets the vault of a user
+    /// @dev virtual to allow for custom logic in test contracts
+    function _setVault(address user, address vault) internal virtual {
+        emit VaultSet(user, vaultOf[user], vault);
+        vaultOf[user] = vault;
+    }
+
+    /// @notice Sets the shares of a user
+    /// @dev virtual to allow for custom logic in test contracts
+    function _setSharesOf(address user, uint256 shares) internal virtual {
+        emit SharesSet(user, sharesOf[user], shares);
+        sharesOf[user] = shares;
     }
 }

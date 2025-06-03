@@ -525,10 +525,6 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(Errors.UNAUTHORIZED.selector, alice));
         vm.prank(alice);
-        token.setVaultDust(address(vault), 3);
-
-        vm.expectRevert(abi.encodeWithSelector(Errors.UNAUTHORIZED.selector, alice));
-        vm.prank(alice);
         token.requestApprove(address(vault), type(uint256).max);
     }
 

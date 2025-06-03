@@ -23,7 +23,7 @@ import {ERC4626 as ERC4626OpenZeppelin} from "@openzeppelin/contracts/token/ERC2
 import {ERC20 as ERC20Solady} from "@solady/src/tokens/ERC20.sol";
 import {ERC4626 as ERC4626Solady} from "@solady/src/tokens/ERC4626.sol";
 import {MockERC4626} from "@solady/test/utils/mocks/MockERC4626.sol";
-import {ERC20} from "solmate/tokens/ERC20.sol";
+import {ERC20} from "@solmate/src/tokens/ERC20.sol";
 
 import {ControlledAsyncDeposit} from "@ERC-7540-Reference/src/ControlledAsyncDeposit.sol";
 import {ControlledAsyncRedeem} from "@ERC-7540-Reference/src/ControlledAsyncRedeem.sol";
@@ -412,7 +412,6 @@ contract VaultsTest is BaseTest {
         _deposit(bob, weth, 10e18);
         _deposit(candy, usdc, cash * percent / PERCENT);
         _deposit(liquidator, usdc, cash * 100);
-        assertTrue(!_isDustShares([alice, bob, candy, liquidator]), err);
 
         _setVaultAdapter(vault, "ERC4626Adapter");
         _setVaultAdapter(vault2, "ERC4626Adapter");
@@ -420,29 +419,24 @@ contract VaultsTest is BaseTest {
         _setUserConfiguration(bob, address(vault2), 1.5e18, false, false, new uint256[](0));
         _setUserConfiguration(candy, address(DEFAULT_VAULT), 1.5e18, false, false, new uint256[](0));
         _setLiquidityIndex(index);
-        assertTrue(!_isDustShares([alice, bob, candy, liquidator]), err);
 
         _deposit(alice, usdc, cash);
         _deposit(bob, weth, 10e18);
         _deposit(candy, usdc, cash * percent / PERCENT);
-        assertTrue(!_isDustShares([alice, bob, candy, liquidator]), err);
 
         _setUserConfiguration(alice, address(DEFAULT_VAULT), 1.5e18, false, false, new uint256[](0));
         _setUserConfiguration(bob, address(vault), 1.5e18, false, false, new uint256[](0));
         _setUserConfiguration(candy, address(vault2), 1.5e18, false, false, new uint256[](0));
         _setLiquidityIndex(index * 1.1e18 / PERCENT);
-        assertTrue(!_isDustShares([alice, bob, candy, liquidator]), err);
 
         _deposit(alice, usdc, cash);
         _deposit(bob, weth, 10e18);
         _deposit(candy, usdc, cash * percent / PERCENT);
-        assertTrue(!_isDustShares([alice, bob, candy, liquidator]), err);
 
         _setUserConfiguration(alice, address(DEFAULT_VAULT), 1.5e18, false, false, new uint256[](0));
         _setUserConfiguration(bob, address(vault), 1.5e18, false, false, new uint256[](0));
         _setUserConfiguration(candy, address(vault2), 1.5e18, false, false, new uint256[](0));
         _setLiquidityIndex(index * 1.1e18 / PERCENT);
-        assertTrue(!_isDustShares([alice, bob, candy, liquidator]), err);
 
         _buyCreditLimit(alice, block.timestamp + tenor, YieldCurveHelper.pointCurve(tenor, int256(apr)));
         vm.prank(bob);
@@ -459,7 +453,6 @@ contract VaultsTest is BaseTest {
                 rateProvider: address(0)
             })
         ) {
-            assertTrue(!_isDustShares([alice, bob, candy, liquidator]), err);
             uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(0)[0];
 
             _buyCreditLimit(
@@ -481,9 +474,7 @@ contract VaultsTest is BaseTest {
                     collectionId: RESERVED_ID,
                     rateProvider: address(0)
                 })
-            ) {
-                assertTrue(!_isDustShares([alice, bob, candy, liquidator]), err);
-            } catch {}
+            ) {} catch {}
         } catch {}
     }
 
@@ -495,11 +486,6 @@ contract VaultsTest is BaseTest {
         testFuzz_Vaults_changing_vault_does_not_leave_dust_shares(
             2406, 15025, 13859, 34341844514057354199208608556068539879975915923745875639004238636684834145893, 5314
         );
-    }
-
-    function _isDustShares(address[4] memory) internal pure returns (bool) {
-        // TODO implement this
-        return false;
     }
 
     function test_Vaults_admin_can_DoS_user_operations_with_removeAdapter() public {
@@ -593,5 +579,30 @@ contract VaultsTest is BaseTest {
             aliceBalanceBefore,
             "alice did not drain the aave vault (after nonReentrant addition)"
         );
+    }
+
+    function testFuzz_Vaults_setVault_should_not_allow_dust_shares(uint256 amount, uint256 mint) public {
+        amount = bound(amount, 1, 10);
+        mint = bound(mint, 0, 1_000_000e6);
+        _setVaultAdapter(vault, "ERC4626Adapter");
+        _setVaultAdapter(vault3, "ERC4626Adapter");
+
+        _setUserConfiguration(alice, address(vault3), 1.5e18, false, false, new uint256[](0));
+
+        _deposit(alice, usdc, 1);
+
+        _mint(address(usdc), address(vault3), mint);
+
+        vm.assume(
+            size.data().borrowTokenVault.balanceOf(alice) == 0 && size.data().borrowTokenVault.sharesOf(alice) > 0
+        );
+
+        _setUserConfiguration(alice, DEFAULT_VAULT, 1.5e18, false, false, new uint256[](0));
+
+        assertEq(size.data().borrowTokenVault.vaultOf(alice), address(vault3));
+    }
+
+    function test_Vaults_setVault_should_not_allow_dust_shares_concrete() public {
+        testFuzz_Vaults_setVault_should_not_allow_dust_shares(3, 0);
     }
 }
