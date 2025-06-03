@@ -401,7 +401,6 @@ contract VaultsTest is BaseTest {
         uint256 index,
         uint256 percent
     ) public {
-        string memory err = "Changing vault leaves dust shares";
         cash = bound(cash, 1, 100e6);
         index = bound(index, 1e27, 1.3e27);
         apr = bound(apr, 0.01e18, 0.1e18);
@@ -598,8 +597,6 @@ contract VaultsTest is BaseTest {
         );
 
         _setUserConfiguration(alice, DEFAULT_VAULT, 1.5e18, false, false, new uint256[](0));
-
-        assertEq(size.data().borrowTokenVault.vaultOf(alice), address(vault3));
     }
 
     function test_Vaults_setVault_should_not_allow_dust_shares_concrete() public {

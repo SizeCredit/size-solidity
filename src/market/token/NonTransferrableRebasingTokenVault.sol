@@ -280,9 +280,13 @@ contract NonTransferrableRebasingTokenVault is
             revert Errors.NULL_ADDRESS();
         }
         if (vaultToIdMap.contains(vault) && vaultOf[user] != vault) {
-            // slither-disable-next-line reentrancy-no-eth
-            _transferFrom(vaultOf[user], vault, user, user, balanceOf(user));
-            _setVault(user, vault);
+            uint256 userBalance = balanceOf(user);
+            if (userBalance == 0) {
+                _setSharesOf(user, 0);
+            } else {
+                _transferFrom(vaultOf[user], vault, user, user, userBalance);
+            }
+            _setVaultOf(user, vault);
         }
     }
 
@@ -467,7 +471,7 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @notice Sets the vault of a user
     /// @dev virtual to allow for custom logic in test contracts
-    function _setVault(address user, address vault) internal virtual {
+    function _setVaultOf(address user, address vault) internal virtual {
         emit VaultSet(user, vaultOf[user], vault);
         vaultOf[user] = vault;
     }
