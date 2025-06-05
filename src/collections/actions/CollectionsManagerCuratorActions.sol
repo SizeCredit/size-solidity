@@ -100,7 +100,7 @@ abstract contract CollectionsManagerCuratorActions is
             collections[collectionId][markets[i]].copyLoanOfferConfig = copyLoanOfferConfigs[i];
             collections[collectionId][markets[i]].copyBorrowOfferConfig = copyBorrowOfferConfigs[i];
 
-            emit AddMarketToCollection(
+            emit MarketAddedToCollection(
                 collectionId, address(markets[i]), copyLoanOfferConfigs[i], copyBorrowOfferConfigs[i]
             );
         }
@@ -116,7 +116,7 @@ abstract contract CollectionsManagerCuratorActions is
             address[] memory rateProviders = collections[collectionId][markets[i]].rateProviders.values();
             removeRateProvidersFromCollectionMarket(collectionId, markets[i], rateProviders);
             delete collections[collectionId][markets[i]];
-            emit RemoveMarketFromCollection(collectionId, address(markets[i]));
+            emit MarketRemovedFromCollection(collectionId, address(markets[i]));
         }
     }
 
@@ -130,9 +130,10 @@ abstract contract CollectionsManagerCuratorActions is
         }
 
         for (uint256 i = 0; i < rateProviders.length; i++) {
-            // slither-disable-next-line unused-return
-            collections[collectionId][market].rateProviders.add(rateProviders[i]);
-            emit AddRateProviderToMarket(collectionId, address(market), rateProviders[i]);
+            bool added = collections[collectionId][market].rateProviders.add(rateProviders[i]);
+            if (added) {
+                emit RateProviderAddedToMarket(collectionId, address(market), rateProviders[i]);
+            }
         }
     }
 
@@ -146,9 +147,10 @@ abstract contract CollectionsManagerCuratorActions is
         }
 
         for (uint256 i = 0; i < rateProviders.length; i++) {
-            // slither-disable-next-line unused-return
-            collections[collectionId][market].rateProviders.remove(rateProviders[i]);
-            emit RemoveRateProviderFromMarket(collectionId, address(market), rateProviders[i]);
+            bool removed = collections[collectionId][market].rateProviders.remove(rateProviders[i]);
+            if (removed) {
+                emit RateProviderRemovedFromMarket(collectionId, address(market), rateProviders[i]);
+            }
         }
     }
 }

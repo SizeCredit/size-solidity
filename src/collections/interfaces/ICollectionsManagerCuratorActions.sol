@@ -12,15 +12,15 @@ interface ICollectionsManagerCuratorActions {
                             EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event AddMarketToCollection(
+    event MarketAddedToCollection(
         uint256 indexed collectionId,
         address indexed market,
         CopyLimitOrderConfig copyLoanOfferConfig,
         CopyLimitOrderConfig copyBorrowOfferConfig
     );
-    event RemoveMarketFromCollection(uint256 indexed collectionId, address indexed market);
-    event AddRateProviderToMarket(uint256 indexed collectionId, address indexed market, address indexed rateProvider);
-    event RemoveRateProviderFromMarket(
+    event MarketRemovedFromCollection(uint256 indexed collectionId, address indexed market);
+    event RateProviderAddedToMarket(uint256 indexed collectionId, address indexed market, address indexed rateProvider);
+    event RateProviderRemovedFromMarket(
         uint256 indexed collectionId, address indexed market, address indexed rateProvider
     );
 

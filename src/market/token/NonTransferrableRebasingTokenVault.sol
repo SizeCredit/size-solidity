@@ -84,7 +84,7 @@ contract NonTransferrableRebasingTokenVault is
     event VaultAdapterSet(address indexed vault, bytes32 indexed id);
     event VaultRemoved(address indexed vault);
     event AdapterSet(bytes32 indexed id, address indexed adapter);
-    event AdapterRemoved(bytes32 indexed id);
+    event AdapterRemoved(bytes32 indexed id, address indexed adapter);
 
     /*//////////////////////////////////////////////////////////////
                             MODIFIERS
@@ -437,15 +437,15 @@ contract NonTransferrableRebasingTokenVault is
     // slither-disable-end unused-return
 
     /// @notice Removes the adapter
-    // slither-disable-start unused-return
     function _removeAdapter(bytes32 id) private {
         address adapter = IdToAdapterMap.get(id);
-        IdToAdapterMap.remove(id);
-        adapterToIdMap.remove(adapter);
+        bool removed = IdToAdapterMap.remove(id);
+        removed = adapterToIdMap.remove(adapter);
 
-        emit AdapterRemoved(id);
+        if (removed) {
+            emit AdapterRemoved(id, adapter);
+        }
     }
-    // slither-disable-end unused-return
 
     /// @notice Sets the adapter for a vault
     /// @dev Setting the vault to `address(0)` will use the default variable pool
@@ -460,9 +460,10 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @notice Removes a vault from the whitelist
     function _removeVault(address vault) private {
-        // slither-disable-next-line unused-return
-        vaultToIdMap.remove(vault);
-        emit VaultRemoved(vault);
+        bool removed = vaultToIdMap.remove(vault);
+        if (removed) {
+            emit VaultRemoved(vault);
+        }
     }
 
     /// @notice Transfers assets from one account to another, using the `from` vault to the `to` vault
