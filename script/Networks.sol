@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
@@ -469,5 +472,22 @@ abstract contract Networks {
         morphoOracle = IMorphoChainlinkOracleV2(0x9c0363336Bf9DaF57a16BB4e2867459bf4Dd5EB0);
         baseToken = IERC20Metadata(0x50D2C7992b802Eef16c04FeADAB310f31866a545);
         quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
+    }
+
+    function getUnpausedMarkets(ISizeFactory _sizeFactory) public view returns (ISize[] memory markets) {
+        markets = _sizeFactory.getMarkets();
+        uint256 j = 0;
+        for (uint256 i = 0; i < markets.length; i++) {
+            if (!PausableUpgradeable(address(markets[i])).paused()) {
+                markets[j++] = markets[i];
+            }
+        }
+        _unsafeSetLength(markets, j);
+    }
+
+    function _unsafeSetLength(ISize[] memory markets, uint256 length) internal pure {
+        assembly ("memory-safe") {
+            mstore(markets, length)
+        }
     }
 }

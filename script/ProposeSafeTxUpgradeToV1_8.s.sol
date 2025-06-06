@@ -75,19 +75,22 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
 
     function getCollectionMarkets(ISizeFactory _sizeFactory) public view returns (ISize[] memory _collectionMarkets) {
         _collectionMarkets = new ISize[](4);
-        ISize[] memory markets = _sizeFactory.getMarkets();
-        uint256 j = 0;
+        ISize[] memory markets = getUnpausedMarkets(_sizeFactory);
+        uint256 collectionMarketsLength = 0;
         for (uint256 i = 0; i < markets.length; i++) {
             string memory symbol = markets[i].data().underlyingCollateralToken.symbol();
             if (
                 Strings.equal(symbol, "WETH") || Strings.equal(symbol, "cbBTC") || Strings.equal(symbol, "cbETH")
                     || Strings.equal(symbol, "wstETH")
             ) {
-                _collectionMarkets[j++] = markets[i];
+                _collectionMarkets[collectionMarketsLength++] = markets[i];
             }
         }
 
-        require(j == 4, "Invalid number of collection markets");
+        require(
+            block.chainid == ETHEREUM_MAINNET || (block.chainid == BASE_MAINNET && collectionMarketsLength == 4),
+            "Invalid number of collection markets"
+        );
     }
 
     function getTargetsAndDatas(
@@ -174,11 +177,6 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         vm.stopBroadcast();
 
         safe.proposeTransactions(targets, datas, signer, derivationPath);
-
-        Tenderly.VirtualTestnet[] memory vnets = tenderly.getVirtualTestnets();
-        for (uint256 i = 0; i < vnets.length; i++) {
-            tenderly.deleteVirtualTestnetById(vnets[i].id);
-        }
 
         Tenderly.VirtualTestnet memory vnet = tenderly.createVirtualTestnet("upgrade-to-v1_8", block.chainid);
         tenderly.setStorageAt(vnet, safe.instance().safe, Safe.SAFE_THRESHOLD_STORAGE_SLOT, bytes32(uint256(1)));
