@@ -60,5 +60,24 @@ contract CopyLimitOrdersValidationTest is BaseTest {
                 offsetAPR: 0
             })
         );
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.INVALID_OFFER_CONFIGS.selector,
+                15 days,
+                45 days,
+                0.06e18,
+                0.08e18,
+                10 days,
+                30 days,
+                0.03e18,
+                0.05e18
+            )
+        );
+        _copyLimitOrders(
+            alice,
+            CopyLimitOrderConfig({minTenor: 10 days, maxTenor: 30 days, minAPR: 0.03e18, maxAPR: 0.05e18, offsetAPR: 0}),
+            CopyLimitOrderConfig({minTenor: 15 days, maxTenor: 45 days, minAPR: 0.06e18, maxAPR: 0.08e18, offsetAPR: 0})
+        );
     }
 }

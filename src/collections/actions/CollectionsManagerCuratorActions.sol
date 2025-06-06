@@ -5,7 +5,7 @@ import {ERC721EnumerableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
+import {CopyLimitOrderConfig, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
 
 import {CollectionsManagerBase} from "@src/collections/CollectionsManagerBase.sol";
 
@@ -81,20 +81,7 @@ abstract contract CollectionsManagerCuratorActions is
             if (!sizeFactory.isMarket(address(markets[i]))) {
                 revert Errors.INVALID_MARKET(address(markets[i]));
             }
-            if (copyLoanOfferConfigs[i].minTenor > copyLoanOfferConfigs[i].maxTenor) {
-                revert Errors.INVALID_TENOR_RANGE(copyLoanOfferConfigs[i].minTenor, copyLoanOfferConfigs[i].maxTenor);
-            }
-            if (copyLoanOfferConfigs[i].minAPR > copyLoanOfferConfigs[i].maxAPR) {
-                revert Errors.INVALID_APR_RANGE(copyLoanOfferConfigs[i].minAPR, copyLoanOfferConfigs[i].maxAPR);
-            }
-            if (copyBorrowOfferConfigs[i].minTenor > copyBorrowOfferConfigs[i].maxTenor) {
-                revert Errors.INVALID_TENOR_RANGE(
-                    copyBorrowOfferConfigs[i].minTenor, copyBorrowOfferConfigs[i].maxTenor
-                );
-            }
-            if (copyBorrowOfferConfigs[i].minAPR > copyBorrowOfferConfigs[i].maxAPR) {
-                revert Errors.INVALID_APR_RANGE(copyBorrowOfferConfigs[i].minAPR, copyBorrowOfferConfigs[i].maxAPR);
-            }
+            OfferLibrary.validateCopyLimitOrderConfigs(copyLoanOfferConfigs[i], copyBorrowOfferConfigs[i]);
 
             collections[collectionId][markets[i]].initialized = true;
             collections[collectionId][markets[i]].copyLoanOfferConfig = copyLoanOfferConfigs[i];

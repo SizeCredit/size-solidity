@@ -71,6 +71,44 @@ library OfferLibrary {
         YieldCurveLibrary.validateYieldCurve(self.curveRelativeTime, minTenor, maxTenor);
     }
 
+    /// @notice Validate the copy limit order configs
+    /// @param copyLoanOfferConfig The copy loan offer config
+    /// @param copyBorrowOfferConfig The copy borrow offer config
+    /// @dev assert min <= max and no arbitrageable setup
+    function validateCopyLimitOrderConfigs(
+        CopyLimitOrderConfig memory copyLoanOfferConfig,
+        CopyLimitOrderConfig memory copyBorrowOfferConfig
+    ) internal pure {
+        if (copyLoanOfferConfig.minTenor > copyLoanOfferConfig.maxTenor) {
+            revert Errors.INVALID_TENOR_RANGE(copyLoanOfferConfig.minTenor, copyLoanOfferConfig.maxTenor);
+        }
+        if (copyLoanOfferConfig.minAPR > copyLoanOfferConfig.maxAPR) {
+            revert Errors.INVALID_APR_RANGE(copyLoanOfferConfig.minAPR, copyLoanOfferConfig.maxAPR);
+        }
+        if (copyBorrowOfferConfig.minTenor > copyBorrowOfferConfig.maxTenor) {
+            revert Errors.INVALID_TENOR_RANGE(copyBorrowOfferConfig.minTenor, copyBorrowOfferConfig.maxTenor);
+        }
+        if (copyBorrowOfferConfig.minAPR > copyBorrowOfferConfig.maxAPR) {
+            revert Errors.INVALID_APR_RANGE(copyBorrowOfferConfig.minAPR, copyBorrowOfferConfig.maxAPR);
+        }
+        if (
+            copyBorrowOfferConfig.minAPR > copyLoanOfferConfig.maxAPR
+                && (copyBorrowOfferConfig.maxTenor >= copyLoanOfferConfig.minTenor)
+                && (copyLoanOfferConfig.maxTenor >= copyBorrowOfferConfig.minTenor)
+        ) {
+            revert Errors.INVALID_OFFER_CONFIGS(
+                copyBorrowOfferConfig.minTenor,
+                copyBorrowOfferConfig.maxTenor,
+                copyBorrowOfferConfig.minAPR,
+                copyBorrowOfferConfig.maxAPR,
+                copyLoanOfferConfig.minTenor,
+                copyLoanOfferConfig.maxTenor,
+                copyLoanOfferConfig.minAPR,
+                copyLoanOfferConfig.maxAPR
+            );
+        }
+    }
+
     function getUserDefinedBorrowOfferAPR(State storage state, address user, uint256 tenor)
         internal
         view

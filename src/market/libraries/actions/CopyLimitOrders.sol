@@ -45,47 +45,8 @@ library CopyLimitOrders {
             revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.COPY_LIMIT_ORDERS));
         }
 
-        // validate copyLoanOfferConfig
-        if (!params.copyLoanOfferConfig.isNull()) {
-            // validate copyLoanOfferConfig.minTenor
-            // validate copyLoanOfferConfig.maxTenor
-            if (params.copyLoanOfferConfig.minTenor > params.copyLoanOfferConfig.maxTenor) {
-                revert Errors.INVALID_TENOR_RANGE(
-                    params.copyLoanOfferConfig.minTenor, params.copyLoanOfferConfig.maxTenor
-                );
-            }
-
-            // validate copyLoanOfferConfig.minAPR
-            // validate copyLoanOfferConfig.maxAPR
-            if (params.copyLoanOfferConfig.minAPR > params.copyLoanOfferConfig.maxAPR) {
-                revert Errors.INVALID_APR_RANGE(params.copyLoanOfferConfig.minAPR, params.copyLoanOfferConfig.maxAPR);
-            }
-        }
-
-        // validate copyBorrowOfferConfig
-        if (!params.copyBorrowOfferConfig.isNull()) {
-            // validate copyBorrowOfferConfig.minTenor
-            // validate copyBorrowOfferConfig.maxTenor
-            if (params.copyBorrowOfferConfig.minTenor > params.copyBorrowOfferConfig.maxTenor) {
-                revert Errors.INVALID_TENOR_RANGE(
-                    params.copyBorrowOfferConfig.minTenor, params.copyBorrowOfferConfig.maxTenor
-                );
-            }
-
-            // validate copyBorrowOfferConfig.minAPR
-            // validate copyBorrowOfferConfig.maxAPR
-            if (params.copyBorrowOfferConfig.minAPR > params.copyBorrowOfferConfig.maxAPR) {
-                revert Errors.INVALID_APR_RANGE(
-                    params.copyBorrowOfferConfig.minAPR, params.copyBorrowOfferConfig.maxAPR
-                );
-            }
-        }
-
-        // validate copyLoanOfferConfig.offsetAPR
-        // N/A
-
-        // validate copyBorrowOfferConfig.offsetAPR
-        // N/A
+        // validate copyLoanOfferConfig and copyBorrowOfferConfig
+        OfferLibrary.validateCopyLimitOrderConfigs(params.copyLoanOfferConfig, params.copyBorrowOfferConfig);
     }
 
     /// @notice Executes the copying of limit orders

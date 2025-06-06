@@ -134,6 +134,32 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
         collectionsManager.setCollectionMarketConfigs(
             collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs
         );
+
+        copyBorrowOfferConfigs[0].minTenor = 15 days;
+        copyBorrowOfferConfigs[0].maxTenor = 45 days;
+        copyBorrowOfferConfigs[0].minAPR = 0.06e18;
+        copyBorrowOfferConfigs[0].maxAPR = 0.08e18;
+        copyLoanOfferConfigs[0].minTenor = 10 days;
+        copyLoanOfferConfigs[0].maxTenor = 30 days;
+        copyLoanOfferConfigs[0].minAPR = 0.03e18;
+        copyLoanOfferConfigs[0].maxAPR = 0.05e18;
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.INVALID_OFFER_CONFIGS.selector,
+                15 days,
+                45 days,
+                0.06e18,
+                0.08e18,
+                10 days,
+                30 days,
+                0.03e18,
+                0.05e18
+            )
+        );
+        vm.prank(alice);
+        collectionsManager.setCollectionMarketConfigs(
+            collectionId, markets, copyLoanOfferConfigs, copyBorrowOfferConfigs
+        );
     }
 
     function test_CollectionsManagerCuratorActions_addMarketsToCollection_curator() public {
