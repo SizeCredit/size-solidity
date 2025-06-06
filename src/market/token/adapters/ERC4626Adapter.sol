@@ -79,8 +79,6 @@ contract ERC4626Adapter is Ownable, IAdapter {
         onlyOwner
         returns (uint256 assets)
     {
-        bool fullWithdraw = amount == balanceOf(vault, from);
-
         uint256 sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
         uint256 assetsBefore = underlyingToken.balanceOf(address(this));
         uint256 userSharesBefore = tokenVault.sharesOf(from);
@@ -94,12 +92,7 @@ contract ERC4626Adapter is Ownable, IAdapter {
         assets = underlyingToken.balanceOf(address(this)) - assetsBefore;
 
         underlyingToken.safeTransfer(to, assets);
-
-        if (fullWithdraw) {
-            tokenVault.setSharesOf(from, 0);
-        } else {
-            tokenVault.setSharesOf(from, userSharesBefore - shares);
-        }
+        tokenVault.setSharesOf(from, userSharesBefore - shares);
     }
 
     /// @inheritdoc IAdapter

@@ -219,7 +219,7 @@ contract NonTransferrableRebasingTokenVault is
             revert ERC20InvalidReceiver(address(0));
         }
 
-        _transferFrom(vaultOf[from], vaultOf[to], from, to, value);
+        _transferFrom(vaultOf[from], vaultOf[to], from, to, value, false);
 
         emit Transfer(from, to, value);
 
@@ -278,12 +278,13 @@ contract NonTransferrableRebasingTokenVault is
     ///        to a different vault without requiring interaction with the old vault, which may be inaccessible or
     ///        compromised. This prevents users from being permanently locked out of the protocol when their chosen
     ///        vault becomes unavailable.
-    function setVault(address user, address vault, bool forfeitOldShares)
-        public
-        virtual
-        onlyMarket
-        returns (address newVault)
-    {
+    ///      If the user changes vaults while having shares, the user's shares are reset to 0 after `IAdapter.withdraw` and before `IAdapter.deposit`
+    ///        to avoid leaving dust behind. This is important because small residual share amounts (due to rounding)
+    ///        can lead to inconsistencies when the user changes vaults. For example, if the user switches to a new
+    ///        vault but still holds a dust amount of shares in the previous one, the underlying tokens held by the new
+    ///        vault may not accurately reflect the current vault assignment, leading to misattribution of assets.
+    ///        See https://slowmist.medium.com/slowmist-aave-v2-security-audit-checklist-0d9ef442436b#5aed
+    function setVault(address user, address vault, bool forfeitOldShares) public virtual onlyMarket {
         if (user == address(0)) {
             revert Errors.NULL_ADDRESS();
         } else if (!vaultToIdMap.contains(vault)) {
@@ -292,14 +293,12 @@ contract NonTransferrableRebasingTokenVault is
             if (forfeitOldShares || balanceOf(user) == 0) {
                 _setSharesOf(user, 0);
             } else {
-                _transferFrom(vaultOf[user], vault, user, user, balanceOf(user));
+                _transferFrom(vaultOf[user], vault, user, user, balanceOf(user), true);
             }
             _setVaultOf(user, vault);
         } else {
             // do not change the user vault
         }
-
-        return vaultOf[user];
     }
 
     /// @notice Deposit underlying tokens into the variable pool and mint scaled tokens
@@ -318,14 +317,6 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @notice Withdraw underlying tokens from the variable pool and burn scaled tokens
     /// @dev The actual withdrawn amount can be lower than the input amount based on the vault withdraw and rounding logic.
-    ///      If `amount` is equal to the user's `balanceOf`, a full withdrawal is performed
-    ///        and the user's shares in the vault are reset to 0 to avoid leaving dust behind.
-    ///        This is important because small residual share amounts (due to rounding) can lead to
-    ///        inconsistencies when the user changes vaults. For example, if the user switches to a new
-    ///        vault but still holds a dust amount of shares in the previous one, the underlying tokens
-    ///        held by the new vault may not accurately reflect the current vault assignment, leading to
-    ///        misattribution of assets.
-    ///        See https://slowmist.medium.com/slowmist-aave-v2-security-audit-checklist-0d9ef442436b#5aed
     function withdraw(address from, address to, uint256 amount)
         public
         virtual
@@ -467,7 +458,14 @@ contract NonTransferrableRebasingTokenVault is
     }
 
     /// @notice Transfers assets from one account to another, using the `from` vault to the `to` vault
-    function _transferFrom(address vaultFrom, address vaultTo, address from, address to, uint256 value) private {
+    function _transferFrom(
+        address vaultFrom,
+        address vaultTo,
+        address from,
+        address to,
+        uint256 value,
+        bool forfeitOldShares
+    ) private {
         if (value > 0) {
             if (vaultFrom == vaultTo) {
                 IAdapter adapter = getWhitelistedVaultAdapter(vaultFrom);
@@ -477,6 +475,11 @@ contract NonTransferrableRebasingTokenVault is
                 IAdapter adapterTo = getWhitelistedVaultAdapter(vaultTo);
                 // slither-disable-next-line unused-return
                 adapterFrom.withdraw(vaultFrom, from, address(adapterTo), value);
+
+                if (forfeitOldShares) {
+                    _setSharesOf(from, 0);
+                }
+
                 // slither-disable-next-line unused-return
                 adapterTo.deposit(vaultTo, to, value);
             }

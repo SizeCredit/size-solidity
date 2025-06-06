@@ -54,10 +54,9 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
         public
         override
         resetVars(user)
-        returns (address newVault)
     {
         __before(user);
-        newVault = super.setVault(user, vault, forfeitOldShares);
+        super.setVault(user, vault, forfeitOldShares);
         __after(user);
 
         if (

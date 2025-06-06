@@ -47,12 +47,13 @@ library SetVault {
     /// @notice Executes the setting of vault
     /// @param state The state
     /// @param externalParams The input parameters for setting vault
+    /// @dev This function will emit `SetVault` even if the vault does not change. To confirm a vault change, check for the `VaultSet` event.
     function executeSetVault(State storage state, SetVaultOnBehalfOfParams memory externalParams) external {
         SetVaultParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
 
-        address newVault = state.data.borrowTokenVault.setVault(onBehalfOf, params.vault, params.forfeitOldShares);
+        state.data.borrowTokenVault.setVault(onBehalfOf, params.vault, params.forfeitOldShares);
 
-        emit Events.SetVault(msg.sender, onBehalfOf, newVault, params.forfeitOldShares);
+        emit Events.SetVault(msg.sender, onBehalfOf, params.vault, params.forfeitOldShares);
     }
 }
