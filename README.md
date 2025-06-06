@@ -91,25 +91,25 @@ After v1.7, the `SizeFactory` also holds the access control for all Size markets
 
 #### Copy trading
 
-In Size v1.6.1, a `copyLimitOrders` function was introduced so that users could copy other users' limit orders. The feature behaved like the following:
+In Size v1.6.1, a `copyLimitOrders` function was introduced so that users could copy other users' limit orders. The feature behaved as follows:
 
-- Users can copy borrow/loan offers from other users
-- Users can copy both or a single offer from a single address
-- Users can specify safeguards per copied curve:
-  - min/max APR (safety envelope): if the calculated APR falls outside of this range, the min/max is used instead
-  - min/max tenor: if the requested tenor goes outside of this range, the market order reverts
-- Users can specify offset APRs to be applied to the curves
-- Once a copy offer is set, the user's own offers should be ignored, even if they update them. Copy offers have precedence until erased (setting them to null/default vales)
+- Users could copy borrow/loan offers from other users
+- Users could copy both or a single offer from a single address
+- Users could specify safeguards per copied curve:
+  - min/max APR (safety envelope): if the calculated APR fell outside of this range, the min/max would be used instead
+  - min/max tenor: if the requested tenor went outside of this range, the market order would revert
+- Users could specify offset APRs to be applied to the curves
+- Once a copy offer was set, the user's own offers would be ignored, even if they updated them. Copy offers had precedence until erased (setting them to null/default values)
 
-As an additional safety measure against inverted curves, market orders check that the borrow offer is lower than the user's loan offer for a given tenor. This does not prevent the copy address from changing curves in a single multicall transaction and bypassing this check.
+As an additional safety measure against inverted curves, market orders checked that the borrow offer was lower than the user's loan offer for a given tenor. This did not prevent the copy address from changing curves in a single multicall transaction and bypassing this check.
 
-Notes
+Notes:
 
-1. Copying another account's limit orders introduces the risk of them placing suboptimal rates and executing market orders against delegators, incurring monetary losses. Only trusted addresses should be copied.
-2. The max/min params from the `copyLimitOrder` method are not global max/min for the user-defined limit orders; they are specific to copy offers. Once the copy address offer is no longer valid, max/min guards for mismatched curves will not be applied. The only reason to stop market orders is in the event of "self arbitrage," i.e., for a given tenor, when the borrow curve >= lending curve, since these users could be drained by an attacker by borrowing high and lending low in a single transaction.
-3. The offset APR parameters are not validated and can cause market orders reverts depending on the final APR result
+1. Copying another account's limit orders introduced the risk of them placing suboptimal rates and executing market orders against delegators, incurring monetary losses. Only trusted addresses should be copied.
+2. The max/min parameters from the `copyLimitOrder` method were not a global max/min for the user-defined limit orders; they were specific to copy offers. Once the copy address offer was no longer valid, max/min guards for mismatched curves would not be applied. The only reason to stop market orders was in the event of "self arbitrage," i.e., for a given tenor, when the borrow curve >= lending curve, since these users could be drained by an attacker by borrowing high and lending low in a single transaction.
+3. The offset APR parameters were not validated and could cause market orders to revert depending on the final APR result.
 
-After v1.8, the `CollectionsManager` core contract was introduced, and some of this behavior changed. See the corresponding section further down below for more information.
+After v1.8, the `CollectionsManager` core contract was introduced, which superseded the copy trading feature, making some of the previous behavior changed. See the corresponding section further down below for more information.
 
 #### Authorization
 
@@ -154,7 +154,7 @@ Since there can be an unlimited number of whitelisted vaults, the amount of unde
 
 #### Collections, curators and rate providers
 
-Since Size v1.8, collections of markets, curators and rate providers are core entities of the ecosystem. This builds up on `copyLimitOrders`, but with more functionality:
+Since Size v1.8, collections of markets, curators and rate providers are core entities of the ecosystem. This superseedes the previous `copyLimitOrders` feature from v1.6.1, but with more functionality:
 
 - A *collection* is a set of markets grouped under a curator.
 - A *Curator* defines *rate providers* (RPs) for each market, which sets yield curves and competes in pricing credit.
@@ -169,6 +169,7 @@ Since Size v1.8, collections of markets, curators and rate providers are core en
 - Users now support multiple yield curves per market, one per collection they are subscribed to, plus an optional personal configuration.
 - Curators can transfer ownership of their collections.
 - Since users cn subscribe to many collections, each having many rate providers, the "borrow offer should be lower than loan offer" check now has O(C * R) complexity. Users should be aware not to subscribe to too many collections or collections with too many rate providers, or market orders targeting them might revert due to gas costs.
+- A rate provider in any market belonging to any collection can prevent all subscribed users from market orders if they set the borrow offer APR greater than or equal to the lend offer APR.
 
 ##### Breaking changes
 
