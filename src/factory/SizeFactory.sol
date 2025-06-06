@@ -293,12 +293,28 @@ contract SizeFactory is
 
     /// @inheritdoc ISizeFactoryV1_8
     function subscribeToCollections(uint256[] memory collectionIds) external {
-        collectionsManager.subscribeUserToCollections(msg.sender, collectionIds);
+        return subscribeToCollectionsOnBehalfOf(collectionIds, msg.sender);
     }
 
     /// @inheritdoc ISizeFactoryV1_8
     function unsubscribeFromCollections(uint256[] memory collectionIds) external {
-        collectionsManager.unsubscribeUserFromCollections(msg.sender, collectionIds);
+        return unsubscribeFromCollectionsOnBehalfOf(collectionIds, msg.sender);
+    }
+
+    /// @inheritdoc ISizeFactoryV1_8
+    function subscribeToCollectionsOnBehalfOf(uint256[] memory collectionIds, address onBehalfOf) public {
+        if (!isAuthorized(msg.sender, onBehalfOf, Action.MANAGE_COLLECTION_SUBSCRIPTIONS)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.MANAGE_COLLECTION_SUBSCRIPTIONS));
+        }
+        collectionsManager.subscribeUserToCollections(onBehalfOf, collectionIds);
+    }
+
+    /// @inheritdoc ISizeFactoryV1_8
+    function unsubscribeFromCollectionsOnBehalfOf(uint256[] memory collectionIds, address onBehalfOf) public {
+        if (!isAuthorized(msg.sender, onBehalfOf, Action.MANAGE_COLLECTION_SUBSCRIPTIONS)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.MANAGE_COLLECTION_SUBSCRIPTIONS));
+        }
+        collectionsManager.unsubscribeUserFromCollections(onBehalfOf, collectionIds);
     }
 
     /// @inheritdoc ISizeFactoryV1_8

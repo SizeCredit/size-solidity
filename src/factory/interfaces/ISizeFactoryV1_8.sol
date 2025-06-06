@@ -44,6 +44,12 @@ interface ISizeFactoryV1_8 {
     /// @param collectionIds The collection ids to unsubscribe from
     function unsubscribeFromCollections(uint256[] memory collectionIds) external;
 
+    /// @notice Same as `subscribeToCollections` but `onBehalfOf`
+    function subscribeToCollectionsOnBehalfOf(uint256[] memory collectionIds, address onBehalfOf) external;
+
+    /// @notice Same as `unsubscribeFromCollections` but `onBehalfOf`
+    function unsubscribeFromCollectionsOnBehalfOf(uint256[] memory collectionIds, address onBehalfOf) external;
+
     /// @notice Get the loan offer APR
     /// @param user The user
     /// @param collectionId The collection id
