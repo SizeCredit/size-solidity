@@ -81,7 +81,7 @@ library LiquidateWithReplacement {
         }
 
         // validate minAPR
-        uint256 borrowAPR = state.getUserDefinedBorrowOfferAPR(params.borrower, tenor);
+        uint256 borrowAPR = state.getBorrowOfferAPR(params.borrower, params.collectionId, params.rateProvider, tenor);
         if (borrowAPR < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(borrowAPR, params.minAPR);
         }
