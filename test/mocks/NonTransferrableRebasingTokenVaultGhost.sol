@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
 
-contract NonTransferrableRebasingTokenVaultMock is NonTransferrableRebasingTokenVault, PropertiesSpecifications {
+contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingTokenVault, PropertiesSpecifications {
     struct Vars {
         uint256 shareOf;
         address vaultOf;

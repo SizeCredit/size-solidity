@@ -45,7 +45,7 @@ import {WETH} from "@test/mocks/WETH.sol";
 import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
-import {NonTransferrableRebasingTokenVaultMock} from "@test/mocks/NonTransferrableRebasingTokenVaultMock.sol";
+import {NonTransferrableRebasingTokenVaultGhost} from "@test/mocks/NonTransferrableRebasingTokenVaultGhost.sol";
 
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
@@ -132,7 +132,7 @@ abstract contract Deploy {
             sizeFactory.setCollectionsManager(collectionsManager);
         }
 
-        address borrowTokenVaultImplementation = address(new NonTransferrableRebasingTokenVaultMock());
+        address borrowTokenVaultImplementation = address(new NonTransferrableRebasingTokenVaultGhost());
 
         _deployVaults();
 
@@ -232,7 +232,7 @@ abstract contract Deploy {
             sizeFactory.setCollectionsManager(collectionsManager);
         }
 
-        address borrowTokenVaultImplementation = address(new NonTransferrableRebasingTokenVaultMock());
+        address borrowTokenVaultImplementation = address(new NonTransferrableRebasingTokenVaultGhost());
 
         vault = IERC4626(address(new ERC4626Solady(address(borrowToken), "Vault", "VAULT", true, 0)));
 
