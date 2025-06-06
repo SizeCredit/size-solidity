@@ -43,8 +43,9 @@ import {ExpectedErrors} from "@test/invariants/ExpectedErrors.sol";
 import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol";
 
 import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
-import {CopyLimitOrdersParams} from "@src/market/libraries/actions/CopyLimitOrders.sol";
+
 import {PartialRepayParams} from "@src/market/libraries/actions/PartialRepay.sol";
+import {SetCopyLimitOrderConfigsParams} from "@src/market/libraries/actions/SetCopyLimitOrderConfigs.sol";
 import {SetVaultParams} from "@src/market/libraries/actions/SetVault.sol";
 
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
@@ -468,7 +469,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
     function copyLimitOrders(int256 loanOffsetAPR, int256 borrowOffsetAPR)
         public
         getSender
-        checkExpectedErrors(COPY_LIMIT_ORDERS_ERRORS)
+        checkExpectedErrors(SET_COPY_LIMIT_ORDER_CONFIGS_ERRORS)
     {
         loanOffsetAPR = between(loanOffsetAPR, -int256(MAX_PERCENT), int256(MAX_PERCENT));
         borrowOffsetAPR = between(borrowOffsetAPR, -int256(MAX_PERCENT), int256(MAX_PERCENT));
@@ -478,8 +479,8 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         hevm.prank(sender);
         (success, returnData) = address(size).call(
             abi.encodeCall(
-                size.copyLimitOrders,
-                CopyLimitOrdersParams({
+                size.setCopyLimitOrderConfigs,
+                SetCopyLimitOrderConfigsParams({
                     copyLoanOfferConfig: CopyLimitOrderConfig({
                         minTenor: 0,
                         maxTenor: type(uint256).max,

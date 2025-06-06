@@ -52,7 +52,7 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
         actions[6] = Action.SELF_LIQUIDATE;
         actions[7] = Action.COMPENSATE;
         actions[8] = Action.SET_USER_CONFIGURATION;
-        actions[9] = Action.COPY_LIMIT_ORDERS;
+        actions[9] = Action.SET_COPY_LIMIT_ORDER_CONFIGS;
         _setAuthorization(alice, bob, Authorization.getActionsBitmap(actions));
     }
 

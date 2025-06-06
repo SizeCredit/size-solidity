@@ -7,18 +7,19 @@ import {ICollectionsManagerView} from "@src/collections/interfaces/ICollectionsM
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 
-import {UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
+import {UserCopyLimitOrderConfigs} from "@src/market/SizeStorage.sol";
 import {OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
 import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
 
 import {
     BuyCreditMarketOnBehalfOfParams, BuyCreditMarketParams
 } from "@src/market/libraries/actions/BuyCreditMarket.sol";
-import {CopyLimitOrdersParams} from "@src/market/libraries/actions/CopyLimitOrders.sol";
+
 import {
     SellCreditMarketOnBehalfOfParams,
     SellCreditMarketParams
 } from "@src/market/libraries/actions/SellCreditMarket.sol";
+import {SetCopyLimitOrderConfigsParams} from "@src/market/libraries/actions/SetCopyLimitOrderConfigs.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
@@ -84,7 +85,7 @@ contract CollectionsTest is BaseTest {
         _addMarketToCollection(james, collectionId, size);
         _addRateProviderToCollectionMarket(james, collectionId, size, bob);
 
-        _copyLimitOrders(alice, fullCopy, noCopy);
+        _setCopyLimitOrderConfigs(alice, fullCopy, noCopy);
         _subscribeToCollection(alice, collectionId);
 
         vm.expectRevert(abi.encodeWithSelector(ICollectionsManagerView.InvalidTenor.selector, 30 days, 0, 0));
@@ -98,7 +99,7 @@ contract CollectionsTest is BaseTest {
         assertEq(size.getLoanOfferAPR(alice, collectionId, bob, 60 days), 0.08e18);
     }
 
-    function test_Collections_copyLimitOrders_copy_only_borrow_offer() public {
+    function test_Collections_setCopyLimitOrderConfigs_copy_only_borrow_offer() public {
         _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
         _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.08e18));
 
@@ -106,7 +107,7 @@ contract CollectionsTest is BaseTest {
         _addMarketToCollection(james, collectionId, size);
         _addRateProviderToCollectionMarket(james, collectionId, size, bob);
 
-        _copyLimitOrders(alice, noCopy, fullCopy);
+        _setCopyLimitOrderConfigs(alice, noCopy, fullCopy);
         _subscribeToCollection(alice, collectionId);
 
         vm.expectRevert(abi.encodeWithSelector(ICollectionsManagerView.InvalidTenor.selector, 60 days, 0, 0));
@@ -128,7 +129,7 @@ contract CollectionsTest is BaseTest {
         _addMarketToCollection(james, collectionId, size);
         _addRateProviderToCollectionMarket(james, collectionId, size, bob);
 
-        _copyLimitOrders(alice, fullCopy, fullCopy);
+        _setCopyLimitOrderConfigs(alice, fullCopy, fullCopy);
         _subscribeToCollection(alice, collectionId);
 
         assertEq(size.getBorrowOfferAPR(alice, collectionId, bob, 30 days), 0.05e18);
@@ -156,7 +157,7 @@ contract CollectionsTest is BaseTest {
         size.getLoanOfferAPR(alice, collectionId, bob, 60 days);
     }
 
-    function test_Collections_copyLimitOrders_tenor_boundaries() public {
+    function test_Collections_setCopyLimitOrderConfigs_tenor_boundaries() public {
         _buyCreditLimit(
             bob,
             block.timestamp + 365 days,
@@ -178,7 +179,7 @@ contract CollectionsTest is BaseTest {
         _addMarketToCollection(james, collectionId, size);
         _addRateProviderToCollectionMarket(james, collectionId, size, bob);
 
-        _copyLimitOrders(alice, copyLoanOfferConfig, copyBorrowOfferConfig);
+        _setCopyLimitOrderConfigs(alice, copyLoanOfferConfig, copyBorrowOfferConfig);
         _subscribeToCollection(alice, collectionId);
 
         assertEq(size.getUserDefinedLoanOfferAPR(bob, 3 days), 0.03e18);
@@ -190,7 +191,7 @@ contract CollectionsTest is BaseTest {
         size.getBorrowOfferAPR(alice, collectionId, bob, 15 days);
     }
 
-    function test_Collections_copyLimitOrders_apr_boundaries() public {
+    function test_Collections_setCopyLimitOrderConfigs_apr_boundaries() public {
         uint256 maxDueDate = block.timestamp + 365 days;
         uint256[] memory marketRateMultipliers = new uint256[](4);
         uint256[] memory tenors = new uint256[](4);
@@ -223,7 +224,7 @@ contract CollectionsTest is BaseTest {
         _addMarketToCollection(james, collectionId, size);
         _addRateProviderToCollectionMarket(james, collectionId, size, bob);
 
-        _copyLimitOrders(alice, copyLoanOfferConfig, copyBorrowOfferConfig);
+        _setCopyLimitOrderConfigs(alice, copyLoanOfferConfig, copyBorrowOfferConfig);
         _subscribeToCollection(alice, collectionId);
 
         assertEq(size.getUserDefinedLoanOfferAPR(bob, 4 days), 0.04e18);
@@ -239,7 +240,7 @@ contract CollectionsTest is BaseTest {
         assertEq(size.getBorrowOfferAPR(alice, collectionId, bob, 10 days), 0.12e18);
     }
 
-    function test_Collections_copyLimitOrders_loan_offer_scenario() public {
+    function test_Collections_setCopyLimitOrderConfigs_loan_offer_scenario() public {
         _buyCreditLimit(
             bob,
             block.timestamp + 365 days,
@@ -260,7 +261,7 @@ contract CollectionsTest is BaseTest {
         _addMarketToCollection(james, collectionId, size);
         _addRateProviderToCollectionMarket(james, collectionId, size, bob);
 
-        _copyLimitOrders(alice, copyLoanOfferConfig, noCopy);
+        _setCopyLimitOrderConfigs(alice, copyLoanOfferConfig, noCopy);
         _subscribeToCollection(alice, collectionId);
 
         assertEq(size.getLoanOfferAPR(alice, collectionId, bob, 3 days), 0.1e18);
@@ -274,7 +275,7 @@ contract CollectionsTest is BaseTest {
         size.getLoanOfferAPR(alice, collectionId, bob, 10 days);
     }
 
-    function test_Collections_copyLimitOrders_borrow_offer_scenario() public {
+    function test_Collections_setCopyLimitOrderConfigs_borrow_offer_scenario() public {
         _sellCreditLimit(
             bob,
             block.timestamp + 365 days,
@@ -290,7 +291,7 @@ contract CollectionsTest is BaseTest {
         _addMarketToCollection(james, collectionId, size);
         _addRateProviderToCollectionMarket(james, collectionId, size, bob);
 
-        _copyLimitOrders(alice, noCopy, copyBorrowOfferConfig);
+        _setCopyLimitOrderConfigs(alice, noCopy, copyBorrowOfferConfig);
         _subscribeToCollection(alice, collectionId);
 
         assertEq(size.getBorrowOfferAPR(alice, collectionId, bob, 3 days), 0.06e18);
@@ -313,7 +314,7 @@ contract CollectionsTest is BaseTest {
         _addMarketToCollection(james, collectionId, size);
         _addRateProviderToCollectionMarket(james, collectionId, size, bob);
 
-        _copyLimitOrders(alice, fullCopy, fullCopy);
+        _setCopyLimitOrderConfigs(alice, fullCopy, fullCopy);
         _subscribeToCollection(alice, collectionId);
 
         assertEq(size.getBorrowOfferAPR(alice, collectionId, bob, 30 days), 0.05e18);
@@ -332,7 +333,7 @@ contract CollectionsTest is BaseTest {
         assertEq(size.getLoanOfferAPR(alice, collectionId, bob, 60 days), 0.09e18);
     }
 
-    function test_Collections_copyLimitOrders_deletes_single_copy() public {
+    function test_Collections_setCopyLimitOrderConfigs_deletes_single_copy() public {
         _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
         _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.08e18));
 
@@ -340,7 +341,7 @@ contract CollectionsTest is BaseTest {
         _addMarketToCollection(james, collectionId, size);
         _addRateProviderToCollectionMarket(james, collectionId, size, bob);
 
-        _copyLimitOrders(alice, fullCopy, fullCopy);
+        _setCopyLimitOrderConfigs(alice, fullCopy, fullCopy);
         _subscribeToCollection(alice, collectionId);
 
         assertEq(size.getBorrowOfferAPR(alice, collectionId, bob, 30 days), 0.05e18);
@@ -348,7 +349,7 @@ contract CollectionsTest is BaseTest {
 
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.1e18));
 
-        _copyLimitOrders(alice, noCopy, fullCopy);
+        _setCopyLimitOrderConfigs(alice, noCopy, fullCopy);
 
         assertEq(size.getBorrowOfferAPR(alice, collectionId, bob, 30 days), 0.05e18);
         assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), 0.1e18);
@@ -359,7 +360,7 @@ contract CollectionsTest is BaseTest {
         assertEq(size.getUserDefinedLoanOfferAPR(alice, 60 days), 0.1e18);
     }
 
-    function test_Collections_copyLimitOrders_with_offset() public {
+    function test_Collections_setCopyLimitOrderConfigs_with_offset() public {
         _buyCreditLimit(
             bob,
             block.timestamp + 365 days,
@@ -391,7 +392,7 @@ contract CollectionsTest is BaseTest {
         _addMarketToCollection(james, collectionId, size);
         _addRateProviderToCollectionMarket(james, collectionId, size, bob);
 
-        _copyLimitOrders(alice, copyLoanOfferConfig, copyBorrowOfferConfig);
+        _setCopyLimitOrderConfigs(alice, copyLoanOfferConfig, copyBorrowOfferConfig);
         _subscribeToCollection(alice, collectionId);
 
         assertEq(size.getLoanOfferAPR(alice, collectionId, bob, 30 days), 0.1e18);
@@ -417,7 +418,7 @@ contract CollectionsTest is BaseTest {
         _addMarketToCollection(james, collectionId, size);
         _addRateProviderToCollectionMarket(james, collectionId, size, bob);
 
-        _copyLimitOrders(alice, loanCopy, fullCopy);
+        _setCopyLimitOrderConfigs(alice, loanCopy, fullCopy);
         _subscribeToCollection(alice, collectionId);
 
         assertEq(size.getBorrowOfferAPR(alice, collectionId, bob, 30 days), 0.03e18);
@@ -460,7 +461,7 @@ contract CollectionsTest is BaseTest {
         _addMarketToCollection(james, collectionId, size);
         _addRateProviderToCollectionMarket(james, collectionId, size, bob);
 
-        _copyLimitOrders(alice, loanCopy, fullCopy);
+        _setCopyLimitOrderConfigs(alice, loanCopy, fullCopy);
         _subscribeToCollection(alice, collectionId);
 
         assertEq(size.getBorrowOfferAPR(alice, collectionId, bob, 30 days), 0.03e18);
@@ -533,7 +534,7 @@ contract CollectionsTest is BaseTest {
         _addMarketToCollection(james, collectionId, size);
         _addRateProviderToCollectionMarket(james, collectionId, size, bob);
 
-        _copyLimitOrders(alice, loanCopy, fullCopy);
+        _setCopyLimitOrderConfigs(alice, loanCopy, fullCopy);
         _subscribeToCollection(alice, collectionId);
 
         uint256 borrowAPRMarket1 = size.getBorrowOfferAPR(alice, collectionId, bob, 30 days);
@@ -581,7 +582,7 @@ contract CollectionsTest is BaseTest {
         _addMarketToCollection(james, collectionId, size);
         _addRateProviderToCollectionMarket(james, collectionId, size, bob);
 
-        _copyLimitOrders(alice, fullCopy, borrowCopy);
+        _setCopyLimitOrderConfigs(alice, fullCopy, borrowCopy);
         _subscribeToCollection(alice, collectionId);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.INVERTED_CURVES.selector, alice, 5 days));
@@ -652,7 +653,7 @@ contract CollectionsTest is BaseTest {
         _addMarketToCollection(james, collectionId, size);
         _addRateProviderToCollectionMarket(james, collectionId, size, bob);
 
-        _copyLimitOrders(alice, fullCopy, borrowCopy);
+        _setCopyLimitOrderConfigs(alice, fullCopy, borrowCopy);
         _subscribeToCollection(alice, collectionId);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.INVERTED_CURVES.selector, alice, 5 days));

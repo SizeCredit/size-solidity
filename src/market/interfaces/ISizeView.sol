@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
+import {UserCopyLimitOrderConfigs} from "@src/market/SizeStorage.sol";
 
 import {DataView, UserView} from "@src/market/SizeViewData.sol";
 import {CreditPosition, DebtPosition, LoanStatus} from "@src/market/libraries/LoanLibrary.sol";

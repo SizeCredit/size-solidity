@@ -27,7 +27,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
     bytes4[] internal LIQUIDATE_WITH_REPLACEMENT_ERRORS;
     bytes4[] internal COMPENSATE_ERRORS;
     bytes4[] internal SET_USER_CONFIGURATION_ERRORS;
-    bytes4[] internal COPY_LIMIT_ORDERS_ERRORS;
+    bytes4[] internal SET_COPY_LIMIT_ORDER_CONFIGS_ERRORS;
     bytes4[] internal PARTIAL_REPAY_ERRORS;
     bytes4[] internal SET_VAULT_ERRORS;
 
@@ -138,11 +138,11 @@ abstract contract ExpectedErrors is Deploy, Properties {
 
         // SET_USER_CONFIGURATION_ERRORS N/A
 
-        // COPY_LIMIT_ORDERS_ERRORS
-        COPY_LIMIT_ORDERS_ERRORS.push(Errors.INVALID_APR_RANGE.selector);
-        COPY_LIMIT_ORDERS_ERRORS.push(Errors.INVALID_TENOR_RANGE.selector);
-        COPY_LIMIT_ORDERS_ERRORS.push(Errors.INVALID_ADDRESS.selector);
-        COPY_LIMIT_ORDERS_ERRORS.push(Errors.NULL_ADDRESS.selector);
+        // SET_COPY_LIMIT_ORDER_CONFIGS_ERRORS
+        SET_COPY_LIMIT_ORDER_CONFIGS_ERRORS.push(Errors.INVALID_APR_RANGE.selector);
+        SET_COPY_LIMIT_ORDER_CONFIGS_ERRORS.push(Errors.INVALID_TENOR_RANGE.selector);
+        SET_COPY_LIMIT_ORDER_CONFIGS_ERRORS.push(Errors.INVALID_ADDRESS.selector);
+        SET_COPY_LIMIT_ORDER_CONFIGS_ERRORS.push(Errors.NULL_ADDRESS.selector);
 
         // PARTIAL_REPAY_ERRORS
         PARTIAL_REPAY_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);

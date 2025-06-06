@@ -26,7 +26,7 @@ struct User {
     bool allCreditPositionsForSaleDisabled;
 }
 
-struct UserCopyLimitOrders {
+struct UserCopyLimitOrderConfigs {
     // deprecated in v1.8
     address ___deprecated_copyAddress;
     // the loan offer copy parameters
@@ -105,8 +105,8 @@ struct Data {
     bool ___deprecated_isMulticall;
     // Size deposit underlying borrow token (upgraded in v1.8)
     NonTransferrableRebasingTokenVault borrowTokenVault;
-    // mapping of copy limit orders (added in v1.6.1, updated in v1.8)
-    mapping(address => UserCopyLimitOrders) usersCopyLimitOrders;
+    // mapping of copy limit order configs (added in v1.6.1, updated in v1.8)
+    mapping(address => UserCopyLimitOrderConfigs) usersCopyLimitOrderConfigs;
     // Size Factory (added in v1.7)
     ISizeFactory sizeFactory;
 }

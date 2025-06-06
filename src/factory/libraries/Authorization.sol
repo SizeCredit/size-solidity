@@ -24,8 +24,8 @@ enum Action {
     SELF_LIQUIDATE,
     COMPENSATE,
     SET_USER_CONFIGURATION,
-    COPY_LIMIT_ORDERS,
-    SET_VAULT,
+    SET_COPY_LIMIT_ORDER_CONFIGS, // renamed in v1.8
+    SET_VAULT, // added in v1.8
     // add more actions here
     NUMBER_OF_ACTIONS
 }

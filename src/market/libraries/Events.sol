@@ -103,7 +103,7 @@ library Events {
         bool creditPositionIdsForSale,
         uint256[] creditPositionIds
     );
-    event CopyLimitOrders(
+    event SetCopyLimitOrderConfigs(
         address indexed sender,
         address indexed onBehalfOf,
         uint256 minTenorLoanOffer,
@@ -116,7 +116,7 @@ library Events {
         uint256 minAPRBorrowOffer,
         uint256 maxAPRBorrowOffer,
         int256 offsetAPRBorrowOffer
-    ); // v1.6.1, updated in v1.8
+    ); // introduced v1.6.1, updated in v1.8
 
     // introduced in v1.8
     event SetVault(address indexed sender, address indexed onBehalfOf, address indexed vault, bool forfeitOldShares);

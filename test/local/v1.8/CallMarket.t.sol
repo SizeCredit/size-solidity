@@ -17,10 +17,12 @@ import {Errors} from "@src/market/libraries/Errors.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
 import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
-import {
-    CopyLimitOrdersOnBehalfOfParams, CopyLimitOrdersParams
-} from "@src/market/libraries/actions/CopyLimitOrders.sol";
+
 import {DepositOnBehalfOfParams, DepositParams} from "@src/market/libraries/actions/Deposit.sol";
+import {
+    SetCopyLimitOrderConfigsOnBehalfOfParams,
+    SetCopyLimitOrderConfigsParams
+} from "@src/market/libraries/actions/SetCopyLimitOrderConfigs.sol";
 
 import {
     InitializeDataParams,
@@ -224,17 +226,20 @@ contract CallMarketTest is BaseTest {
         bytes[] memory datas = new bytes[](5);
         datas[0] = abi.encodeCall(
             ISizeFactoryV1_7.setAuthorization,
-            (address(sizeFactory), Authorization.getActionsBitmap(Action.COPY_LIMIT_ORDERS))
+            (address(sizeFactory), Authorization.getActionsBitmap(Action.SET_COPY_LIMIT_ORDER_CONFIGS))
         );
         datas[1] = abi.encodeCall(
             ISizeFactoryV1_8.callMarket,
             (
                 size1,
                 abi.encodeCall(
-                    ISizeV1_7.copyLimitOrdersOnBehalfOf,
+                    ISizeV1_7.setCopyLimitOrderConfigsOnBehalfOf,
                     (
-                        CopyLimitOrdersOnBehalfOfParams({
-                            params: CopyLimitOrdersParams({copyLoanOfferConfig: fullCopy, copyBorrowOfferConfig: fullCopy}),
+                        SetCopyLimitOrderConfigsOnBehalfOfParams({
+                            params: SetCopyLimitOrderConfigsParams({
+                                copyLoanOfferConfig: fullCopy,
+                                copyBorrowOfferConfig: fullCopy
+                            }),
                             onBehalfOf: bob
                         })
                     )
@@ -246,10 +251,13 @@ contract CallMarketTest is BaseTest {
             (
                 size2,
                 abi.encodeCall(
-                    ISizeV1_7.copyLimitOrdersOnBehalfOf,
+                    ISizeV1_7.setCopyLimitOrderConfigsOnBehalfOf,
                     (
-                        CopyLimitOrdersOnBehalfOfParams({
-                            params: CopyLimitOrdersParams({copyLoanOfferConfig: fullCopy, copyBorrowOfferConfig: fullCopy}),
+                        SetCopyLimitOrderConfigsOnBehalfOfParams({
+                            params: SetCopyLimitOrderConfigsParams({
+                                copyLoanOfferConfig: fullCopy,
+                                copyBorrowOfferConfig: fullCopy
+                            }),
                             onBehalfOf: bob
                         })
                     )
@@ -294,7 +302,7 @@ contract CallMarketTest is BaseTest {
         Action[] memory actions = new Action[](3);
         actions[0] = Action.SET_VAULT;
         actions[1] = Action.DEPOSIT;
-        actions[2] = Action.COPY_LIMIT_ORDERS;
+        actions[2] = Action.SET_COPY_LIMIT_ORDER_CONFIGS;
 
         bytes[] memory datas = new bytes[](5);
         datas[0] = abi.encodeCall(

@@ -29,7 +29,7 @@ import {IMulticall} from "@src/market/interfaces/IMulticall.sol";
 import {ISizeView} from "@src/market/interfaces/ISizeView.sol";
 import {BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 
-import {CopyLimitOrdersParams} from "@src/market/libraries/actions/CopyLimitOrders.sol";
+import {SetCopyLimitOrderConfigsParams} from "@src/market/libraries/actions/SetCopyLimitOrderConfigs.sol";
 import {SetUserConfigurationParams} from "@src/market/libraries/actions/SetUserConfiguration.sol";
 
 import {ISizeAdmin} from "@src/market/interfaces/ISizeAdmin.sol";
@@ -192,8 +192,8 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall, ISizeV1_7, ISizeV1_8 {
     ///     - uint256[] creditPositionIds: The id of the credit positions
     function setUserConfiguration(SetUserConfigurationParams calldata params) external payable;
 
-    /// @notice Copy limit orders from a user
-    /// @param params CopyLimitOrdersParams struct containing the following fields:
+    /// @notice Set the copy limit order configs for a user
+    /// @param params SetCopyLimitOrderConfigsParams struct containing the following fields:
     ///     - CopyLimitOrderConfig copyLoanOfferConfig: The loan offer copy parameters
     ///       - uint256 minTenor: The minimum tenor of the loan offer to copy (0 means use copy yield curve tenor lower bound)
     ///       - uint256 maxTenor: The maximum tenor of the loan offer to copy (type(uint256).max means use copy yield curve tenor upper bound)
@@ -209,5 +209,5 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall, ISizeV1_7, ISizeV1_8 {
     /// @dev Does not erase the user's loan offer and borrow offer
     ///      To specify "no copy", pass a null CopyLimitOrderConfig except for offsetAPR, since a completely null CopyLimitOrderConfig
     ///        will default to the curator-defined CopyLimitOrderConfig for that market.
-    function copyLimitOrders(CopyLimitOrdersParams calldata params) external payable;
+    function setCopyLimitOrderConfigs(SetCopyLimitOrderConfigsParams calldata params) external payable;
 }

@@ -118,12 +118,12 @@ abstract contract SizeView is SizeStorage, ReentrancyGuardUpgradeableWithViewMod
 
     /// @inheritdoc ISizeViewV1_8
     function getUserDefinedCopyLoanOfferConfig(address user) external view returns (CopyLimitOrderConfig memory) {
-        return state.data.usersCopyLimitOrders[user].copyLoanOfferConfig;
+        return state.data.usersCopyLimitOrderConfigs[user].copyLoanOfferConfig;
     }
 
     /// @inheritdoc ISizeViewV1_8
     function getUserDefinedCopyBorrowOfferConfig(address user) external view returns (CopyLimitOrderConfig memory) {
-        return state.data.usersCopyLimitOrders[user].copyBorrowOfferConfig;
+        return state.data.usersCopyLimitOrderConfigs[user].copyBorrowOfferConfig;
     }
 
     /// @inheritdoc ISizeView

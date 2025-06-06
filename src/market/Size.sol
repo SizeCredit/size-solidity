@@ -57,11 +57,6 @@ import {Compensate, CompensateOnBehalfOfParams, CompensateParams} from "@src/mar
 import {PartialRepay, PartialRepayParams} from "@src/market/libraries/actions/PartialRepay.sol";
 
 import {
-    CopyLimitOrders,
-    CopyLimitOrdersOnBehalfOfParams,
-    CopyLimitOrdersParams
-} from "@src/market/libraries/actions/CopyLimitOrders.sol";
-import {
     LiquidateWithReplacement,
     LiquidateWithReplacementParams
 } from "@src/market/libraries/actions/LiquidateWithReplacement.sol";
@@ -71,6 +66,11 @@ import {
     SelfLiquidateOnBehalfOfParams,
     SelfLiquidateParams
 } from "@src/market/libraries/actions/SelfLiquidate.sol";
+import {
+    SetCopyLimitOrderConfigs,
+    SetCopyLimitOrderConfigsOnBehalfOfParams,
+    SetCopyLimitOrderConfigsParams
+} from "@src/market/libraries/actions/SetCopyLimitOrderConfigs.sol";
 
 import {RiskLibrary} from "@src/market/libraries/RiskLibrary.sol";
 
@@ -121,7 +121,7 @@ contract Size is
     using SetUserConfiguration for State;
     using RiskLibrary for State;
     using Multicall for State;
-    using CopyLimitOrders for State;
+    using SetCopyLimitOrderConfigs for State;
     using SetVault for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -453,20 +453,26 @@ contract Size is
     }
 
     /// @inheritdoc ISize
-    function copyLimitOrders(CopyLimitOrdersParams calldata params) external payable override(ISize) {
-        copyLimitOrdersOnBehalfOf(CopyLimitOrdersOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
+    function setCopyLimitOrderConfigs(SetCopyLimitOrderConfigsParams calldata params)
+        external
+        payable
+        override(ISize)
+    {
+        setCopyLimitOrderConfigsOnBehalfOf(
+            SetCopyLimitOrderConfigsOnBehalfOfParams({params: params, onBehalfOf: msg.sender})
+        );
     }
 
     /// @inheritdoc ISizeV1_7
-    function copyLimitOrdersOnBehalfOf(CopyLimitOrdersOnBehalfOfParams memory externalParams)
+    function setCopyLimitOrderConfigsOnBehalfOf(SetCopyLimitOrderConfigsOnBehalfOfParams memory externalParams)
         public
         payable
         override(ISizeV1_7)
         nonReentrant
         whenNotPaused
     {
-        state.validateCopyLimitOrders(externalParams);
-        state.executeCopyLimitOrders(externalParams);
+        state.validateSetCopyLimitOrderConfigs(externalParams);
+        state.executeSetCopyLimitOrderConfigs(externalParams);
     }
 
     /// @inheritdoc ISizeV1_8

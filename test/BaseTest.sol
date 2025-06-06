@@ -46,7 +46,7 @@ import {SetVaultParams} from "@src/market/libraries/actions/SetVault.sol";
 import {KEEPER_ROLE} from "@src/factory/SizeFactory.sol";
 import {UserView} from "@src/market/SizeView.sol";
 import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
-import {CopyLimitOrdersParams} from "@src/market/libraries/actions/CopyLimitOrders.sol";
+import {SetCopyLimitOrderConfigsParams} from "@src/market/libraries/actions/SetCopyLimitOrderConfigs.sol";
 
 import {UpdateConfigParams} from "@src/market/libraries/actions/UpdateConfig.sol";
 
@@ -466,14 +466,14 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         size.setVault(SetVaultParams({vault: vault, forfeitOldShares: forfeitOldShares}));
     }
 
-    function _copyLimitOrders(
+    function _setCopyLimitOrderConfigs(
         address user,
         CopyLimitOrderConfig memory copyLoanOfferConfig,
         CopyLimitOrderConfig memory copyBorrowOfferConfig
     ) internal {
         vm.prank(user);
-        size.copyLimitOrders(
-            CopyLimitOrdersParams({
+        size.setCopyLimitOrderConfigs(
+            SetCopyLimitOrderConfigsParams({
                 copyLoanOfferConfig: copyLoanOfferConfig,
                 copyBorrowOfferConfig: copyBorrowOfferConfig
             })
