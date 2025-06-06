@@ -18,7 +18,6 @@ import {Contract, Networks} from "@script/Networks.sol";
 
 import {Safe} from "@safe-utils/Safe.sol";
 
-import {HTTP} from "@solidity-http/HTTP.sol";
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {Tenderly} from "@tenderly-utils/Tenderly.sol";
@@ -35,9 +34,6 @@ import {ISizeV1_8} from "@src/market/interfaces/v1.8/ISizeV1_8.sol";
 contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
     using Tenderly for *;
     using Safe for *;
-    using HTTP for *;
-
-    HTTP.Client http;
 
     address signer;
     string derivationPath;
@@ -64,13 +60,9 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         safeAddress = vm.envAddress("OWNER");
         safe.initialize(safeAddress);
 
-        HTTP.Response memory response =
-            http.initialize("https://api.size.credit/collection-users/LP-Capital").GET().request();
-        require(response.status == 200, "Failed to fetch collection users");
-
-        users = abi.decode(vm.parseJson(response.data, ".users"), (address[]));
-        curator = abi.decode(vm.parseJson(response.data, ".rate_provider_address"), (address));
-        rateProvider = abi.decode(vm.parseJson(response.data, ".rate_provider_address"), (address));
+        users = vm.envAddress("USERS", ",");
+        curator = vm.envAddress("CURATOR");
+        rateProvider = vm.envAddress("RATE_PROVIDER");
         collectionMarkets = getCollectionMarkets(sizeFactory);
 
         console.log("users", users.length);
