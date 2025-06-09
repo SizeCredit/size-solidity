@@ -129,11 +129,6 @@ abstract contract SizeView is SizeStorage, ReentrancyGuardUpgradeableWithViewMod
     }
 
     /// @inheritdoc ISizeView
-    function getLoanStatus(uint256 positionId) external view returns (LoanStatus) {
-        return state.getLoanStatus(positionId);
-    }
-
-    /// @inheritdoc ISizeView
     function getPositionsCount() external view returns (uint256, uint256) {
         return (
             state.data.nextDebtPositionId - DEBT_POSITION_ID_START,

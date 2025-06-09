@@ -66,11 +66,6 @@ interface ISizeView is ISizeViewV1_8 {
     /// @return The CreditPosition struct containing the details of the credit position
     function getCreditPosition(uint256 creditPositionId) external view returns (CreditPosition memory);
 
-    /// @notice Get the loan status for a given position ID
-    /// @param positionId The ID of the position
-    /// @return The loan status
-    function getLoanStatus(uint256 positionId) external view returns (LoanStatus);
-
     /// @notice Get the count of debt and credit positions
     /// @return The count of debt positions and credit positions
     function getPositionsCount() external view returns (uint256, uint256);

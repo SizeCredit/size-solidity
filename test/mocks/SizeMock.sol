@@ -123,4 +123,8 @@ contract SizeMock is Size {
     function isCreditPositionId(uint256 creditPositionId) external view returns (bool) {
         return state.isCreditPositionId(creditPositionId);
     }
+
+    function getLoanStatus(uint256 positionId) external view returns (LoanStatus) {
+        return state.getLoanStatus(positionId);
+    }
 }
