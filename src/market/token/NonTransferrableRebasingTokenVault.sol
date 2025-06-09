@@ -304,6 +304,7 @@ contract NonTransferrableRebasingTokenVault is
     ///        vault but still holds a dust amount of shares in the previous one, the underlying tokens held by the new
     ///        vault may not accurately reflect the current vault assignment, leading to misattribution of assets.
     ///        See https://slowmist.medium.com/slowmist-aave-v2-security-audit-checklist-0d9ef442436b#5aed
+    // slither-disable-next-line reentrancy-no-eth
     function setVault(address user, address vault, bool forfeitOldShares) public virtual onlyMarket nonReentrant {
         if (user == address(0)) {
             revert Errors.NULL_ADDRESS();

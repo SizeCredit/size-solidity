@@ -84,9 +84,9 @@ library Withdraw {
             uint256 userBalance = state.data.borrowTokenVault.balanceOf(onBehalfOf);
             amount = Math.min(params.amount, userBalance);
             if (amount > 0) {
-                amount = (amount == userBalance)
-                    ? state.data.borrowTokenVault.fullWithdraw(onBehalfOf, params.to)
-                    : state.data.borrowTokenVault.withdraw(onBehalfOf, params.to, amount);
+                amount = (amount < userBalance)
+                    ? state.data.borrowTokenVault.withdraw(onBehalfOf, params.to, amount)
+                    : state.data.borrowTokenVault.fullWithdraw(onBehalfOf, params.to);
             }
         } else {
             amount = Math.min(params.amount, state.data.collateralToken.balanceOf(onBehalfOf));
