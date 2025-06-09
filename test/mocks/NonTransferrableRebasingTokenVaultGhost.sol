@@ -99,8 +99,6 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
                 countSetSharesOf
             );
         }
-
-        return assets;
     }
 
     function withdraw(address from, address to, uint256 amount)
@@ -133,17 +131,17 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
         return assets;
     }
 
-    function transferFrom(address from, address to, uint256 amount)
+    function fullWithdraw(address from, address to)
         public
         override
         resetVars(from)
         resetVars(to)
-        returns (bool)
+        returns (uint256 assets)
     {
         __before(from);
         __before(to);
 
-        bool success = super.transferFrom(from, to, amount);
+        assets = super.fullWithdraw(from, to);
 
         __after(from);
         __after(to);
@@ -159,7 +157,33 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
                 countSetSharesOf
             );
         }
+    }
 
-        return success;
+    function transferFrom(address from, address to, uint256 amount)
+        public
+        override
+        resetVars(from)
+        resetVars(to)
+        returns (bool success)
+    {
+        __before(from);
+        __before(to);
+
+        success = super.transferFrom(from, to, amount);
+
+        __after(from);
+        __after(to);
+
+        if (_before[from].vaultOf != _after[from].vaultOf || _before[to].vaultOf != _after[to].vaultOf) {
+            revert InvariantViolated(
+                VAULTS_04,
+                _before[from].shareOf,
+                _after[from].shareOf,
+                _before[from].vaultOf,
+                _after[from].vaultOf,
+                countSetVaultOf,
+                countSetSharesOf
+            );
+        }
     }
 }
