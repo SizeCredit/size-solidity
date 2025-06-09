@@ -33,14 +33,14 @@ address constant DEFAULT_VAULT = address(0);
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice A non-transferrable rebasing ERC-20 token vault
-///         This token vault deposits underlying tokens into Aave or ERC4626 vaults on behalf of users
-///           and mints scaled tokens or shares to users representing their underlying token amount.
+///         This token vault deposits underlying tokens into vaults on behalf of users
+///           and mints shares to represent their underlying balances. Currently, only Aave and ERC4626 vaults are supported.
 /// @dev This contract was upgraded from NonTransferrableScaledTokenV1_5 in v1.8
 ///      By default, underlying tokens are deposited into the Aave pool, unless the user has set a ERC4626 vault.
 ///      Vaults are whitelisted, and are assumed to be standard ERC4626 tokens.
 ///      Vaults with features such as pause, fee on transfer, and asynchronous share minting/burning are not supported.
 ///      The contract owner configures a vault adapter that implements the `IAdapter` interface to handle deposit/withdraw/etc logic for each vault that is whitelisted.
-///        Currently, only Aave and ERC4626 vaults are supported, but this can be extended to other vaults by the contract owner.
+///        Currently, only Aave and ERC4626 vaults are supported, but this can be extended to other vault types by the contract owner.
 contract NonTransferrableRebasingTokenVault is
     IERC20Metadata,
     IERC20Errors,
@@ -157,7 +157,7 @@ contract NonTransferrableRebasingTokenVault is
     //////////////////////////////////////////////////////////////*/
 
     /// @dev Changing the IAdapter requires a reset in AToken approvals
-    function reinitialize(string memory name_, string memory symbol_, IAdapter aaveAdapter, IAdapter erc4626Adapter)
+    function reinitialize(string memory name_, string memory symbol_, IAaveAdapter aaveAdapter, IAdapter erc4626Adapter)
         external
         onlyOwner
         reinitializer(1_08_00)
@@ -205,6 +205,11 @@ contract NonTransferrableRebasingTokenVault is
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IERC20
+    /// @dev The `value` amount received may be lower than the input amount due to rounding.
+    ///      In cases where `from` and `to` have the same vault, an internal transfer is performed in order to save gas and avoid potential fees.
+    ///        This can be used to "exit" from vaults that are compromised or paused, which is a known tradeoff acknowledged by users.
+    ///      In cases where `from` and `to` have different vaults, the `value` amount is first withdrawn and then deposited, with exact input,
+    ///        otherwise, the recipient could receive fewer assets due to fees from the sender's vault.
     function transferFrom(address from, address to, uint256 value)
         public
         virtual
@@ -219,7 +224,19 @@ contract NonTransferrableRebasingTokenVault is
             revert ERC20InvalidReceiver(address(0));
         }
 
-        _transferFrom(vaultOf[from], vaultOf[to], from, to, value, false);
+        if (value > 0) {
+            if (vaultOf[from] == vaultOf[to]) {
+                IAdapter adapter = getWhitelistedVaultAdapter(vaultOf[from]);
+                adapter.transferFrom(vaultOf[from], from, to, value);
+            } else {
+                IAdapter adapterFrom = getWhitelistedVaultAdapter(vaultOf[from]);
+                IAdapter adapterTo = getWhitelistedVaultAdapter(vaultOf[to]);
+                // slither-disable-next-line unused-return
+                adapterFrom.withdraw(vaultOf[from], from, address(adapterTo), value);
+                // slither-disable-next-line unused-return
+                adapterTo.deposit(vaultOf[to], to, value);
+            }
+        }
 
         emit Transfer(from, to, value);
 
@@ -278,22 +295,31 @@ contract NonTransferrableRebasingTokenVault is
     ///        to a different vault without requiring interaction with the old vault, which may be inaccessible or
     ///        compromised. This prevents users from being permanently locked out of the protocol when their chosen
     ///        vault becomes unavailable.
-    ///      If the user changes vaults while having shares, the user's shares are reset to 0 after `IAdapter.withdraw` and before `IAdapter.deposit`
+    ///      If the user changes vaults while having shares, the user's shares must first reset to 0 before `IAdapter.deposit`
     ///        to avoid leaving dust behind. This is important because small residual share amounts (due to rounding)
     ///        can lead to inconsistencies when the user changes vaults. For example, if the user switches to a new
     ///        vault but still holds a dust amount of shares in the previous one, the underlying tokens held by the new
     ///        vault may not accurately reflect the current vault assignment, leading to misattribution of assets.
     ///        See https://slowmist.medium.com/slowmist-aave-v2-security-audit-checklist-0d9ef442436b#5aed
-    function setVault(address user, address vault, bool forfeitOldShares) public virtual onlyMarket {
+    function setVault(address user, address vault, bool forfeitOldShares) public virtual onlyMarket nonReentrant {
         if (user == address(0)) {
             revert Errors.NULL_ADDRESS();
         } else if (!vaultToIdMap.contains(vault)) {
             revert Errors.INVALID_VAULT(vault);
         } else if (vaultOf[user] != vault) {
-            if (forfeitOldShares || balanceOf(user) == 0) {
+            if (forfeitOldShares) {
                 _setSharesOf(user, 0);
-            } else {
-                _transferFrom(vaultOf[user], vault, user, user, balanceOf(user), true);
+            } else if (sharesOf[user] > 0) {
+                IAdapter adapterOld = getWhitelistedVaultAdapter(vaultOf[user]);
+                IAdapter adapterNew = getWhitelistedVaultAdapter(vault);
+                uint256 assetsWithdrawn = adapterOld.fullWithdraw(vaultOf[user], user, address(adapterNew));
+                if (assetsWithdrawn > 0) {
+                    uint256 assetsDeposited = adapterNew.deposit(vault, user, assetsWithdrawn);
+                    uint256 lostAssets = assetsWithdrawn - assetsDeposited;
+                    if (lostAssets > 0) {
+                        emit Transfer(user, address(0), lostAssets);
+                    }
+                }
             }
             _setVaultOf(user, vault);
         } else {
@@ -315,7 +341,7 @@ contract NonTransferrableRebasingTokenVault is
         emit Transfer(address(0), to, assets);
     }
 
-    /// @notice Withdraw underlying tokens from the variable pool and burn scaled tokens
+    /// @notice Withdraw underlying tokens from the vault and burn shares
     /// @dev The actual withdrawn amount can be lower than the input amount based on the vault withdraw and rounding logic.
     function withdraw(address from, address to, uint256 amount)
         public
@@ -333,6 +359,21 @@ contract NonTransferrableRebasingTokenVault is
 
         IAdapter adapter = getWhitelistedVaultAdapter(vaultOf[from]);
         assets = adapter.withdraw(vaultOf[from], from, to, amount);
+
+        emit Transfer(from, address(0), assets);
+    }
+
+    /// @notice Withdraws all assets from the vault and sets shares to zero
+    function fullWithdraw(address from, address to) public virtual onlyMarket nonReentrant returns (uint256 assets) {
+        if (from == address(0)) {
+            revert ERC20InvalidSender(address(0));
+        }
+        if (to == address(0)) {
+            revert ERC20InvalidReceiver(address(0));
+        }
+
+        IAdapter adapter = getWhitelistedVaultAdapter(vaultOf[from]);
+        assets = adapter.fullWithdraw(vaultOf[from], from, to);
 
         emit Transfer(from, address(0), assets);
     }
@@ -454,35 +495,6 @@ contract NonTransferrableRebasingTokenVault is
         bool removed = vaultToIdMap.remove(vault);
         if (removed) {
             emit VaultRemoved(vault);
-        }
-    }
-
-    /// @notice Transfers assets from one account to another, using the `from` vault to the `to` vault
-    function _transferFrom(
-        address vaultFrom,
-        address vaultTo,
-        address from,
-        address to,
-        uint256 value,
-        bool forfeitOldShares
-    ) private {
-        if (value > 0) {
-            if (vaultFrom == vaultTo) {
-                IAdapter adapter = getWhitelistedVaultAdapter(vaultFrom);
-                adapter.transferFrom(vaultFrom, from, to, value);
-            } else {
-                IAdapter adapterFrom = getWhitelistedVaultAdapter(vaultFrom);
-                IAdapter adapterTo = getWhitelistedVaultAdapter(vaultTo);
-                // slither-disable-next-line unused-return
-                adapterFrom.withdraw(vaultFrom, from, address(adapterTo), value);
-
-                if (forfeitOldShares) {
-                    _setSharesOf(from, 0);
-                }
-
-                // slither-disable-next-line unused-return
-                adapterTo.deposit(vaultTo, to, value);
-            }
         }
     }
 

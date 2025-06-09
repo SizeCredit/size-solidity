@@ -96,6 +96,22 @@ contract ERC4626Adapter is Ownable, IAdapter {
     }
 
     /// @inheritdoc IAdapter
+    function fullWithdraw(address vault, address from, address to) external onlyOwner returns (uint256 assets) {
+        uint256 assetsBefore = underlyingToken.balanceOf(address(this));
+        uint256 userSharesBefore = tokenVault.sharesOf(from);
+
+        tokenVault.requestApprove(vault, type(uint256).max);
+        // slither-disable-next-line unused-return
+        IERC4626(vault).redeem(userSharesBefore, address(this), address(tokenVault));
+        tokenVault.requestApprove(vault, 0);
+
+        assets = underlyingToken.balanceOf(address(this)) - assetsBefore;
+
+        underlyingToken.safeTransfer(to, assets);
+        tokenVault.setSharesOf(from, 0);
+    }
+
+    /// @inheritdoc IAdapter
     function transferFrom(address vault, address from, address to, uint256 value) external onlyOwner {
         if (IERC4626(vault).maxWithdraw(address(tokenVault)) < value) {
             revert InsufficientAssets(address(vault), IERC4626(vault).maxWithdraw(address(tokenVault)), value);

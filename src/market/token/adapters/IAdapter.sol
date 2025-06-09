@@ -35,6 +35,13 @@ interface IAdapter {
     /// @return assets The amount of assets withdrawn. Can be lower than the requested amount due to rounding, fees, etc
     function withdraw(address vault, address from, address to, uint256 amount) external returns (uint256 assets);
 
+    /// @notice Withdraws all assets from the vault and sets shares to zero
+    /// @param vault The address of the vault
+    /// @param from The address of the sender
+    /// @param to The address of the recipient
+    /// @return assets The amount of assets withdrawn.
+    function fullWithdraw(address vault, address from, address to) external returns (uint256 assets);
+
     /// @notice Transfers assets from one account to another in the same vault
     /// @param vault The address of the vault
     /// @param from The address of the sender

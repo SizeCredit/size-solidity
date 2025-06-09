@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {console} from "forge-std/console.sol";
 
 import {PERCENT} from "@src/market/libraries/Math.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
@@ -12,7 +14,9 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {DepositParams} from "@src/market/libraries/actions/Deposit.sol";
+
 import {SellCreditMarketParams} from "@src/market/libraries/actions/SellCreditMarket.sol";
+import {SetVaultParams} from "@src/market/libraries/actions/SetVault.sol";
 
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -399,13 +403,16 @@ contract VaultsTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _deposit(alice, usdc, 1000e6);
+        uint256 amount = 1000e6;
+        _deposit(alice, usdc, amount);
 
         Vars memory _after = _state();
 
         assertEq(
-            _after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance + 1000e6 * uint256(1e4) / uint256(1.1e4)
+            _after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance + amount * uint256(1e4) / uint256(1.1e4)
         );
+
+        _setVault(alice, address(0), false);
     }
 
     function test_Vaults_total_supply_across_multiple_vaults() public {
@@ -585,13 +592,16 @@ contract VaultsTest is BaseTest {
     }
 
     function test_Vaults_reentrancy_malicious_erc4626_multiple_markets() public {
+        address borrowTokenVaultImplementation = address(new NonTransferrableRebasingTokenVault());
+        NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
+        UUPSUpgradeable(address(borrowTokenVault)).upgradeToAndCall(borrowTokenVaultImplementation, "");
+
         ReentrancyMaliciousERC4626 maliciousVault = new ReentrancyMaliciousERC4626(address(usdc), size2, alice);
         vm.label(address(maliciousVault), "ReentrancyMaliciousERC4626");
 
         _setVaultAdapter(address(maliciousVault), "ERC4626Adapter");
         _setAuthorization(alice, address(maliciousVault), Authorization.getActionsBitmap(Action.SET_VAULT));
         _setVault(alice, address(maliciousVault), false);
-        NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
 
         uint256 bobBalance = 1_000_000e6;
         uint256 aliceBalanceBefore = 1e6;
@@ -634,7 +644,13 @@ contract VaultsTest is BaseTest {
             size.data().borrowTokenVault.balanceOf(alice) == 0 && size.data().borrowTokenVault.sharesOf(alice) > 0
         );
 
-        _setVault(alice, DEFAULT_VAULT, false);
+        vm.prank(alice);
+        try size.setVault(SetVaultParams({vault: DEFAULT_VAULT, forfeitOldShares: false})) {}
+        catch (bytes memory err) {
+            assertTrue(
+                isRevertReasonEqual(err, "ZERO_ASSETS"), "Tried to withdraw 1 share but it would result in 0 assets"
+            );
+        }
     }
 
     function test_Vaults_setVault_should_not_allow_dust_shares_concrete() public {

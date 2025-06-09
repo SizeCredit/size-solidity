@@ -103,6 +103,19 @@ contract AaveAdapter is Ownable, IAaveAdapter {
     }
 
     /// @inheritdoc IAdapter
+    function fullWithdraw(address vault, address from, address to) external onlyOwner returns (uint256 assets) {
+        uint256 sharesBefore = aToken.scaledBalanceOf(address(tokenVault));
+        uint256 userBalanceBefore = balanceOf(vault, from);
+
+        tokenVault.requestAaveWithdraw(userBalanceBefore, to);
+
+        uint256 shares = sharesBefore - aToken.scaledBalanceOf(address(tokenVault));
+        assets = _unscale(shares);
+
+        tokenVault.setSharesOf(from, 0);
+    }
+
+    /// @inheritdoc IAdapter
     function transferFrom(address vault, address from, address to, uint256 value) external onlyOwner {
         if (underlyingToken.balanceOf(address(aToken)) < value) {
             revert InsufficientAssets(DEFAULT_VAULT, underlyingToken.balanceOf(address(aToken)), value);

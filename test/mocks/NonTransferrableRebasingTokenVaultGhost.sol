@@ -50,11 +50,7 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
         __setVars(_after[user], user);
     }
 
-    function setVault(address user, address vault, bool forfeitOldShares)
-        public
-        override
-        resetVars(user)
-    {
+    function setVault(address user, address vault, bool forfeitOldShares) public override resetVars(user) {
         __before(user);
         super.setVault(user, vault, forfeitOldShares);
         __after(user);
