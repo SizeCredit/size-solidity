@@ -138,6 +138,7 @@ contract ForkVaultsTest is ForkTest, Networks {
         vm.expectRevert();
         borrowTokenVault.setVaultAdapter(address(liquidUSD), "ERC4626Adapter");
 
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(liquidUSD)));
         _setVault(alice, address(liquidUSD), false);
 
         _deposit(alice, usdc, 100e6);

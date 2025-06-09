@@ -37,9 +37,6 @@ import {
 } from "@src/market/libraries/actions/Initialize.sol";
 import {SellCreditMarket, SellCreditMarketParams} from "@src/market/libraries/actions/SellCreditMarket.sol";
 
-import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
-import {ISizeViewV1_7} from "@src/market/interfaces/v1.7/ISizeViewV1_7.sol";
-
 import {VERSION} from "@src/market/interfaces/ISize.sol";
 
 /// @title SizeView
@@ -98,11 +95,6 @@ abstract contract SizeView is SizeStorage, ReentrancyGuardUpgradeableWithViewMod
             borrowTokenVault: state.data.borrowTokenVault,
             debtToken: state.data.debtToken
         });
-    }
-
-    /// @inheritdoc ISizeViewV1_7
-    function sizeFactory() external view returns (ISizeFactory) {
-        return state.data.sizeFactory;
     }
 
     /// @inheritdoc ISizeView
