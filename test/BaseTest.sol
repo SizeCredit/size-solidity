@@ -103,6 +103,19 @@ contract BaseTest is Test, Deploy, AssertsHelper {
 
         vm.label(address(sizeFactory), "SizeFactory");
 
+        vm.label(address(vault), "ERC4626Solady");
+        vm.label(address(vault2), "ERC4626OpenZeppelin");
+        vm.label(address(vault3), "ERC4626Solmate");
+        vm.label(address(vaultMalicious), "MaliciousERC4626");
+        vm.label(address(vaultFeeOnTransfer), "FeeOnTransferERC4626");
+        vm.label(address(vaultFeeOnEntryExit), "FeeOnEntryExitERC4626");
+        vm.label(address(vaultLimits), "LimitsERC4626");
+        vm.label(address(vaultNonERC4626), "NonERC4626");
+        vm.label(address(vaultERC7540FullyAsync), "FullyAsyncVault");
+        vm.label(address(vaultERC7540ControlledAsyncDeposit), "ControlledAsyncDeposit");
+        vm.label(address(vaultERC7540ControlledAsyncRedeem), "ControlledAsyncRedeem");
+        vm.label(address(vaultInvalidUnderlying), "VaultInvalidUnderlying");
+
         vm.label(address(0), "address(0)");
         vm.label(address(this), "Test");
     }

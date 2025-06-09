@@ -6,6 +6,7 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+import {console} from "forge-std/console.sol";
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 
@@ -41,6 +42,7 @@ address constant DEFAULT_VAULT = address(0);
 ///      Vaults with features such as pause, fee on transfer, and asynchronous share minting/burning are not supported.
 ///      The contract owner configures a vault adapter that implements the `IAdapter` interface to handle deposit/withdraw/etc logic for each vault that is whitelisted.
 ///        Currently, only Aave and ERC4626 vaults are supported, but this can be extended to other vault types by the contract owner.
+///      Functions are `virtual` to allow for custom logic in test contracts.
 contract NonTransferrableRebasingTokenVault is
     IERC20Metadata,
     IERC20Errors,
@@ -288,8 +290,9 @@ contract NonTransferrableRebasingTokenVault is
     /// @dev This function is only callable by the market
     ///      Setting the vault to `address(0)` will use the default variable pool
     ///      Setting the vault to a different address will withdraw all the user's assets
-    ///        from the previous vault and deposit them into the new vault
-    ///      This function is virtual to allow for custom logic in test contracts
+    ///        from the previous vault and deposit them into the new vault. This can revert during both
+    ///        `IAdapter.fullWithdraw` and `IAdapter.deposit`, for example if the user has a small amount of shares
+    ///        in the previous vault and would receive 0 assets, or if the new vault would mint 0 shares, or if the vaults are paused, etc.
     ///      If `forfeitOldShares` is true, the user's old shares are forfeited and the user's balance is reset to 0.
     ///        This can be used to recover from compromised or removed vaults, allowing users to move their positions
     ///        to a different vault without requiring interaction with the old vault, which may be inaccessible or
@@ -315,9 +318,10 @@ contract NonTransferrableRebasingTokenVault is
                 uint256 assetsWithdrawn = adapterOld.fullWithdraw(vaultOf[user], user, address(adapterNew));
                 if (assetsWithdrawn > 0) {
                     uint256 assetsDeposited = adapterNew.deposit(vault, user, assetsWithdrawn);
-                    uint256 lostAssets = assetsWithdrawn - assetsDeposited;
-                    if (lostAssets > 0) {
-                        emit Transfer(user, address(0), lostAssets);
+                    if (assetsWithdrawn > assetsDeposited) {
+                        emit Transfer(user, address(0), assetsWithdrawn - assetsDeposited);
+                    } else if (assetsDeposited > assetsWithdrawn) {
+                        emit Transfer(address(0), user, assetsDeposited - assetsWithdrawn);
                     }
                 }
             }
@@ -499,14 +503,12 @@ contract NonTransferrableRebasingTokenVault is
     }
 
     /// @notice Sets the vault of a user
-    /// @dev virtual to allow for custom logic in test contracts
     function _setVaultOf(address user, address vault) internal virtual {
         emit VaultSet(user, vaultOf[user], vault);
         vaultOf[user] = vault;
     }
 
     /// @notice Sets the shares of a user
-    /// @dev virtual to allow for custom logic in test contracts
     function _setSharesOf(address user, uint256 shares) internal virtual {
         emit SharesSet(user, sharesOf[user], shares);
         sharesOf[user] = shares;

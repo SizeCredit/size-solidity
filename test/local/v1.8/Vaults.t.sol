@@ -3,9 +3,12 @@ pragma solidity 0.8.23;
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+
+import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 import {console} from "forge-std/console.sol";
 
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {PERCENT} from "@src/market/libraries/Math.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {DEFAULT_VAULT} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
@@ -655,5 +658,93 @@ contract VaultsTest is BaseTest {
 
     function test_Vaults_setVault_should_not_allow_dust_shares_concrete() public {
         testFuzz_Vaults_setVault_should_not_allow_dust_shares(3, 0);
+    }
+
+    function testFuzz_Vaults_setVault_should_not_DoS(
+        address vaultFrom,
+        address vaultTo,
+        uint256 depositAmountFrom,
+        uint256 depositAmountTo,
+        uint256 mintFrom,
+        uint256 mintTo
+    ) public {
+        depositAmountFrom = bound(depositAmountFrom, 0, 1e6);
+        depositAmountTo = bound(depositAmountTo, 0, 1e6);
+        mintFrom = bound(mintFrom, 0, 1_000_000e6);
+        mintTo = bound(mintTo, 0, 1_000_000e6);
+        address[] memory vaults = new address[](7);
+        vaults[0] = address(vault);
+        vaults[1] = address(vault2);
+        vaults[2] = address(vault3);
+        vaults[3] = address(DEFAULT_VAULT);
+        vaults[4] = address(vaultFeeOnTransfer);
+        vaults[5] = address(vaultFeeOnEntryExit);
+        vaults[6] = address(vaultLimits);
+        vaultFrom = vaults[uint256(uint160(vaultFrom)) % 7];
+        vaultTo = vaults[uint256(uint160(vaultTo)) % 7];
+
+        if (vaultFrom != address(0)) {
+            _setVaultAdapter(vaultFrom, "ERC4626Adapter");
+        }
+        if (vaultTo != address(0)) {
+            _setVaultAdapter(vaultTo, "ERC4626Adapter");
+        }
+
+        _setVault(alice, vaultFrom, false);
+
+        if (depositAmountFrom > 0) {
+            _deposit(alice, usdc, depositAmountFrom);
+        }
+
+        if (depositAmountTo > 0) {
+            _setVault(bob, vaultTo, false);
+            _deposit(bob, usdc, depositAmountTo);
+        }
+
+        _mint(address(usdc), address(vaultFrom), mintFrom);
+        _mint(address(usdc), address(vaultTo), mintTo);
+
+        vm.prank(alice);
+        try size.setVault(SetVaultParams({vault: vaultTo, forfeitOldShares: false})) {}
+        catch (bytes memory err) {
+            bytes4[] memory errors = new bytes4[](2);
+            errors[0] = IERC20Errors.ERC20InsufficientBalance.selector; // vault fee on transfer
+            errors[1] = ERC4626OpenZeppelin.ERC4626ExceededMaxDeposit.selector; // vault limits
+            bool found;
+            for (uint256 i = 0; i < errors.length; i++) {
+                if (bytes4(err) == errors[i]) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                assertTrue(
+                    err.length == 0 /* division by zero in `deposit` */ || isRevertReasonEqual(err, "ZERO_ASSETS") /* fullWithdraw does not return assets */
+                        || isRevertReasonEqual(err, "ZERO_SHARES") /* deposit does not return shares */
+                );
+            }
+        }
+    }
+
+    function test_Vaults_setVault_should_not_DoS_concrete_1() public {
+        testFuzz_Vaults_setVault_should_not_DoS(
+            0x7ADd2bc80b34C4f684acA34c32409Bb7d8B3EBAD,
+            0x4710C436783aC52eAA285B379216F654E37bAc45,
+            33465868994540527940485561327186911778221521359,
+            1,
+            168391758410948097870768843475662773,
+            0
+        );
+    }
+
+    function test_Vaults_setVault_should_not_DoS_concrete_2() public {
+        testFuzz_Vaults_setVault_should_not_DoS(
+            0xa8FDE076BbC5A5C1DdB21257830A3FEdBa83D5e6,
+            0xA2A4691b231eB6fE12cA192d2af9378552384eC7,
+            10926135349232105725494302465053164484692030030486046,
+            0,
+            36514846448020034121777649385718671084564959388979485374443577881365864745,
+            1
+        );
     }
 }
