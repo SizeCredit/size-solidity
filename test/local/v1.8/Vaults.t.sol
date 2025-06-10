@@ -4,7 +4,6 @@ pragma solidity 0.8.23;
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
-import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 import {console} from "forge-std/console.sol";
 
@@ -746,5 +745,46 @@ contract VaultsTest is BaseTest {
             36514846448020034121777649385718671084564959388979485374443577881365864745,
             1
         );
+    }
+
+    function test_Vaults_multicall_deposit_buyCreditMarket_can_revert_due_to_balanceOf_round_down() public {
+        _deposit(bob, weth, 100e18);
+        _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
+
+        address v = address(vaultFeeOnEntryExit);
+
+        _setVaultAdapter(v, "ERC4626Adapter");
+        _setVault(alice, v, false);
+
+        _mint(address(usdc), v, 1);
+
+        uint256 amount = 17957679;
+        uint256 tenor = 365 days;
+
+        _mint(address(usdc), alice, amount);
+        _approve(alice, address(usdc), address(size), amount);
+
+        bytes[] memory data = new bytes[](2);
+        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: amount, to: alice}));
+        data[1] = abi.encodeCall(
+            size.buyCreditMarket,
+            BuyCreditMarketParams({
+                borrower: bob,
+                creditPositionId: RESERVED_ID,
+                amount: amount,
+                tenor: tenor,
+                deadline: block.timestamp,
+                minAPR: 0,
+                exactAmountIn: true,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
+            })
+        );
+
+        vm.prank(alice);
+        try size.multicall(data) {}
+        catch (bytes memory err) {
+            assertEq(bytes4(err), ERC4626OpenZeppelin.ERC4626ExceededMaxWithdraw.selector);
+        }
     }
 }
