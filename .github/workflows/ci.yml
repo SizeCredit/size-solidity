@@ -294,16 +294,10 @@ jobs:
 
       - name: Coverage
         run: |
-          ./script/update_readme_coverage.sh
-          git add README.md
-          git commit -m "Update coverage [skip ci]" || true
+          forge coverage --no-match-coverage \"(script|test|deprecated)\" --report lcov
 
-      - name: Push
-        if: github.ref == 'refs/heads/main'
-        run: |
-          git push https://${{ env.token }}@github.com/${{ github.event.repository.full_name }}.git
-        env:
-          token: ${{ secrets.SIZE_BOT_PAT }}
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
 
   upload-selectors:
     if: github.ref == 'refs/heads/main'
