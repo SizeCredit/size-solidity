@@ -94,14 +94,13 @@ jobs:
 
       - name: Fork Test
         run: |
-          forge test -vvv
+          forge test -vvv --fail-fast
         id: test
         env:
           API_KEY_ALCHEMY: ${{ secrets.API_KEY_ALCHEMY }}
           FOUNDRY_INVARIANT_RUNS: 0
           FOUNDRY_INVARIANT_DEPTH: 0
           FOUNDRY_PROFILE: fork
-          FOUNDRY_THREADS: 1
 
   slither:
     strategy:
