@@ -1,4 +1,4 @@
-# size-solidity [![Coverage Status](https://coveralls.io/repos/github/SizeCredit/size-solidity/badge.svg?branch=main)](https://coveralls.io/github/SizeCredit/size-solidity?branch=main)
+# size-solidity [![Coverage Status](https://coveralls.io/repos/github/SizeCredit/size-solidity/badge.svg?branch=main)](https://coveralls.io/github/SizeCredit/size-solidity?branch=main) [![CI](https://github.com/SizeCredit/size-solidity/actions/workflows/ci.yml/badge.svg)](https://github.com/SizeCredit/size-solidity/actions/workflows/ci.yml)
 
 <a href="https://github.com/SizeLending/size-solidity/raw/main/size.png"><img src="https://github.com/SizeLending/size-solidity/raw/main/size.png" width="300" alt="Size"/></a>
 
