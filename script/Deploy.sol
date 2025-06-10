@@ -105,7 +105,7 @@ abstract contract Deploy {
     PriceFeedMock internal priceFeed2;
     IERC20Metadata internal collateral2;
 
-    uint256 public constant TIMELOCK = 24 hours;
+    uint256 private constant TIMELOCK = 24 hours;
 
     function setupLocal(address owner, address feeRecipient) internal {
         priceFeed = new PriceFeedMock(owner);

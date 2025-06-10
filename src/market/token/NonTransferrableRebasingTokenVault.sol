@@ -327,7 +327,7 @@ contract NonTransferrableRebasingTokenVault is
             }
             _setVaultOf(user, vault);
         } else {
-            // do not change the user vault
+            revert Errors.INVALID_VAULT(vault);
         }
     }
 

@@ -463,7 +463,7 @@ contract VaultsTest is BaseTest {
         _setVaultAdapter(vault2, "ERC4626Adapter");
         _setVault(alice, address(vault), false);
         _setVault(bob, address(vault2), false);
-        _setVault(candy, DEFAULT_VAULT, false);
+        // _setVault(candy, DEFAULT_VAULT, false);
         _setLiquidityIndex(index);
 
         _deposit(alice, usdc, cash);
@@ -479,9 +479,6 @@ contract VaultsTest is BaseTest {
         _deposit(bob, weth, 10e18);
         _deposit(candy, usdc, cash * percent / PERCENT);
 
-        _setVault(alice, DEFAULT_VAULT, false);
-        _setVault(bob, address(vault), false);
-        _setVault(candy, address(vault2), false);
         _setLiquidityIndex(index * 1.1e18 / PERCENT);
 
         _buyCreditLimit(alice, block.timestamp + tenor, YieldCurveHelper.pointCurve(tenor, int256(apr)));
@@ -689,14 +686,18 @@ contract VaultsTest is BaseTest {
             _setVaultAdapter(vaultTo, "ERC4626Adapter");
         }
 
-        _setVault(alice, vaultFrom, false);
+        if (vaultFrom != DEFAULT_VAULT) {
+            _setVault(alice, vaultFrom, false);
+        }
 
         if (depositAmountFrom > 0) {
             _deposit(alice, usdc, depositAmountFrom);
         }
 
         if (depositAmountTo > 0) {
-            _setVault(bob, vaultTo, false);
+            if (vaultTo != vaultFrom) {
+                _setVault(bob, vaultTo, false);
+            }
             _deposit(bob, usdc, depositAmountTo);
         }
 
@@ -706,9 +707,10 @@ contract VaultsTest is BaseTest {
         vm.prank(alice);
         try size.setVault(SetVaultParams({vault: vaultTo, forfeitOldShares: false})) {}
         catch (bytes memory err) {
-            bytes4[] memory errors = new bytes4[](2);
+            bytes4[] memory errors = new bytes4[](3);
             errors[0] = IERC20Errors.ERC20InsufficientBalance.selector; // vault fee on transfer
             errors[1] = ERC4626OpenZeppelin.ERC4626ExceededMaxDeposit.selector; // vault limits
+            errors[2] = Errors.INVALID_VAULT.selector; // vault is the same as the old vault
             bool found;
             for (uint256 i = 0; i < errors.length; i++) {
                 if (bytes4(err) == errors[i]) {
@@ -744,6 +746,17 @@ contract VaultsTest is BaseTest {
             0,
             36514846448020034121777649385718671084564959388979485374443577881365864745,
             1
+        );
+    }
+
+    function test_Vaults_setVault_should_not_DoS_concrete_3() public {
+        testFuzz_Vaults_setVault_should_not_DoS(
+            0x000000000000000000000000000000000000096F,
+            0x00000000000000000000000000000000000008ce,
+            11027,
+            3259,
+            4107696312,
+            80990461305054575771245129083639077858753351859202812035029258386330067072262
         );
     }
 
@@ -809,7 +822,9 @@ contract VaultsTest is BaseTest {
             if (vaults[i] != address(0)) {
                 _setVaultAdapter(vaults[i], "ERC4626Adapter");
             }
-            _setVault(users[i], vaults[i], false);
+            if (vaults[i] != DEFAULT_VAULT) {
+                _setVault(users[i], vaults[i], false);
+            }
 
             _tryDeposit(users[i], address(usdc), deposits[i]);
             _checkInvariantSumBalanceOfLteTotalSupply(users);
