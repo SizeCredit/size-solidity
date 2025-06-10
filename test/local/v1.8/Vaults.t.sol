@@ -787,4 +787,112 @@ contract VaultsTest is BaseTest {
             assertEq(bytes4(err), ERC4626OpenZeppelin.ERC4626ExceededMaxWithdraw.selector);
         }
     }
+
+    function testFuzz_Vaults_sum_balanceOf_lte_totalSupply(
+        address[3] memory vaults,
+        uint256[3] memory deposits,
+        uint256[3] memory mints,
+        uint256 index
+    ) public {
+        address[3] memory users = [address(alice), address(bob), address(candy)];
+
+        uint256 MAX_DEPOSIT = 1_000e6;
+        for (uint256 i = 0; i < users.length; i++) {
+            vaults[i] = _getRandomVault(vaults[i]);
+            deposits[i] = bound(deposits[i], 0, MAX_DEPOSIT);
+            mints[i] = bound(mints[i], 0, MAX_DEPOSIT);
+        }
+
+        index = bound(index, 1e27, 1.3e27);
+
+        for (uint256 i = 0; i < vaults.length; i++) {
+            if (vaults[i] != address(0)) {
+                _setVaultAdapter(vaults[i], "ERC4626Adapter");
+            }
+            _setVault(users[i], vaults[i], false);
+
+            _tryDeposit(users[i], address(usdc), deposits[i]);
+            _checkInvariantSumBalanceOfLteTotalSupply(users);
+        }
+
+        _setLiquidityIndex(index);
+
+        for (uint256 i = 0; i < vaults.length; i++) {
+            _mint(address(usdc), vaults[i], mints[i]);
+            _checkInvariantSumBalanceOfLteTotalSupply(users);
+        }
+
+        for (uint256 i = 0; i < vaults.length; i++) {
+            vaults[i] = _getRandomVault(vaults[(i + 1) % vaults.length]);
+            deposits[i] = bound(deposits[(i + 1) % deposits.length], 0, MAX_DEPOSIT);
+            _tryDeposit(users[i], address(usdc), deposits[i]);
+            _checkInvariantSumBalanceOfLteTotalSupply(users);
+        }
+
+        _checkInvariantSumBalanceOfLteTotalSupply(users);
+    }
+
+    function test_Vaults_sum_balanceOf_lte_totalSupply_concrete_1() public {
+        address[3] memory vaults = [
+            0x4fF93Fdd8eC3CAE544ab5e22b0a3371A5376A8C6,
+            0xb6e8028e53D1B3d1d5323773D97613f829A6209a,
+            0xC15B801DaB12F5E6BF38C94eeedceDA2744E167e
+        ];
+        uint256[3] memory deposits = [
+            669076640632124811788941708902922,
+            1326790525273485689340850745608828,
+            115792089237316195423570985008687907853269984665640564039457584007913129639932
+        ];
+        uint256[3] memory mints = [
+            uint256(20501974589643353768337462928971601539496086473391825130),
+            uint256(58578713255),
+            uint256(19545880432230)
+        ];
+        uint256 index = 119481778943812487689931354651173663049347705;
+
+        testFuzz_Vaults_sum_balanceOf_lte_totalSupply(vaults, deposits, mints, index);
+    }
+
+    function test_Vaults_sum_balanceOf_lte_totalSupply_concrete_2() public {
+        address[3] memory vaults = [
+            0x8f3fda9d1d878a1F77D739356584F9af121eF82D,
+            0x8B2Ba19221eBF355d119a9D3922418De29e06677,
+            0xe86ab901B770F60CA2EE42415985612Ac0b8F645
+        ];
+        uint256[3] memory deposits = [
+            uint256(71091932423252344260146936954281200372365764426498),
+            uint256(161557001651233832774677948055053378422776298906609387284555629),
+            uint256(3808770222582657065308344)
+        ];
+        uint256[3] memory mints =
+            [uint256(10407370417), uint256(3), uint256(55347601836360577723364973100400198846104519871770813)];
+        uint256 index = 15011042262221436002;
+
+        testFuzz_Vaults_sum_balanceOf_lte_totalSupply(vaults, deposits, mints, index);
+    }
+
+    function _getRandomVault(address x) internal view returns (address) {
+        address[] memory vaults = new address[](4);
+        vaults[0] = address(vault);
+        vaults[1] = address(vault2);
+        vaults[2] = address(vault3);
+        vaults[3] = DEFAULT_VAULT;
+        return vaults[uint256(uint160(x)) % vaults.length];
+    }
+
+    function _checkInvariantSumBalanceOfLteTotalSupply(address[3] memory users) internal view {
+        uint256 totalSupply = size.data().borrowTokenVault.totalSupply();
+        uint256 sumBalanceOf = 0;
+        for (uint256 i = 0; i < users.length; i++) {
+            sumBalanceOf += size.data().borrowTokenVault.balanceOf(users[i]);
+        }
+        assertLe(sumBalanceOf, totalSupply, "Invariant: SUM(balanceOf) <= totalSupply");
+    }
+
+    function _tryDeposit(address user, address token, uint256 amount) internal {
+        _mint(token, user, amount);
+        _approve(user, token, address(size), amount);
+        vm.prank(user);
+        try size.deposit(DepositParams({token: token, amount: amount, to: user})) {} catch (bytes memory) {}
+    }
 }

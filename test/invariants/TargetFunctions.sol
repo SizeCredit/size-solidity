@@ -464,6 +464,12 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
             abi.encodeCall(size.setVault, SetVaultParams({vault: _vault, forfeitOldShares: _forfeitOldShares}))
         );
         __after();
+
+        if (success) {
+            if (_forfeitOldShares) {
+                eq(_after.sender.borrowTokenBalance, 0, SET_VAULT_01);
+            }
+        }
     }
 
     function copyLimitOrders(int256 loanOffsetAPR, int256 borrowOffsetAPR)

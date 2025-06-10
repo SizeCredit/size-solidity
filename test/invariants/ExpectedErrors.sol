@@ -3,6 +3,8 @@ pragma solidity 0.8.23;
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
+
+import {ERC4626 as ERC4626OpenZeppelin} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {Deploy} from "@script/Deploy.sol";
@@ -154,7 +156,10 @@ abstract contract ExpectedErrors is Deploy, Properties {
         PARTIAL_REPAY_ERRORS.push(Errors.INVALID_BORROWER.selector);
 
         // SET_VAULT_ERRORS
-        // TODO
+        SET_VAULT_ERRORS.push(Errors.INVALID_VAULT.selector);
+        SET_VAULT_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
+        SET_VAULT_ERRORS.push(ERC4626OpenZeppelin.ERC4626ExceededMaxDeposit.selector);
+        SET_VAULT_ERRORS.push(bytes4(keccak256("Error(string)"))); // ZERO_ASSETS / ZERO_SHARES from ERC4626Solmate
     }
 
     modifier checkExpectedErrors(bytes4[] storage errors) {
