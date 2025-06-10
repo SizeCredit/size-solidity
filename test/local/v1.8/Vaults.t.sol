@@ -695,7 +695,7 @@ contract VaultsTest is BaseTest {
         }
 
         if (depositAmountTo > 0) {
-            if (vaultTo != vaultFrom) {
+            if (vaultTo != DEFAULT_VAULT) {
                 _setVault(bob, vaultTo, false);
             }
             _deposit(bob, usdc, depositAmountTo);
