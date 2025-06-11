@@ -472,7 +472,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         }
     }
 
-    function copyLimitOrders(int256 loanOffsetAPR, int256 borrowOffsetAPR)
+    function setCopyLimitOrderConfigs(int256 loanOffsetAPR, int256 borrowOffsetAPR)
         public
         getSender
         checkExpectedErrors(SET_COPY_LIMIT_ORDER_CONFIGS_ERRORS)
