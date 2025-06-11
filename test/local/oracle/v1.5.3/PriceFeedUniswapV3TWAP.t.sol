@@ -8,14 +8,14 @@ import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggreg
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
-import {PriceFeedUniswapV3TWAP} from "@src/oracle/v1.5.3/PriceFeedUniswapV3TWAP.sol";
 import {PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
+import {PriceFeedUniswapV3TWAP} from "@src/oracle/v1.5.3/PriceFeedUniswapV3TWAP.sol";
 import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 
 contract MockERC20 {
     string public symbol;
     uint8 public decimals;
-    
+
     constructor(string memory _symbol, uint8 _decimals) {
         symbol = _symbol;
         decimals = _decimals;
@@ -30,9 +30,9 @@ contract MockUniswapV3Pool {
     {
         tickCumulatives = new int56[](secondsAgos.length);
         secondsPerLiquidityCumulativeX128s = new uint160[](secondsAgos.length);
-        
+
         // Mock TWAP calculation - return tick that corresponds to price ~2000
-        // tick ≈ log(price) / log(1.0001) 
+        // tick ≈ log(price) / log(1.0001)
         // For price 2000: tick ≈ 27460
         for (uint256 i = 0; i < secondsAgos.length; i++) {
             tickCumulatives[i] = int56(int256(27460 * int256(3600))); // Mock cumulative tick
@@ -81,14 +81,14 @@ contract PriceFeedUniswapV3TWAPTest is Test, AssertsHelper {
     function setUp() public {
         // Setup sequencer uptime feed (1 = up, 0 = down)
         sequencerUptimeFeed = new MockV3Aggregator(0, 1);
-        
+
         // Setup tokens
         baseToken = new MockERC20("WETH", 18);
         quoteToken = new MockERC20("USDC", 6);
-        
+
         // Setup mock Uniswap pool
         uniswapPool = new MockUniswapV3Pool();
-        
+
         // Create PriceFeedParams
         PriceFeedParams memory params = PriceFeedParams({
             uniswapV3Pool: IUniswapV3Pool(address(uniswapPool)),
@@ -102,12 +102,9 @@ contract PriceFeedUniswapV3TWAPTest is Test, AssertsHelper {
             quoteStalePriceInterval: 0,
             sequencerUptimeFeed: AggregatorV3Interface(address(sequencerUptimeFeed))
         });
-        
+
         // Deploy PriceFeedUniswapV3TWAP
-        priceFeed = new PriceFeedUniswapV3TWAP(
-            AggregatorV3Interface(address(sequencerUptimeFeed)),
-            params
-        );
+        priceFeed = new PriceFeedUniswapV3TWAP(AggregatorV3Interface(address(sequencerUptimeFeed)), params);
     }
 
     function test_PriceFeedUniswapV3TWAP_constructor() public view {
@@ -119,7 +116,7 @@ contract PriceFeedUniswapV3TWAPTest is Test, AssertsHelper {
     function test_PriceFeedUniswapV3TWAP_getPrice_reverts_when_sequencer_down() public {
         // Set sequencer to down (0)
         sequencerUptimeFeed.updateAnswer(0);
-        
+
         vm.expectRevert();
         priceFeed.getPrice();
     }
@@ -127,7 +124,7 @@ contract PriceFeedUniswapV3TWAPTest is Test, AssertsHelper {
     function test_PriceFeedUniswapV3TWAP_getPrice_works_when_sequencer_up() public {
         // Ensure sequencer is up (1)
         sequencerUptimeFeed.updateAnswer(1);
-        
+
         // This may revert due to mock Uniswap pool implementation
         // but we're testing the sequencer check flow
         try priceFeed.getPrice() returns (uint256 price) {
@@ -146,7 +143,7 @@ contract PriceFeedUniswapV3TWAPTest is Test, AssertsHelper {
     function test_PriceFeedUniswapV3TWAP_description_different_tokens() public {
         MockERC20 tokenA = new MockERC20("BTC", 8);
         MockERC20 tokenB = new MockERC20("ETH", 18);
-        
+
         PriceFeedParams memory params = PriceFeedParams({
             uniswapV3Pool: IUniswapV3Pool(address(uniswapPool)),
             twapWindow: 3600,
@@ -159,12 +156,10 @@ contract PriceFeedUniswapV3TWAPTest is Test, AssertsHelper {
             quoteStalePriceInterval: 0,
             sequencerUptimeFeed: AggregatorV3Interface(address(sequencerUptimeFeed))
         });
-        
-        PriceFeedUniswapV3TWAP customPriceFeed = new PriceFeedUniswapV3TWAP(
-            AggregatorV3Interface(address(sequencerUptimeFeed)),
-            params
-        );
-        
+
+        PriceFeedUniswapV3TWAP customPriceFeed =
+            new PriceFeedUniswapV3TWAP(AggregatorV3Interface(address(sequencerUptimeFeed)), params);
+
         string memory desc = customPriceFeed.description();
         assertEq(desc, "PriceFeedUniswapV3TWAP | (BTC/ETH) (Uniswap v3 TWAP)");
     }
@@ -182,13 +177,11 @@ contract PriceFeedUniswapV3TWAPTest is Test, AssertsHelper {
             quoteStalePriceInterval: 0,
             sequencerUptimeFeed: AggregatorV3Interface(address(0))
         });
-        
+
         // Should work with null sequencer feed for unsupported networks
-        PriceFeedUniswapV3TWAP nullSequencerPriceFeed = new PriceFeedUniswapV3TWAP(
-            AggregatorV3Interface(address(0)),
-            params
-        );
-        
+        PriceFeedUniswapV3TWAP nullSequencerPriceFeed =
+            new PriceFeedUniswapV3TWAP(AggregatorV3Interface(address(0)), params);
+
         // Constructor should complete successfully
         assertEq(nullSequencerPriceFeed.decimals(), 18);
     }

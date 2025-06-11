@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {BaseTest} from "@test/BaseTest.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
+import {BaseTest} from "@test/BaseTest.sol";
 
 contract SizeReinitializeTest is BaseTest {
     address admin;
@@ -16,7 +16,7 @@ contract SizeReinitializeTest is BaseTest {
         // Only DEFAULT_ADMIN_ROLE can call reinitialize
         vm.prank(admin);
         size.reinitialize();
-        
+
         // Should complete without reverting
         // Reinitialize is mainly for upgrading reentrancy guard
     }
@@ -26,11 +26,11 @@ contract SizeReinitializeTest is BaseTest {
         vm.prank(alice);
         vm.expectRevert();
         size.reinitialize();
-        
+
         vm.prank(bob);
         vm.expectRevert();
         size.reinitialize();
-        
+
         vm.prank(candy);
         vm.expectRevert();
         size.reinitialize();
@@ -40,7 +40,7 @@ contract SizeReinitializeTest is BaseTest {
         // First call should succeed
         vm.prank(admin);
         size.reinitialize();
-        
+
         // Second call should fail (already initialized to version 1.08.00)
         vm.prank(admin);
         vm.expectRevert();
@@ -51,7 +51,7 @@ contract SizeReinitializeTest is BaseTest {
         // Grant admin role to another user
         vm.prank(admin);
         size.grantRole(size.DEFAULT_ADMIN_ROLE(), alice);
-        
+
         // Alice should be able to call reinitialize
         vm.prank(alice);
         size.reinitialize();

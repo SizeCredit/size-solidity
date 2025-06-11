@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Test} from "forge-std/Test.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import {Test} from "forge-std/Test.sol";
 
 import {ReentrancyGuardUpgradeableWithViewModifier} from "@src/helpers/ReentrancyGuardUpgradeableWithViewModifier.sol";
 import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
@@ -74,7 +74,7 @@ contract ReentrancyGuardUpgradeableWithViewModifierTest is Test, AssertsHelper {
     function test_ReentrancyGuardUpgradeableWithViewModifier_view_revert_on_reentrancy() public {
         // Test that the nonReentrantView modifier correctly detects reentrancy
         testContract.simulateReentrancy();
-        
+
         // Should have detected reentrancy
         assertTrue(testContract.reentrancyDetected());
         assertEq(testContract.value(), 100); // The function should have executed before the view call
@@ -84,9 +84,9 @@ contract ReentrancyGuardUpgradeableWithViewModifierTest is Test, AssertsHelper {
         // View function should work fine when called independently
         uint256 result = testContract.protectedViewFunction();
         assertEq(result, 0); // Initial value
-        
+
         testContract.normalFunction();
-        
+
         result = testContract.protectedViewFunction();
         assertEq(result, 1); // Updated value
     }

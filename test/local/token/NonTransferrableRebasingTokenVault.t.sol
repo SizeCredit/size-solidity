@@ -591,11 +591,11 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         vm.prank(alice);
         vm.expectRevert();
         token.reinitialize("name", "symbol", AaveAdapter(address(0)), ERC4626Adapter(address(0)));
-        
+
         vm.prank(bob);
         vm.expectRevert();
         token.reinitialize("name", "symbol", AaveAdapter(address(0)), ERC4626Adapter(address(0)));
-        
+
         vm.prank(candy);
         vm.expectRevert();
         token.reinitialize("name", "symbol", AaveAdapter(address(0)), ERC4626Adapter(address(0)));
