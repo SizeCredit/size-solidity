@@ -176,11 +176,12 @@ contract PriceFeedChainlinkUniswapV3TWAPx2Test is Test, AssertsHelper {
 
     function test_PriceFeedChainlinkUniswapV3TWAPx2_description() public view {
         string memory desc = priceFeed.description();
+        assertTrue(bytes(desc).length > 0);
         // Should contain information about both Chainlink and Uniswap sources
         // The exact format depends on the aggregator descriptions and token symbols
     }
 
-    function test_PriceFeedChainlinkUniswapV3TWAPx2_chainlink_preference() public {
+    function test_PriceFeedChainlinkUniswapV3TWAPx2_chainlink_preference() public view {
         // Should prefer Chainlink when both are available
         uint256 price1 = priceFeed.getPrice();
 
