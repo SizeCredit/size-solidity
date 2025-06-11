@@ -1,5 +1,10 @@
 # size-solidity [![Coverage Status](https://coveralls.io/repos/github/SizeCredit/size-solidity/badge.svg?branch=main)](https://coveralls.io/github/SizeCredit/size-solidity?branch=main)
 
+## Coverage Reports
+
+- **Latest HTML Coverage Report**: [Download from GitHub Actions](https://github.com/SizeCredit/size-solidity/actions/workflows/ci.yml) (look for "coverage-report" artifact in the latest run)
+- **Interactive Coverage Dashboard**: [Coveralls](https://coveralls.io/github/SizeCredit/size-solidity?branch=main)
+
 <a href="https://github.com/SizeLending/size-solidity/raw/main/size.png"><img src="https://github.com/SizeLending/size-solidity/raw/main/size.png" width="300" alt="Size"/></a>
 
 Size is a credit marketplace with unified liquidity across maturities.

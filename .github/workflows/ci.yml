@@ -296,6 +296,17 @@ jobs:
         run: |
           forge coverage --no-match-coverage "(script|test|deprecated)" --report lcov
 
+      - name: Generate HTML Coverage Report
+        run: |
+          genhtml lcov.info -o report --branch-coverage --ignore-errors inconsistent,corrupt
+
+      - name: Upload HTML Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: report/
+          retention-days: 30
+
       - name: Coveralls
         uses: coverallsapp/github-action@v2
 
