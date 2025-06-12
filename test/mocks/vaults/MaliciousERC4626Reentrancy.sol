@@ -5,7 +5,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {SetVaultOnBehalfOfParams, SetVaultParams} from "@src/market/libraries/actions/SetVault.sol";
 
-contract ReentrancyMaliciousERC4626 is Ownable {
+contract MaliciousERC4626Reentrancy is Ownable {
     address public immutable asset;
     ISize public immutable size;
     uint256 public counter;

@@ -62,7 +62,7 @@ import {FullyAsyncVault} from "@ERC-7540-Reference/src/FullyAsyncVault.sol";
 import {FeeOnEntryExitERC4626} from "@test/mocks/vaults/FeeOnEntryExitERC4626.sol";
 import {FeeOnTransferERC4626} from "@test/mocks/vaults/FeeOnTransferERC4626.sol";
 import {LimitsERC4626} from "@test/mocks/vaults/LimitsERC4626.sol";
-import {MaliciousERC4626} from "@test/mocks/vaults/MaliciousERC4626.sol";
+import {MaliciousERC4626WithdrawNotAllowed} from "@test/mocks/vaults/MaliciousERC4626WithdrawNotAllowed.sol";
 
 import {CollectionsManager} from "@src/collections/CollectionsManager.sol";
 
@@ -308,7 +308,8 @@ abstract contract Deploy {
         vault = IERC4626(address(new ERC4626Solady(address(usdc), "Vault", "VAULT", true, 0)));
         vault2 = IERC4626(address(new ERC4626OpenZeppelin(address(usdc))));
         vault3 = IERC4626(address(new ERC4626Solmate(ERC20(address(usdc)), "Vault3", "VAULT3")));
-        vaultMalicious = IERC4626(address(new MaliciousERC4626(usdc, "VaultMalicious", "VAULTMALICIOUS")));
+        vaultMalicious =
+            IERC4626(address(new MaliciousERC4626WithdrawNotAllowed(usdc, "VaultMalicious", "VAULTMALICIOUS")));
         vaultFeeOnTransfer =
             IERC4626(address(new FeeOnTransferERC4626(usdc, "VaultFeeOnTransfer", "VAULTFEEONTXFER", 0.1e18)));
         vaultFeeOnEntryExit = IERC4626(

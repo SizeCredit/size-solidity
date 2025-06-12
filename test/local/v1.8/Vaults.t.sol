@@ -40,8 +40,9 @@ import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
 import {FeeOnEntryExitERC4626} from "@test/mocks/vaults/FeeOnEntryExitERC4626.sol";
 import {FeeOnTransferERC4626} from "@test/mocks/vaults/FeeOnTransferERC4626.sol";
 import {LimitsERC4626} from "@test/mocks/vaults/LimitsERC4626.sol";
-import {MaliciousERC4626} from "@test/mocks/vaults/MaliciousERC4626.sol";
-import {ReentrancyMaliciousERC4626} from "@test/mocks/vaults/ReentrancyMaliciousERC4626.sol";
+
+import {MaliciousERC4626Reentrancy} from "@test/mocks/vaults/MaliciousERC4626Reentrancy.sol";
+import {MaliciousERC4626WithdrawNotAllowed} from "@test/mocks/vaults/MaliciousERC4626WithdrawNotAllowed.sol";
 
 import {IAdapter} from "@src/market/token/adapters/IAdapter.sol";
 
@@ -173,7 +174,7 @@ contract VaultsTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        vm.expectRevert(abi.encodeWithSelector(MaliciousERC4626.WithdrawNotAllowed.selector));
+        vm.expectRevert(abi.encodeWithSelector(MaliciousERC4626WithdrawNotAllowed.WithdrawNotAllowed.selector));
         vm.prank(bob);
         size.sellCreditMarket(
             SellCreditMarketParams({
@@ -557,8 +558,8 @@ contract VaultsTest is BaseTest {
     }
 
     function test_Vaults_reentrancy_malicious_erc4626_same_market() public {
-        ReentrancyMaliciousERC4626 maliciousVault = new ReentrancyMaliciousERC4626(address(usdc), size, alice);
-        vm.label(address(maliciousVault), "ReentrancyMaliciousERC4626");
+        MaliciousERC4626Reentrancy maliciousVault = new MaliciousERC4626Reentrancy(address(usdc), size, alice);
+        vm.label(address(maliciousVault), "MaliciousERC4626Reentrancy");
 
         _setVaultAdapter(address(maliciousVault), "ERC4626Adapter");
         _setAuthorization(alice, address(maliciousVault), Authorization.getActionsBitmap(Action.SET_VAULT));
@@ -579,7 +580,7 @@ contract VaultsTest is BaseTest {
         assertEq(
             borrowTokenVault.vaultOf(alice),
             address(maliciousVault),
-            "alice vault is still ReentrancyMaliciousERC4626 (after nonReentrant addition)"
+            "alice vault is still MaliciousERC4626Reentrancy (after nonReentrant addition)"
         );
 
         _withdraw(alice, usdc, bobBalance);
@@ -595,8 +596,8 @@ contract VaultsTest is BaseTest {
         NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
         UUPSUpgradeable(address(borrowTokenVault)).upgradeToAndCall(borrowTokenVaultImplementation, "");
 
-        ReentrancyMaliciousERC4626 maliciousVault = new ReentrancyMaliciousERC4626(address(usdc), size2, alice);
-        vm.label(address(maliciousVault), "ReentrancyMaliciousERC4626");
+        MaliciousERC4626Reentrancy maliciousVault = new MaliciousERC4626Reentrancy(address(usdc), size2, alice);
+        vm.label(address(maliciousVault), "MaliciousERC4626Reentrancy");
 
         _setVaultAdapter(address(maliciousVault), "ERC4626Adapter");
         _setAuthorization(alice, address(maliciousVault), Authorization.getActionsBitmap(Action.SET_VAULT));
@@ -616,7 +617,7 @@ contract VaultsTest is BaseTest {
         assertEq(
             borrowTokenVault.vaultOf(alice),
             address(maliciousVault),
-            "alice vault is still ReentrancyMaliciousERC4626 (after nonReentrant addition)"
+            "alice vault is still MaliciousERC4626Reentrancy (after nonReentrant addition)"
         );
 
         _withdraw(alice, usdc, bobBalance);
