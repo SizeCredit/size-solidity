@@ -16,7 +16,7 @@ interface ISizeFactoryV1_8 {
     /// @param _rateProvider The rate provider
     /// @param _collectionMarkets The markets for the collection
     /// @dev Before v1.8, users could copy rate providers directly through `copyLimitOrders`.
-    ///        In v1.8, this method was deprecated in favor of collections. The `reinitialize` function serves as a migration path
+    ///        In v1.8, this method was deprecated in favor of collections and `setCopyLimitOrderConfigs`. The `reinitialize` function serves as a migration path
     ///        for users who are following the only off-chain collection currently offered by Size.
     ///      On mainnet, there are no off-chain collections. On Base, there is only one off-chain collection.
     ///      Although users could theoretically DoS/grief the reinitialization process by sybil copying the rate provider with multiple accounts,
