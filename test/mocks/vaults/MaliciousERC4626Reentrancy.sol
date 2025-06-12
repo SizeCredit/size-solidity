@@ -7,12 +7,20 @@ import {SetVaultOnBehalfOfParams, SetVaultParams} from "@src/market/libraries/ac
 
 contract MaliciousERC4626Reentrancy is Ownable {
     address public immutable asset;
-    ISize public immutable size;
+    ISize public size;
+    address public onBehalfOf;
     uint256 public counter;
 
-    constructor(address _asset, ISize _size, address _owner) Ownable(_owner) {
+    constructor(address _asset) Ownable(msg.sender) {
         asset = _asset;
+    }
+
+    function setSize(ISize _size) external onlyOwner {
         size = _size;
+    }
+
+    function setOnBehalfOf(address _onBehalfOf) external onlyOwner {
+        onBehalfOf = _onBehalfOf;
     }
 
     function balanceOf(address) public view returns (uint256) {
@@ -26,7 +34,7 @@ contract MaliciousERC4626Reentrancy is Ownable {
         size.setVaultOnBehalfOf(
             SetVaultOnBehalfOfParams({
                 params: SetVaultParams({vault: address(0), forfeitOldShares: false}),
-                onBehalfOf: owner()
+                onBehalfOf: onBehalfOf
             })
         );
         counter++;

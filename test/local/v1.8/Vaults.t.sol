@@ -164,8 +164,8 @@ contract VaultsTest is BaseTest {
     }
 
     function test_Vaults_malicious_vault() public {
-        _setVaultAdapter(vaultMalicious, "ERC4626Adapter");
-        _setVault(alice, address(vaultMalicious), false);
+        _setVaultAdapter(vaultMaliciousWithdrawNotAllowed, "ERC4626Adapter");
+        _setVault(alice, address(vaultMaliciousWithdrawNotAllowed), false);
 
         _deposit(alice, usdc, 200e6);
         _deposit(bob, weth, 100e18);
@@ -558,12 +558,12 @@ contract VaultsTest is BaseTest {
     }
 
     function test_Vaults_reentrancy_malicious_erc4626_same_market() public {
-        MaliciousERC4626Reentrancy maliciousVault = new MaliciousERC4626Reentrancy(address(usdc), size, alice);
-        vm.label(address(maliciousVault), "MaliciousERC4626Reentrancy");
+        MaliciousERC4626Reentrancy(address(vaultMaliciousReentrancy)).setSize(size);
+        MaliciousERC4626Reentrancy(address(vaultMaliciousReentrancy)).setOnBehalfOf(alice);
 
-        _setVaultAdapter(address(maliciousVault), "ERC4626Adapter");
-        _setAuthorization(alice, address(maliciousVault), Authorization.getActionsBitmap(Action.SET_VAULT));
-        _setVault(alice, address(maliciousVault), false);
+        _setVaultAdapter(vaultMaliciousReentrancy, "ERC4626Adapter");
+        _setAuthorization(alice, address(vaultMaliciousReentrancy), Authorization.getActionsBitmap(Action.SET_VAULT));
+        _setVault(alice, address(vaultMaliciousReentrancy), false);
         NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
 
         uint256 bobBalance = 1_000_000e6;
@@ -579,7 +579,7 @@ contract VaultsTest is BaseTest {
         size.deposit(DepositParams({token: address(usdc), amount: aliceBalanceBefore, to: alice}));
         assertEq(
             borrowTokenVault.vaultOf(alice),
-            address(maliciousVault),
+            address(vaultMaliciousReentrancy),
             "alice vault is still MaliciousERC4626Reentrancy (after nonReentrant addition)"
         );
 
@@ -592,16 +592,16 @@ contract VaultsTest is BaseTest {
     }
 
     function test_Vaults_reentrancy_malicious_erc4626_multiple_markets() public {
+        MaliciousERC4626Reentrancy(address(vaultMaliciousReentrancy)).setSize(size2);
+        MaliciousERC4626Reentrancy(address(vaultMaliciousReentrancy)).setOnBehalfOf(alice);
+
         address borrowTokenVaultImplementation = address(new NonTransferrableRebasingTokenVault());
         NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
         UUPSUpgradeable(address(borrowTokenVault)).upgradeToAndCall(borrowTokenVaultImplementation, "");
 
-        MaliciousERC4626Reentrancy maliciousVault = new MaliciousERC4626Reentrancy(address(usdc), size2, alice);
-        vm.label(address(maliciousVault), "MaliciousERC4626Reentrancy");
-
-        _setVaultAdapter(address(maliciousVault), "ERC4626Adapter");
-        _setAuthorization(alice, address(maliciousVault), Authorization.getActionsBitmap(Action.SET_VAULT));
-        _setVault(alice, address(maliciousVault), false);
+        _setVaultAdapter(vaultMaliciousReentrancy, "ERC4626Adapter");
+        _setAuthorization(alice, address(vaultMaliciousReentrancy), Authorization.getActionsBitmap(Action.SET_VAULT));
+        _setVault(alice, address(vaultMaliciousReentrancy), false);
 
         uint256 bobBalance = 1_000_000e6;
         uint256 aliceBalanceBefore = 1e6;
@@ -616,7 +616,7 @@ contract VaultsTest is BaseTest {
         size.deposit(DepositParams({token: address(usdc), amount: aliceBalanceBefore, to: alice}));
         assertEq(
             borrowTokenVault.vaultOf(alice),
-            address(maliciousVault),
+            address(vaultMaliciousReentrancy),
             "alice vault is still MaliciousERC4626Reentrancy (after nonReentrant addition)"
         );
 

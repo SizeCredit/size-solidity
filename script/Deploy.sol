@@ -62,6 +62,9 @@ import {FullyAsyncVault} from "@ERC-7540-Reference/src/FullyAsyncVault.sol";
 import {FeeOnEntryExitERC4626} from "@test/mocks/vaults/FeeOnEntryExitERC4626.sol";
 import {FeeOnTransferERC4626} from "@test/mocks/vaults/FeeOnTransferERC4626.sol";
 import {LimitsERC4626} from "@test/mocks/vaults/LimitsERC4626.sol";
+
+import {MaliciousERC4626Reentrancy} from "@test/mocks/vaults/MaliciousERC4626Reentrancy.sol";
+import {MaliciousERC4626ReentrancyGeneric} from "@test/mocks/vaults/MaliciousERC4626ReentrancyGeneric.sol";
 import {MaliciousERC4626WithdrawNotAllowed} from "@test/mocks/vaults/MaliciousERC4626WithdrawNotAllowed.sol";
 
 import {CollectionsManager} from "@src/collections/CollectionsManager.sol";
@@ -90,7 +93,9 @@ abstract contract Deploy {
     IERC4626 internal vault;
     IERC4626 internal vault2;
     IERC4626 internal vault3;
-    IERC4626 internal vaultMalicious;
+    IERC4626 internal vaultMaliciousWithdrawNotAllowed;
+    IERC4626 internal vaultMaliciousReentrancy;
+    IERC4626 internal vaultMaliciousReentrancyGeneric;
     IERC4626 internal vaultFeeOnTransfer;
     IERC4626 internal vaultFeeOnEntryExit;
     IERC4626 internal vaultLimits;
@@ -308,8 +313,21 @@ abstract contract Deploy {
         vault = IERC4626(address(new ERC4626Solady(address(usdc), "Vault", "VAULT", true, 0)));
         vault2 = IERC4626(address(new ERC4626OpenZeppelin(address(usdc))));
         vault3 = IERC4626(address(new ERC4626Solmate(ERC20(address(usdc)), "Vault3", "VAULT3")));
-        vaultMalicious =
-            IERC4626(address(new MaliciousERC4626WithdrawNotAllowed(usdc, "VaultMalicious", "VAULTMALICIOUS")));
+        vaultMaliciousWithdrawNotAllowed = IERC4626(
+            address(
+                new MaliciousERC4626WithdrawNotAllowed(
+                    usdc, "VaultMaliciousWithdrawNotAllowed", "VAULTMALICIOUSWITHDRAWNOTALLOWED"
+                )
+            )
+        );
+        vaultMaliciousReentrancy = IERC4626(address(new MaliciousERC4626Reentrancy(address(usdc))));
+        vaultMaliciousReentrancyGeneric = IERC4626(
+            address(
+                new MaliciousERC4626ReentrancyGeneric(
+                    usdc, "VaultMaliciousReentrancyGeneric", "VAULTMALICIOUSREENTRANCYGENERIC"
+                )
+            )
+        );
         vaultFeeOnTransfer =
             IERC4626(address(new FeeOnTransferERC4626(usdc, "VaultFeeOnTransfer", "VAULTFEEONTXFER", 0.1e18)));
         vaultFeeOnEntryExit = IERC4626(
