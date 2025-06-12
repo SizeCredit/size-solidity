@@ -12,6 +12,11 @@ import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract CollectionsManagerCuratorActionsTest is BaseTest {
+    function setUp() public override {
+        super.setUp();
+        _deploySizeMarket2();
+    }
+
     function test_CollectionsManagerCuratorActions_createCollection() public {
         uint256 collectionId = _createCollection(alice);
         assertEq(collectionsManager.isValidCollectionId(collectionId), true);
@@ -273,5 +278,36 @@ contract CollectionsManagerCuratorActionsTest is BaseTest {
         ans = collectionsManager.getCollectionMarketRateProviders(collectionId, size);
         assertEq(ans.length, 1);
         assertEq(ans[0], candy);
+    }
+
+    function test_CollectionsManagerCuratorActions_paused_market() public {
+        uint256 collectionId = _createCollection(alice);
+
+        ISize[] memory markets = new ISize[](1);
+        markets[0] = size;
+
+        vm.prank(alice);
+        collectionsManager.approve(bob, collectionId);
+
+        size.pause();
+
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAUSED_MARKET.selector, address(size)));
+        collectionsManager.addMarketsToCollection(collectionId, markets);
+
+        assertEq(collectionsManager.collectionContainsMarket(collectionId, size), false);
+
+        size.unpause();
+
+        vm.prank(alice);
+        collectionsManager.addMarketsToCollection(collectionId, markets);
+        assertEq(collectionsManager.collectionContainsMarket(collectionId, size), true);
+
+        size.pause();
+
+        vm.prank(alice);
+        collectionsManager.removeMarketsFromCollection(collectionId, markets);
+
+        assertEq(collectionsManager.collectionContainsMarket(collectionId, size), false);
     }
 }

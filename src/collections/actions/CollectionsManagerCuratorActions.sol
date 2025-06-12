@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {ERC721EnumerableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {CopyLimitOrderConfig, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
@@ -80,6 +81,9 @@ abstract contract CollectionsManagerCuratorActions is
         for (uint256 i = 0; i < markets.length; i++) {
             if (!sizeFactory.isMarket(address(markets[i]))) {
                 revert Errors.INVALID_MARKET(address(markets[i]));
+            }
+            if (PausableUpgradeable(address(markets[i])).paused()) {
+                revert Errors.PAUSED_MARKET(address(markets[i]));
             }
             OfferLibrary.validateCopyLimitOrderConfigs(copyLoanOfferConfigs[i], copyBorrowOfferConfigs[i]);
 
