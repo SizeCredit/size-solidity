@@ -154,6 +154,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         PARTIAL_REPAY_ERRORS.push(Errors.NULL_AMOUNT.selector);
         PARTIAL_REPAY_ERRORS.push(Errors.INVALID_AMOUNT.selector);
         PARTIAL_REPAY_ERRORS.push(Errors.INVALID_BORROWER.selector);
+        PARTIAL_REPAY_ERRORS.push(IAdapter.InsufficientAssets.selector);
 
         // SET_VAULT_ERRORS
         SET_VAULT_ERRORS.push(Errors.INVALID_VAULT.selector);
