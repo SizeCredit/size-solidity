@@ -3,7 +3,7 @@
 set -ux
 
 j=$((0x10)); 
-SOLIDITY_FILES=$(find src/market/libraries src/factory/libraries test/helpers/libraries -type f | sed 's/.*\///' | sed 's/\.sol//')
+SOLIDITY_FILES=$(find src/market/libraries src/market/token/libraries src/factory/libraries test/helpers/libraries -type f | sed 's/.*\///' | sed 's/\.sol//')
 
 rm COMPILE_LIBRARIES.txt || true
 rm DEPLOY_CONTRACTS.txt || true
@@ -28,6 +28,9 @@ sed -i "s/cryticArgs.*/cryticArgs: [\"--compile-libraries=$COMPILE_LIBRARIES\",\
 sed -i "s/\"args\".*/\"args\": [\"--compile-libraries=$COMPILE_LIBRARIES\",\"--foundry-compile-all\"]/" medusa.json
 sed -i "s/deployContracts.*/deployContracts: [$DEPLOY_CONTRACTS]/g" echidna.yaml
 sed -i "s/\"predeployedContracts\".*/\"predeployedContracts\": {$PREDEPLOYED_CONTRACTS},/g" medusa.json
+
+# Foundry specific imports
+sed -i "s|\"src/|\"./|" lib/ERC-7540-Reference/src/*.sol
 
 rm COMPILE_LIBRARIES.txt || true
 rm DEPLOY_CONTRACTS.txt || true

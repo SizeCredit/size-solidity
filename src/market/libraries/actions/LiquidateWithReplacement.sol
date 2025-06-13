@@ -27,6 +27,12 @@ struct LiquidateWithReplacementParams {
     uint256 deadline;
     // The minimum APR for the loan
     uint256 minAPR;
+    // The collection Id (introduced in v1.8)
+    // If collectionId is RESERVED_ID, selects the user-defined yield curve
+    uint256 collectionId;
+    // The rate provider (introduced in v1.8)
+    // If collectionId is RESERVED_ID, selects the user-defined yield curve
+    address rateProvider;
 }
 
 /// @title LiquidateWithReplacement
@@ -75,19 +81,22 @@ library LiquidateWithReplacement {
         }
 
         // validate minAPR
-        uint256 borrowAPR = state.getBorrowOfferAPRByTenor(params.borrower, tenor);
+        uint256 borrowAPR = state.getBorrowOfferAPR(params.borrower, params.collectionId, params.rateProvider, tenor);
         if (borrowAPR < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(borrowAPR, params.minAPR);
         }
 
+        // validate exactAmountIn
+        // N/A
+
         // validate inverted curve
-        try state.getLoanOfferAPRByTenor(params.borrower, tenor) returns (uint256 loanAPR) {
-            if (borrowAPR >= loanAPR) {
-                revert Errors.MISMATCHED_CURVES(params.borrower, tenor, loanAPR, borrowAPR);
-            }
-        } catch (bytes memory) {
-            // N/A
+        if (!state.isBorrowAPRLowerThanLoanOfferAPRs(params.borrower, borrowAPR, tenor)) {
+            revert Errors.INVERTED_CURVES(params.borrower, tenor);
         }
+
+        // validate collectionId
+        // validate rateProvider
+        // these are validated in `CollectionsManager`
     }
 
     /// @notice Validates the minimum profit in collateral tokens expected by the liquidator
@@ -113,12 +122,11 @@ library LiquidateWithReplacement {
     /// @notice Executes the liquidation of a debt position with a replacement borrower
     /// @param state The state
     /// @param params The input parameters for liquidating a debt position with a replacement borrower
-    /// @return issuanceValue The issuance value
     /// @return liquidatorProfitCollateralToken The profit in collateral tokens expected by the liquidator
     /// @return liquidatorProfitBorrowToken The profit in borrow tokens expected by the liquidator
     function executeLiquidateWithReplacement(State storage state, LiquidateWithReplacementParams calldata params)
         external
-        returns (uint256 issuanceValue, uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken)
+        returns (uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken)
     {
         emit Events.LiquidateWithReplacement(
             msg.sender,
@@ -126,7 +134,9 @@ library LiquidateWithReplacement {
             params.borrower,
             params.minimumCollateralProfit,
             params.deadline,
-            params.minAPR
+            params.minAPR,
+            params.collectionId,
+            params.rateProvider
         );
 
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
@@ -141,8 +151,9 @@ library LiquidateWithReplacement {
             })
         );
 
-        uint256 ratePerTenor = state.getBorrowOfferRatePerTenor(params.borrower, tenor);
-        issuanceValue = Math.mulDivDown(debtPositionCopy.futureValue, PERCENT, PERCENT + ratePerTenor);
+        uint256 ratePerTenor =
+            state.getBorrowOfferRatePerTenor(params.borrower, params.collectionId, params.rateProvider, tenor);
+        uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.futureValue, PERCENT, PERCENT + ratePerTenor);
         liquidatorProfitBorrowToken = debtPositionCopy.futureValue - issuanceValue;
 
         debtPosition.borrower = params.borrower;
@@ -157,8 +168,8 @@ library LiquidateWithReplacement {
         );
 
         state.data.debtToken.mint(params.borrower, debtPosition.futureValue);
-        state.data.borrowATokenV1_5.transferFrom(address(this), params.borrower, issuanceValue);
-        state.data.borrowATokenV1_5.transferFrom(
+        state.data.borrowTokenVault.transferFrom(address(this), params.borrower, issuanceValue);
+        state.data.borrowTokenVault.transferFrom(
             address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowToken
         );
     }

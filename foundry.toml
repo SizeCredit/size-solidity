@@ -4,10 +4,10 @@
   libs = ["lib"]
   fs_permissions = [{access = "read-write", path = "./deployments"}]
   no_match_contract = 'CryticTester|FoundryHandler|FoundryForkTester|FoundryTester'
-  no_match_test = 'testFork_'
+  no_match_test = 'testFork_|testForkFuzz_'
   solc_version = '0.8.23'
   evm_version = 'shanghai'
-  ignored_warnings_from = ["lib/aave-v3-core"]
+  ignored_warnings_from = ["lib"]
   optimizer = true
   optimizer_runs = 200
 

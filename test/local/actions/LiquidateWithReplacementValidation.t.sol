@@ -52,7 +52,9 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
                 borrower: candy,
                 minAPR: 1e18,
                 deadline: block.timestamp,
-                minimumCollateralProfit: minimumCollateralProfit
+                minimumCollateralProfit: minimumCollateralProfit,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -71,7 +73,9 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
                 borrower: candy,
                 minAPR: 1e18,
                 deadline: block.timestamp,
-                minimumCollateralProfit: minimumCollateralProfit
+                minimumCollateralProfit: minimumCollateralProfit,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -83,7 +87,9 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
                 borrower: candy,
                 minAPR: 0,
                 deadline: block.timestamp - 1,
-                minimumCollateralProfit: minimumCollateralProfit
+                minimumCollateralProfit: minimumCollateralProfit,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -98,7 +104,9 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
                 borrower: candy,
                 minAPR: 0,
                 deadline: block.timestamp,
-                minimumCollateralProfit: minimumCollateralProfit
+                minimumCollateralProfit: minimumCollateralProfit,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -110,7 +118,9 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
                 borrower: address(0),
                 minAPR: 0,
                 deadline: block.timestamp,
-                minimumCollateralProfit: minimumCollateralProfit
+                minimumCollateralProfit: minimumCollateralProfit,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -128,16 +138,16 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         );
 
         vm.prank(liquidator);
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.MISMATCHED_CURVES.selector, candy, 2 * 365 days, 0.03e18, 0.03e18)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVERTED_CURVES.selector, candy, 2 * 365 days));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,
                 borrower: candy,
                 minAPR: 0,
                 deadline: block.timestamp,
-                minimumCollateralProfit: minimumCollateralProfit
+                minimumCollateralProfit: minimumCollateralProfit,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -161,7 +171,9 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
                 borrower: candy,
                 minAPR: 0,
                 deadline: block.timestamp,
-                minimumCollateralProfit: minimumCollateralProfit
+                minimumCollateralProfit: minimumCollateralProfit,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -175,7 +187,9 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
                 borrower: candy,
                 minAPR: 0,
                 deadline: block.timestamp,
-                minimumCollateralProfit: minimumCollateralProfit
+                minimumCollateralProfit: minimumCollateralProfit,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
     }

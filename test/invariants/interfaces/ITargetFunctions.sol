@@ -42,6 +42,8 @@ interface ITargetFunctions {
 
     function setUserConfiguration(uint256 openingLimitBorrowCR, bool allCreditPositionsForSaleDisabled) external;
 
+    function setVault(address vault, bool forfeitOldShares) external;
+
     function setPrice(uint256 price) external;
 
     function setLiquidityIndex(uint256 liquidityIndex, uint256 supplyAmount) external;

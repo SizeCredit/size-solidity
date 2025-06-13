@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
-import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
+import {FixedPointMathLib} from "@solady/src/utils/FixedPointMathLib.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 
 import {Math, PERCENT} from "@src/market/libraries/Math.sol";

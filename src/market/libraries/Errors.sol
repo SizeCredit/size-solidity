@@ -14,6 +14,8 @@ library Errors {
     error NULL_OFFER();
     error INVALID_MSG_VALUE(uint256 value);
     error INVALID_AMOUNT(uint256 amount);
+    error INVALID_VAULT(address vault);
+    error INVALID_ADAPTER(uint256 adapter);
     error TENORS_NOT_STRICTLY_INCREASING();
     error ARRAY_LENGTHS_MISMATCH();
     error INVALID_TOKEN(address token);
@@ -33,12 +35,22 @@ library Errors {
     error DUE_DATE_NOT_COMPATIBLE(uint256 dueDate1, uint256 dueDate2);
     error DUE_DATE_GREATER_THAN_MAX_DUE_DATE(uint256 dueDate, uint256 maxDueDate);
     error TENOR_OUT_OF_RANGE(uint256 tenor, uint256 minTenor, uint256 maxTenor);
-    error MISMATCHED_CURVES(address account, uint256 tenor, uint256 loanOfferAPR, uint256 borrowOfferAPR);
+    error INVERTED_CURVES(address account, uint256 tenor);
     error INVALID_POSITION_ID(uint256 positionId);
     error INVALID_DEBT_POSITION_ID(uint256 debtPositionId);
     error INVALID_CREDIT_POSITION_ID(uint256 creditPositionId);
     error INVALID_LENDER(address account);
     error INVALID_BORROWER(address account);
+    error INVALID_OFFER_CONFIGS(
+        uint256 minTenorBorrowOffer,
+        uint256 maxTenorBorrowOffer,
+        uint256 minAPRBorrowOffer,
+        uint256 maxAPRBorrowOffer,
+        uint256 minTenorLoanOffer,
+        uint256 maxTenorLoanOffer,
+        uint256 minAPRLoanOffer,
+        uint256 maxAPRLoanOffer
+    );
     error INVALID_LOAN_OFFER(address lender);
     error INVALID_BORROW_OFFER(address borrower);
     error INVALID_OFFER(address account);
@@ -52,9 +64,8 @@ library Errors {
     error LIQUIDATOR_IS_NOT_LENDER(address liquidator, address lender);
 
     error NOT_ENOUGH_BORROW_ATOKEN_BALANCE(address account, uint256 balance, uint256 required);
-    error NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY(uint256 liquidity, uint256 required);
-    error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 credit, uint256 minimumCreditBorrowAToken);
-    error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 credit, uint256 minimumCreditBorrowAToken);
+    error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 credit, uint256 minimumCreditBorrowToken);
+    error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 credit, uint256 minimumCreditBorrowToken);
 
     error CREDIT_POSITION_ALREADY_CLAIMED(uint256 positionId);
 
@@ -79,8 +90,7 @@ library Errors {
     error NULL_STALE_RATE();
     error STALE_RATE(uint128 updatedAt);
 
-    error BORROW_ATOKEN_INCREASE_EXCEEDS_DEBT_TOKEN_DECREASE(uint256 borrowATokenIncrease, uint256 debtTokenDecrease);
-    error BORROW_ATOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
+    error BORROW_TOKEN_INCREASE_EXCEEDS_DEBT_TOKEN_DECREASE(uint256 borrowTokenIncrease, uint256 debtTokenDecrease);
 
     error NOT_SUPPORTED();
     error REINITIALIZE_MIGRATION_EXPECTED_IN_ONE_TRANSACTION(uint256 totalSupply);
@@ -105,4 +115,5 @@ library Errors {
     error INVALID_AVERAGE_BLOCK_TIME();
 
     error INVALID_MARKET(address market);
+    error PAUSED_MARKET(address market);
 }

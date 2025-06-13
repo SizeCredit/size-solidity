@@ -1,12 +1,6 @@
 [submodule "lib/forge-std"]
 	path = lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
-[submodule "lib/openzeppelin-contracts"]
-	path = lib/openzeppelin-contracts
-	url = https://github.com/OpenZeppelin/openzeppelin-contracts
-[submodule "lib/openzeppelin-contracts-upgradeable"]
-	path = lib/openzeppelin-contracts-upgradeable
-	url = https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable
 [submodule "lib/chainlink"]
 	path = lib/chainlink
 	url = https://github.com/smartcontractkit/chainlink
@@ -37,6 +31,21 @@
 [submodule "lib/tenderly-utils"]
 	path = lib/tenderly-utils
 	url = https://github.com/Recon-Fuzz/tenderly-utils
+[submodule "lib/ERC-7540-Reference"]
+	path = lib/ERC-7540-Reference
+	url = https://github.com/ERC4626-Alliance/ERC-7540-Reference
 [submodule "lib/safe-utils"]
 	path = lib/safe-utils
 	url = https://github.com/Recon-Fuzz/safe-utils
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "lib/openzeppelin-contracts-upgradeable"]
+	path = lib/openzeppelin-contracts-upgradeable
+	url = https://github.com/openzeppelin/openzeppelin-contracts-upgradeable
+[submodule "lib/solidity-http"]
+	path = lib/solidity-http
+	url = https://github.com/Recon-Fuzz/solidity-http
+[submodule "lib/solmate"]
+	path = lib/solmate
+	url = https://github.com/transmissions11/solmate

@@ -10,6 +10,8 @@ import {Action} from "@src/factory/libraries/Authorization.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {Events} from "@src/market/libraries/Events.sol";
 
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+
 struct SetUserConfigurationParams {
     // The opening limit borrow CR
     uint256 openingLimitBorrowCR;

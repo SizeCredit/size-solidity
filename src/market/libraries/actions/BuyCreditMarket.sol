@@ -31,10 +31,16 @@ struct BuyCreditMarketParams {
     uint256 minAPR;
     // Whether amount means cash or credit
     bool exactAmountIn;
+    // The collection Id (introduced in v1.8)
+    // If collectionId is RESERVED_ID, selects the user-defined yield curve
+    uint256 collectionId;
+    // The rate provider (introduced in v1.8)
+    // If collectionId is RESERVED_ID, selects the user-defined yield curve
+    address rateProvider;
 }
 
 struct BuyCreditMarketOnBehalfOfParams {
-    // The parameters for the buy credit market
+    // The parameters for the buy credit market order
     BuyCreditMarketParams params;
     // The account to transfer the cash from
     address onBehalfOf;
@@ -136,7 +142,7 @@ library BuyCreditMarket {
         }
 
         // validate minAPR
-        uint256 borrowAPR = state.getBorrowOfferAPRByTenor(borrower, tenor);
+        uint256 borrowAPR = state.getBorrowOfferAPR(borrower, params.collectionId, params.rateProvider, tenor);
         if (borrowAPR < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(borrowAPR, params.minAPR);
         }
@@ -144,14 +150,14 @@ library BuyCreditMarket {
         // validate exactAmountIn
         // N/A
 
-        // validate inverted curve
-        try state.getLoanOfferAPRByTenor(borrower, tenor) returns (uint256 loanAPR) {
-            if (borrowAPR >= loanAPR) {
-                revert Errors.MISMATCHED_CURVES(borrower, tenor, loanAPR, borrowAPR);
-            }
-        } catch (bytes memory) {
-            // N/A
+        // validate inverted curves
+        if (!state.isBorrowAPRLowerThanLoanOfferAPRs(borrower, borrowAPR, tenor)) {
+            revert Errors.INVERTED_CURVES(borrower, tenor);
         }
+
+        // validate collectionId
+        // validate rateProvider
+        // these are validated in `CollectionsManager`
     }
 
     /// @notice Gets the swap data for buying credit as a market order
@@ -174,7 +180,9 @@ library BuyCreditMarket {
             swapData.tenor = debtPosition.dueDate - block.timestamp;
         }
 
-        uint256 ratePerTenor = state.getBorrowOfferRatePerTenor(swapData.borrower, swapData.tenor);
+        uint256 ratePerTenor = state.getBorrowOfferRatePerTenor(
+            swapData.borrower, params.collectionId, params.rateProvider, swapData.tenor
+        );
 
         if (params.exactAmountIn) {
             swapData.cashAmountIn = params.amount;
@@ -207,7 +215,6 @@ library BuyCreditMarket {
     /// @param externalParams The input parameters for buying credit as a market order
     function executeBuyCreditMarket(State storage state, BuyCreditMarketOnBehalfOfParams calldata externalParams)
         external
-        returns (uint256 netCashAmountIn)
     {
         BuyCreditMarketParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
@@ -223,7 +230,9 @@ library BuyCreditMarket {
             params.tenor,
             params.deadline,
             params.minAPR,
-            params.exactAmountIn
+            params.exactAmountIn,
+            params.collectionId,
+            params.rateProvider
         );
 
         SwapDataBuyCreditMarket memory swapData = getSwapData(state, params);
@@ -245,10 +254,10 @@ library BuyCreditMarket {
             });
         }
 
-        state.data.borrowATokenV1_5.transferFrom(
+        state.data.borrowTokenVault.transferFrom(
             onBehalfOf, swapData.borrower, swapData.cashAmountIn - swapData.swapFee - swapData.fragmentationFee
         );
-        state.data.borrowATokenV1_5.transferFrom(
+        state.data.borrowTokenVault.transferFrom(
             onBehalfOf, state.feeConfig.feeRecipient, swapData.swapFee + swapData.fragmentationFee
         );
 
@@ -266,7 +275,5 @@ library BuyCreditMarket {
             swapData.fragmentationFee,
             swapData.tenor
         );
-
-        return swapData.cashAmountIn - swapData.swapFee - swapData.fragmentationFee;
     }
 }

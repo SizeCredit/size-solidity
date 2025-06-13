@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
+import {UserCopyLimitOrderConfigs} from "@src/market/SizeStorage.sol";
+
 import {DataView, UserView} from "@src/market/SizeViewData.sol";
 import {CreditPosition, DebtPosition, LoanStatus} from "@src/market/libraries/LoanLibrary.sol";
 import {BuyCreditMarket, BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
@@ -12,13 +13,13 @@ import {
 } from "@src/market/libraries/actions/Initialize.sol";
 import {SellCreditMarket, SellCreditMarketParams} from "@src/market/libraries/actions/SellCreditMarket.sol";
 
-import {ISizeViewV1_7} from "@src/market/interfaces/v1.7/ISizeViewV1_7.sol";
-
+import {ISizeViewV1_8} from "@src/market/interfaces/v1.8/ISizeViewV1_8.sol";
 /// @title ISizeView
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice View methods for the Size protocol
-interface ISizeView is ISizeViewV1_7 {
+
+interface ISizeView is ISizeViewV1_8 {
     /// @notice Get the collateral ratio of a user
     /// @param user The address of the user
     /// @return The collateral ratio of the user
@@ -30,9 +31,9 @@ interface ISizeView is ISizeViewV1_7 {
     function isDebtPositionLiquidatable(uint256 debtPositionId) external view returns (bool);
 
     /// @notice Convert debt token amount to collateral token amount
-    /// @param borrowATokenAmount The amount of borrow A tokens
+    /// @param amount The amount of debt tokens
     /// @return The equivalent amount of collateral tokens
-    function debtTokenAmountToCollateralTokenAmount(uint256 borrowATokenAmount) external view returns (uint256);
+    function debtTokenAmountToCollateralTokenAmount(uint256 amount) external view returns (uint256);
 
     /// @notice Get the fee configuration parameters
     /// @return The fee configuration parameters
@@ -55,21 +56,6 @@ interface ISizeView is ISizeViewV1_7 {
     /// @return The user view
     function getUserView(address user) external view returns (UserView memory);
 
-    /// @notice Get the user copy limit orders for a given user
-    /// @param user The address of the user
-    /// @return The user copy limit orders
-    function getUserCopyLimitOrders(address user) external view returns (UserCopyLimitOrders memory);
-
-    /// @notice Check if a given ID is a debt position ID
-    /// @param debtPositionId The ID to check
-    /// @return True if the ID is a debt position ID, false otherwise
-    function isDebtPositionId(uint256 debtPositionId) external view returns (bool);
-
-    /// @notice Check if a given ID is a credit position ID
-    /// @param creditPositionId The ID to check
-    /// @return True if the ID is a credit position ID, false otherwise
-    function isCreditPositionId(uint256 creditPositionId) external view returns (bool);
-
     /// @notice Get the details of a debt position
     /// @param debtPositionId The ID of the debt position
     /// @return The DebtPosition struct containing the details of the debt position
@@ -80,37 +66,9 @@ interface ISizeView is ISizeViewV1_7 {
     /// @return The CreditPosition struct containing the details of the credit position
     function getCreditPosition(uint256 creditPositionId) external view returns (CreditPosition memory);
 
-    /// @notice Get the loan status for a given position ID
-    /// @param positionId The ID of the position
-    /// @return The loan status
-    function getLoanStatus(uint256 positionId) external view returns (LoanStatus);
-
     /// @notice Get the count of debt and credit positions
     /// @return The count of debt positions and credit positions
     function getPositionsCount() external view returns (uint256, uint256);
-
-    /// @notice Get the APR for a borrow offer
-    /// @param borrower The address of the borrower
-    /// @param tenor The tenor of the loan
-    /// @return The APR of the borrow offer
-    function getBorrowOfferAPR(address borrower, uint256 tenor) external view returns (uint256);
-
-    /// @notice Get the APR for a loan offer
-    /// @param lender The address of the lender
-    /// @param tenor The tenor of the loan
-    /// @return The APR of the loan offer
-    function getLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256);
-
-    /// @notice Get the assigned collateral for a debt position
-    /// @param debtPositionId The ID of the debt position
-    /// @return The assigned collateral amount
-    function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256);
-
-    /// @notice Get the swap fee for a given cash and tenor
-    /// @param cash The cash amount
-    /// @param tenor The tenor of the loan
-    /// @return The swap fee
-    function getSwapFee(uint256 cash, uint256 tenor) external view returns (uint256);
 
     /// @notice Gets the swap data for buying credit as a market order
     /// @param params The input parameters for buying credit as a market order

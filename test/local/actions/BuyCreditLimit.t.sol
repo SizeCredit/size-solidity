@@ -66,7 +66,9 @@ contract BuyCreditLimitTest is BaseTest {
                 tenor: tenor,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: false
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
     }
@@ -100,7 +102,7 @@ contract BuyCreditLimitTest is BaseTest {
         );
         _sellCreditMarket(alice, candy, creditPositionId);
 
-        assertEqApprox(_state().alice.borrowATokenBalance, 10_091e6, 10e6);
+        assertEqApprox(_state().alice.borrowTokenBalance, 10_091e6, 10e6);
         assertEq(_state().alice.debtBalance, 0);
     }
 }

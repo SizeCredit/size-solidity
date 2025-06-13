@@ -94,7 +94,7 @@ jobs:
 
       - name: Fork Test
         run: |
-          forge test -vvv
+          forge test -vvv --fail-fast
         id: test
         env:
           API_KEY_ALCHEMY: ${{ secrets.API_KEY_ALCHEMY }}
@@ -173,7 +173,7 @@ jobs:
         run: |
           ./script/prepare_crytic.sh
 
-      - name: Install Fuzzer ${{ matrix.mode }}
+      - name: Install Fuzzer (${{ matrix.mode }})
         run: |
           if [[ "${{ matrix.mode }}" == "assertion" || "${{ matrix.mode }}" == "property" ]]; then
             TOOL="echidna"
@@ -191,7 +191,7 @@ jobs:
           rm "$TOOL.tar.gz"
           ./$TOOL --version
 
-      - name: Run Fuzzer ${{ matrix.mode }}
+      - name: Run Fuzzer (${{ matrix.mode }})
         run: |
           if [[ "${{ matrix.mode }}" == "assertion" || "${{ matrix.mode }}" == "property" ]]; then
             ./echidna . --contract CryticTester --config echidna.yaml --test-mode ${{ matrix.mode }} --corpus-dir corpus --test-limit 10000
@@ -262,7 +262,7 @@ jobs:
           path: |
             out/Size.sol/Size.json
             out/SizeFactory.sol/SizeFactory.json
-            out/PriceFeed.sol/PriceFeed.json
+            out/IPriceFeed.sol/IPriceFeed.json
             out/IPool.sol/IPool.json
             out/IERC20Metadata.sol/IERC20Metadata.json
             out/Errors.sol/Errors.json
@@ -294,16 +294,10 @@ jobs:
 
       - name: Coverage
         run: |
-          ./script/update_readme_coverage.sh
-          git add README.md
-          git commit -m "Update coverage [skip ci]" || true
+          forge coverage --no-match-coverage "(script|test|deprecated)" --report lcov
 
-      - name: Push
-        if: github.ref == 'refs/heads/main'
-        run: |
-          git push https://${{ env.token }}@github.com/${{ github.event.repository.full_name }}.git
-        env:
-          token: ${{ secrets.SIZE_BOT_PAT }}
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
 
   upload-selectors:
     if: github.ref == 'refs/heads/main'

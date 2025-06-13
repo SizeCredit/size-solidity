@@ -19,9 +19,9 @@ contract AuthorizationWithdrawTest is BaseTest {
         _deposit(alice, weth, 23e18);
         UserView memory aliceUser = size.getUserView(alice);
         UserView memory bobUser = size.getUserView(bob);
-        assertEq(aliceUser.borrowATokenBalance, 12e6);
+        assertEq(aliceUser.borrowTokenBalance, 12e6);
         assertEq(aliceUser.collateralTokenBalance, 23e18);
-        assertEq(bobUser.borrowATokenBalance, 0);
+        assertEq(bobUser.borrowTokenBalance, 0);
         assertEq(bobUser.collateralTokenBalance, 0);
 
         vm.prank(bob);
@@ -41,7 +41,7 @@ contract AuthorizationWithdrawTest is BaseTest {
 
         aliceUser = size.getUserView(alice);
         bobUser = size.getUserView(bob);
-        assertEq(aliceUser.borrowATokenBalance, 3e6);
+        assertEq(aliceUser.borrowTokenBalance, 3e6);
         assertEq(aliceUser.collateralTokenBalance, 16e18);
         assertEq(usdc.balanceOf(bob), 9e6);
         assertEq(weth.balanceOf(bob), 7e18);

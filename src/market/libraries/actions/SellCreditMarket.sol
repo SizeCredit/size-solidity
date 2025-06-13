@@ -33,6 +33,12 @@ struct SellCreditMarketParams {
     uint256 maxAPR;
     // Whether amount means credit or cash
     bool exactAmountIn;
+    // The collection Id (introduced in v1.8)
+    // If collectionId is RESERVED_ID, selects the user-defined yield curve
+    uint256 collectionId;
+    // The rate provider (introduced in v1.8)
+    // If collectionId is RESERVED_ID, selects the user-defined yield curve
+    address rateProvider;
 }
 
 struct SellCreditMarketOnBehalfOfParams {
@@ -132,7 +138,7 @@ library SellCreditMarket {
         }
 
         // validate maxAPR
-        uint256 loanAPR = state.getLoanOfferAPRByTenor(params.lender, tenor);
+        uint256 loanAPR = state.getLoanOfferAPR(params.lender, params.collectionId, params.rateProvider, tenor);
         if (loanAPR > params.maxAPR) {
             revert Errors.APR_GREATER_THAN_MAX_APR(loanAPR, params.maxAPR);
         }
@@ -141,13 +147,13 @@ library SellCreditMarket {
         // N/A
 
         // validate inverted curve
-        try state.getBorrowOfferAPRByTenor(params.lender, tenor) returns (uint256 borrowAPR) {
-            if (borrowAPR >= loanAPR) {
-                revert Errors.MISMATCHED_CURVES(params.lender, tenor, loanAPR, borrowAPR);
-            }
-        } catch (bytes memory) {
-            // N/A
+        if (!state.isLoanAPRGreaterThanBorrowOfferAPRs(params.lender, loanAPR, tenor)) {
+            revert Errors.INVERTED_CURVES(params.lender, tenor);
         }
+
+        // validate collectionId
+        // validate rateProvider
+        // these are validated in `CollectionsManager`
     }
 
     /// @notice Returns the swap data for selling credit as a market order
@@ -168,7 +174,8 @@ library SellCreditMarket {
             swapData.tenor = debtPosition.dueDate - block.timestamp;
         }
 
-        uint256 ratePerTenor = state.getLoanOfferRatePerTenor(params.lender, swapData.tenor);
+        uint256 ratePerTenor =
+            state.getLoanOfferRatePerTenor(params.lender, params.collectionId, params.rateProvider, swapData.tenor);
 
         if (params.exactAmountIn) {
             swapData.creditAmountIn = params.amount;
@@ -207,7 +214,6 @@ library SellCreditMarket {
     /// @param externalParams The input parameters for selling credit as a market order
     function executeSellCreditMarket(State storage state, SellCreditMarketOnBehalfOfParams calldata externalParams)
         external
-        returns (uint256)
     {
         SellCreditMarketParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
@@ -223,7 +229,9 @@ library SellCreditMarket {
             params.tenor,
             params.deadline,
             params.maxAPR,
-            params.exactAmountIn
+            params.exactAmountIn,
+            params.collectionId,
+            params.rateProvider
         );
 
         SwapDataSellCreditMarket memory swapData = getSwapData(state, params);
@@ -247,8 +255,8 @@ library SellCreditMarket {
             credit: swapData.creditAmountIn,
             forSale: true
         });
-        state.data.borrowATokenV1_5.transferFrom(params.lender, recipient, swapData.cashAmountOut);
-        state.data.borrowATokenV1_5.transferFrom(
+        state.data.borrowTokenVault.transferFrom(params.lender, recipient, swapData.cashAmountOut);
+        state.data.borrowTokenVault.transferFrom(
             params.lender, state.feeConfig.feeRecipient, swapData.swapFee + swapData.fragmentationFee
         );
 
@@ -263,7 +271,5 @@ library SellCreditMarket {
             swapData.fragmentationFee,
             swapData.tenor
         );
-
-        return swapData.cashAmountOut;
     }
 }

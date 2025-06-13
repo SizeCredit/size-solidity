@@ -33,7 +33,7 @@ contract MulticallTest is BaseTest {
         deal(token, alice, amount);
         IERC20Metadata(token).approve(address(size), amount);
 
-        assertEq(size.getUserView(alice).borrowATokenBalance, 0);
+        assertEq(size.getUserView(alice).borrowTokenBalance, 0);
 
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount, to: alice})));
@@ -47,7 +47,7 @@ contract MulticallTest is BaseTest {
         assertEq(results[0], bytes(""));
         assertEq(results[1], bytes(""));
 
-        assertEq(size.getUserView(alice).borrowATokenBalance, amount);
+        assertEq(size.getUserView(alice).borrowTokenBalance, amount);
     }
 
     function test_Multicall_multicall_can_deposit_ether_and_create_borrowOffer() public {
@@ -163,7 +163,7 @@ contract MulticallTest is BaseTest {
         uint256 afterLiquidatorWETH = weth.balanceOf(liquidator);
 
         assertEq(_after.bob.debtBalance, _before.bob.debtBalance - futureValue, 0);
-        assertEq(_after.liquidator.borrowATokenBalance, _before.liquidator.borrowATokenBalance, 0);
+        assertEq(_after.liquidator.borrowTokenBalance, _before.liquidator.borrowTokenBalance, 0);
         assertEq(_after.liquidator.collateralTokenBalance, _before.liquidator.collateralTokenBalance, 0);
         assertGt(
             _after.feeRecipient.collateralTokenBalance,
@@ -176,83 +176,26 @@ contract MulticallTest is BaseTest {
         assertEq(afterLiquidatorUSDC, 0);
     }
 
-    function test_Multicall_multicall_bypasses_cap_if_it_is_to_reduce_debt() public {
-        _setPrice(1e18);
-        _updateConfig("swapFeeAPR", 0);
-        uint256 amount = 100e6;
-        uint256 cap = amount;
-        _updateConfig("borrowATokenCap", cap);
-
-        _deposit(alice, usdc, cap);
-        _deposit(bob, weth, 200e18);
-
-        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.1e18));
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, 365 days, false);
-        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
-
-        vm.warp(block.timestamp + 365 days);
-
-        assertEq(_state().bob.debtBalance, futureValue);
-
-        uint256 remaining = futureValue - size.getUserView(bob).borrowATokenBalance;
-        _mint(address(usdc), bob, remaining);
-        _approve(bob, address(usdc), address(size), remaining);
-
-        // attempt to deposit to repay, but it reverts due to cap
-        vm.expectRevert(abi.encodeWithSelector(Errors.BORROW_ATOKEN_CAP_EXCEEDED.selector, cap, cap + remaining));
-        vm.prank(bob);
-        size.deposit(DepositParams({token: address(usdc), amount: remaining, to: bob}));
-
-        assertEq(_state().bob.debtBalance, futureValue);
-
-        // debt reduction is allowed to go over cap
-        bytes[] memory data = new bytes[](2);
-        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: remaining, to: bob}));
-        data[1] = abi.encodeCall(size.repay, RepayParams({debtPositionId: debtPositionId, borrower: bob}));
-        vm.prank(bob);
-        size.multicall(data);
-
-        assertEq(_state().bob.debtBalance, 0);
-    }
-
-    function test_Multicall_multicall_cannot_bypass_cap_if_it_is_not_to_reduce_debt() public {
-        _setPrice(1e18);
-        uint256 cap = 100e6;
-        _mint(address(usdc), alice, cap + 1);
-        _approve(alice, address(usdc), address(size), cap + 1);
-        _updateConfig("borrowATokenCap", cap);
-
-        // should not go over cap
-        bytes[] memory data = new bytes[](1);
-        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: cap + 1, to: alice}));
-        vm.prank(alice);
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.BORROW_ATOKEN_INCREASE_EXCEEDS_DEBT_TOKEN_DECREASE.selector, cap + 1, 0)
-        );
-        size.multicall(data);
-    }
-
-    function test_Multicall_repay_when_borrowAToken_cap(uint256 index, uint256 amount) public {
+    function test_Multicall_repay(uint256 index, uint256 amount) public {
         IERC20Metadata debtToken = IERC20Metadata(address(size.data().debtToken));
 
         index = bound(index, 1e27, 2e27);
         amount = bound(amount, 100e6, 200e6);
 
         _setLiquidityIndex(index);
-        uint256 cap = 1000e6;
-        _updateConfig("borrowATokenCap", cap);
+        uint256 val = 1000e6;
 
         uint256 tenor = 365 days;
-        _deposit(alice, usdc, cap);
+        _deposit(alice, usdc, val);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(tenor, 0.03e18));
 
         _deposit(bob, weth, 100e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
 
-        _withdraw(bob, usdc, size.getUserView(bob).borrowATokenBalance);
+        _withdraw(bob, usdc, size.getUserView(bob).borrowTokenBalance);
 
         uint256 debtAmount = debtToken.balanceOf(bob);
-        uint256 currentDeposit = size.getUserView(bob).borrowATokenBalance;
+        uint256 currentDeposit = size.getUserView(bob).borrowTokenBalance;
         uint256 depositRequiredToRepay = debtAmount - currentDeposit;
         _mint(address(usdc), bob, depositRequiredToRepay);
         _approve(bob, address(usdc), address(size), depositRequiredToRepay);

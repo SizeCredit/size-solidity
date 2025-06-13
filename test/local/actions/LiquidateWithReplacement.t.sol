@@ -55,8 +55,8 @@ contract LiquidateWithReplacementTest is BaseTest {
 
         assertEq(_after.alice, _before.alice);
         assertEq(_after.candy.debtBalance, _before.candy.debtBalance + futureValue);
-        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + amount);
-        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + delta);
+        assertEq(_after.candy.borrowTokenBalance, _before.candy.borrowTokenBalance + amount);
+        assertEq(_after.feeRecipient.borrowTokenBalance, _before.feeRecipient.borrowTokenBalance + delta);
         assertEq(size.getDebtPosition(debtPositionId).borrower, candy);
         assertGt(size.getDebtPosition(debtPositionId).futureValue, 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
@@ -97,10 +97,10 @@ contract LiquidateWithReplacementTest is BaseTest {
 
         assertEq(_after.alice, _before.alice);
         assertEq(_after.candy.debtBalance, _before.candy.debtBalance + futureValue);
-        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + newAmount);
-        assertEq(_before.variablePool.borrowATokenBalance, 0);
-        assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
-        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + delta);
+        assertEq(_after.candy.borrowTokenBalance, _before.candy.borrowTokenBalance + newAmount);
+        assertEq(_before.variablePool.borrowTokenBalance, 0);
+        assertEq(_after.variablePool.borrowTokenBalance, _before.variablePool.borrowTokenBalance);
+        assertEq(_after.feeRecipient.borrowTokenBalance, _before.feeRecipient.borrowTokenBalance + delta);
         assertEq(size.getDebtPosition(debtPositionId).borrower, candy);
         assertGt(size.getDebtPosition(debtPositionId).futureValue, 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
@@ -129,7 +129,9 @@ contract LiquidateWithReplacementTest is BaseTest {
                 borrower: candy,
                 deadline: block.timestamp,
                 minAPR: 0,
-                minimumCollateralProfit: 0
+                minimumCollateralProfit: 0,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
     }
@@ -164,7 +166,9 @@ contract LiquidateWithReplacementTest is BaseTest {
                 borrower: candy,
                 deadline: block.timestamp,
                 minAPR: 0,
-                minimumCollateralProfit: 0
+                minimumCollateralProfit: 0,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
     }
@@ -172,7 +176,6 @@ contract LiquidateWithReplacementTest is BaseTest {
     function test_LiquidateWithReplacement_liquidateWithReplacement_experiment() public {
         _setPrice(1e18);
 
-        _updateConfig("borrowATokenCap", type(uint256).max);
         // Bob deposits in USDC
         _deposit(bob, usdc, 150e6);
 

@@ -15,7 +15,7 @@ contract GenericMarket_cbBTC_USDC_Test is BaseTestGenericMarket {
 
     function test_GenericMarket_cbBTC_USDC_decimals() public view {
         assertEq(size.data().collateralToken.decimals(), 8);
-        assertEq(size.data().borrowAToken.decimals(), 6);
+        assertEq(size.data().borrowTokenVault.decimals(), 6);
         assertEq(size.data().debtToken.decimals(), 6);
     }
 
@@ -25,15 +25,14 @@ contract GenericMarket_cbBTC_USDC_Test is BaseTestGenericMarket {
 
     function test_GenericMarket_cbBTC_USDC_config() public view {
         assertEqApprox(size.feeConfig().fragmentationFee, 5e6, 0.01e6);
-        assertEqApprox(size.riskConfig().minimumCreditBorrowAToken, 10e6, 0.01e6);
-        assertEqApprox(size.riskConfig().borrowATokenCap, 1_000_000e6, 1000e6);
+        assertEqApprox(size.riskConfig().minimumCreditBorrowToken, 10e6, 0.01e6);
     }
 
     function test_GenericMarket_cbBTC_USDC_deposit_eth_reverts() public {
         vm.deal(alice, 1 ether);
 
         assertEq(address(alice).balance, 1 ether);
-        assertEq(_state().alice.borrowATokenBalance, 0);
+        assertEq(_state().alice.borrowTokenBalance, 0);
         assertEq(_state().alice.collateralTokenBalance, 0);
 
         vm.startPrank(alice);

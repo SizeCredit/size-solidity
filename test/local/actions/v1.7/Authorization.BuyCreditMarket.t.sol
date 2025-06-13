@@ -44,7 +44,9 @@ contract AuthorizationBuyCreditMarketTest is BaseTest {
                     tenor: tenor,
                     deadline: block.timestamp,
                     minAPR: 0,
-                    exactAmountIn: true
+                    exactAmountIn: true,
+                    collectionId: RESERVED_ID,
+                    rateProvider: address(0)
                 }),
                 onBehalfOf: bob,
                 recipient: candy
@@ -58,10 +60,10 @@ contract AuthorizationBuyCreditMarketTest is BaseTest {
         (uint256 loansAfter,) = size.getPositionsCount();
 
         assertEq(
-            _after.alice.borrowATokenBalance,
-            _before.alice.borrowATokenBalance + amountIn - size.getSwapFee(amountIn, tenor)
+            _after.alice.borrowTokenBalance,
+            _before.alice.borrowTokenBalance + amountIn - size.getSwapFee(amountIn, tenor)
         );
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
+        assertEq(_after.bob.borrowTokenBalance, _before.bob.borrowTokenBalance - amountIn);
         assertEq(_after.alice.debtBalance, _before.alice.debtBalance + futureValue);
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).futureValue, futureValue);
@@ -83,7 +85,9 @@ contract AuthorizationBuyCreditMarketTest is BaseTest {
                     tenor: 365 days,
                     deadline: block.timestamp,
                     minAPR: 0,
-                    exactAmountIn: true
+                    exactAmountIn: true,
+                    collectionId: RESERVED_ID,
+                    rateProvider: address(0)
                 }),
                 onBehalfOf: bob,
                 recipient: candy
@@ -101,7 +105,9 @@ contract AuthorizationBuyCreditMarketTest is BaseTest {
                     tenor: 365 days,
                     deadline: block.timestamp,
                     minAPR: 0,
-                    exactAmountIn: true
+                    exactAmountIn: true,
+                    collectionId: RESERVED_ID,
+                    rateProvider: address(0)
                 }),
                 onBehalfOf: alice,
                 recipient: address(0)

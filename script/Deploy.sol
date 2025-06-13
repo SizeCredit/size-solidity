@@ -2,15 +2,17 @@
 pragma solidity 0.8.23;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
+import {DataView} from "@src/market/SizeViewData.sol";
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 import "@crytic/properties/contracts/util/Hevm.sol";
+
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
-import {MockERC20} from "@solady/../test/utils/mocks/MockERC20.sol";
+import {MockERC20} from "@solady/test/utils/mocks/MockERC20.sol";
 import {Math} from "@src/market/libraries/Math.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 
@@ -22,6 +24,10 @@ import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
 import {Size} from "@src/market/Size.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
+
+import {DEFAULT_VAULT} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
+import {AaveAdapter} from "@src/market/token/adapters/AaveAdapter.sol";
+import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
 
 import {NetworkConfiguration} from "@script/Networks.sol";
 import {
@@ -38,7 +44,27 @@ import {WETH} from "@test/mocks/WETH.sol";
 
 import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
-import {NonTransferrableScaledTokenV1_5} from "@src/market/token/NonTransferrableScaledTokenV1_5.sol";
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
+import {NonTransferrableRebasingTokenVaultGhost} from "@test/mocks/NonTransferrableRebasingTokenVaultGhost.sol";
+
+import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
+
+import {ERC4626Mock as ERC4626OpenZeppelin} from "@openzeppelin/contracts/mocks/token/ERC4626Mock.sol";
+import {ERC4626} from "@solady/src/tokens/ERC4626.sol";
+import {MockERC4626 as ERC4626Solady} from "@solady/test/utils/mocks/MockERC4626.sol";
+import {MockERC4626 as ERC4626Solmate} from "@solmate/src/test/utils/mocks/MockERC4626.sol";
+import {ERC20} from "@solmate/src/tokens/ERC20.sol";
+
+import {ControlledAsyncDeposit} from "@ERC-7540-Reference/src/ControlledAsyncDeposit.sol";
+import {ControlledAsyncRedeem} from "@ERC-7540-Reference/src/ControlledAsyncRedeem.sol";
+import {FullyAsyncVault} from "@ERC-7540-Reference/src/FullyAsyncVault.sol";
+
+import {FeeOnEntryExitERC4626} from "@test/mocks/vaults/FeeOnEntryExitERC4626.sol";
+import {FeeOnTransferERC4626} from "@test/mocks/vaults/FeeOnTransferERC4626.sol";
+import {LimitsERC4626} from "@test/mocks/vaults/LimitsERC4626.sol";
+import {MaliciousERC4626} from "@test/mocks/vaults/MaliciousERC4626.sol";
+
+import {CollectionsManager} from "@src/collections/CollectionsManager.sol";
 
 abstract contract Deploy {
     address internal implementation;
@@ -57,8 +83,29 @@ abstract contract Deploy {
     IERC20Metadata internal borrowToken;
 
     SizeFactory internal sizeFactory;
+    CollectionsManager internal collectionsManager;
 
     bool internal shouldDeploySizeFactory = true;
+
+    IERC4626 internal vault;
+    IERC4626 internal vault2;
+    IERC4626 internal vault3;
+    IERC4626 internal vaultMalicious;
+    IERC4626 internal vaultFeeOnTransfer;
+    IERC4626 internal vaultFeeOnEntryExit;
+    IERC4626 internal vaultLimits;
+    IERC4626 internal vaultNonERC4626;
+    IERC4626 internal vaultERC7540FullyAsync;
+    IERC4626 internal vaultERC7540ControlledAsyncDeposit;
+    IERC4626 internal vaultERC7540ControlledAsyncRedeem;
+    IERC4626 internal vaultInvalidUnderlying;
+
+    SizeMock internal size1;
+    SizeMock internal size2;
+    PriceFeedMock internal priceFeed2;
+    IERC20Metadata internal collateral2;
+
+    uint256 private constant TIMELOCK = 24 hours;
 
     function setupLocal(address owner, address feeRecipient) internal {
         priceFeed = new PriceFeedMock(owner);
@@ -72,15 +119,38 @@ abstract contract Deploy {
             sizeFactory = SizeFactory(
                 address(new ERC1967Proxy(address(new SizeFactory()), abi.encodeCall(SizeFactory.initialize, (owner))))
             );
+
+            collectionsManager = CollectionsManager(
+                address(
+                    new ERC1967Proxy(
+                        address(new CollectionsManager()),
+                        abi.encodeCall(CollectionsManager.initialize, ISizeFactory(address(sizeFactory)))
+                    )
+                )
+            );
+            hevm.prank(owner);
+            sizeFactory.setCollectionsManager(collectionsManager);
         }
 
-        address borrowATokenV1_5Implementation = address(new NonTransferrableScaledTokenV1_5());
+        address borrowTokenVaultImplementation = address(new NonTransferrableRebasingTokenVaultGhost());
+
+        _deployVaults();
 
         hevm.prank(owner);
-        sizeFactory.setNonTransferrableScaledTokenV1_5Implementation(borrowATokenV1_5Implementation);
+        sizeFactory.setNonTransferrableRebasingTokenVaultImplementation(borrowTokenVaultImplementation);
 
         hevm.prank(owner);
-        NonTransferrableScaledTokenV1_5 borrowATokenV1_5 = sizeFactory.createBorrowATokenV1_5(variablePool, usdc);
+        NonTransferrableRebasingTokenVault borrowTokenVault = sizeFactory.createBorrowTokenVault(variablePool, usdc);
+
+        AaveAdapter aaveAdapter = new AaveAdapter(borrowTokenVault, variablePool, usdc);
+        hevm.prank(owner);
+        borrowTokenVault.setAdapter(bytes32("AaveAdapter"), aaveAdapter);
+        hevm.prank(owner);
+        borrowTokenVault.setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
+
+        ERC4626Adapter erc4626Adapter = new ERC4626Adapter(borrowTokenVault, usdc);
+        hevm.prank(owner);
+        borrowTokenVault.setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
 
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
@@ -93,8 +163,7 @@ abstract contract Deploy {
         r = InitializeRiskConfigParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
-            minimumCreditBorrowAToken: 5e6,
-            borrowATokenCap: 1_000_000e6,
+            minimumCreditBorrowToken: 5e6,
             minTenor: 1 hours,
             maxTenor: 5 * 365 days
         });
@@ -104,7 +173,7 @@ abstract contract Deploy {
             underlyingCollateralToken: address(weth),
             underlyingBorrowToken: address(usdc),
             variablePool: address(variablePool), // Aave v3
-            borrowATokenV1_5: address(borrowATokenV1_5),
+            borrowTokenVault: address(borrowTokenVault),
             sizeFactory: address(sizeFactory)
         });
 
@@ -150,15 +219,39 @@ abstract contract Deploy {
             sizeFactory = SizeFactory(
                 address(new ERC1967Proxy(address(new SizeFactory()), abi.encodeCall(SizeFactory.initialize, (owner))))
             );
+
+            collectionsManager = CollectionsManager(
+                address(
+                    new ERC1967Proxy(
+                        address(new CollectionsManager()),
+                        abi.encodeCall(CollectionsManager.initialize, ISizeFactory(address(sizeFactory)))
+                    )
+                )
+            );
+            hevm.prank(owner);
+            sizeFactory.setCollectionsManager(collectionsManager);
         }
 
-        address borrowATokenV1_5Implementation = address(new NonTransferrableScaledTokenV1_5());
+        address borrowTokenVaultImplementation = address(new NonTransferrableRebasingTokenVaultGhost());
+
+        vault = IERC4626(address(new ERC4626Solady(address(borrowToken), "Vault", "VAULT", true, 0)));
 
         hevm.prank(owner);
-        sizeFactory.setNonTransferrableScaledTokenV1_5Implementation(borrowATokenV1_5Implementation);
+        sizeFactory.setNonTransferrableRebasingTokenVaultImplementation(borrowTokenVaultImplementation);
 
         hevm.prank(owner);
-        NonTransferrableScaledTokenV1_5 borrowATokenV1_5 = sizeFactory.createBorrowATokenV1_5(variablePool, borrowToken);
+        NonTransferrableRebasingTokenVault borrowTokenVault =
+            sizeFactory.createBorrowTokenVault(variablePool, borrowToken);
+
+        AaveAdapter aaveAdapter = new AaveAdapter(borrowTokenVault, variablePool, borrowToken);
+        hevm.prank(owner);
+        borrowTokenVault.setAdapter(bytes32("AaveAdapter"), aaveAdapter);
+        hevm.prank(owner);
+        borrowTokenVault.setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
+
+        ERC4626Adapter erc4626Adapter = new ERC4626Adapter(borrowTokenVault, borrowToken);
+        hevm.prank(owner);
+        borrowTokenVault.setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
 
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
@@ -173,11 +266,8 @@ abstract contract Deploy {
         r = InitializeRiskConfigParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
-            minimumCreditBorrowAToken: Math.mulDivDown(
+            minimumCreditBorrowToken: Math.mulDivDown(
                 10 * 10 ** borrowToken.decimals(), 10 ** priceFeed.decimals(), borrowTokenPriceUSD
-            ),
-            borrowATokenCap: Math.mulDivDown(
-                1_000_000 * 10 ** borrowToken.decimals(), 10 ** priceFeed.decimals(), borrowTokenPriceUSD
             ),
             minTenor: 1 hours,
             maxTenor: 5 * 365 days
@@ -188,7 +278,7 @@ abstract contract Deploy {
             underlyingCollateralToken: address(collateralToken),
             underlyingBorrowToken: address(borrowToken),
             variablePool: address(variablePool),
-            borrowATokenV1_5: address(borrowATokenV1_5),
+            borrowTokenVault: address(borrowTokenVault),
             sizeFactory: address(sizeFactory)
         });
 
@@ -212,5 +302,63 @@ abstract contract Deploy {
         variablePool = IPool(_variablePool);
         weth = WETH(payable(_weth));
         usdc = USDC(_usdc);
+    }
+
+    function _deployVaults() internal {
+        vault = IERC4626(address(new ERC4626Solady(address(usdc), "Vault", "VAULT", true, 0)));
+        vault2 = IERC4626(address(new ERC4626OpenZeppelin(address(usdc))));
+        vault3 = IERC4626(address(new ERC4626Solmate(ERC20(address(usdc)), "Vault3", "VAULT3")));
+        vaultMalicious = IERC4626(address(new MaliciousERC4626(usdc, "VaultMalicious", "VAULTMALICIOUS")));
+        vaultFeeOnTransfer =
+            IERC4626(address(new FeeOnTransferERC4626(usdc, "VaultFeeOnTransfer", "VAULTFEEONTXFER", 0.1e18)));
+        vaultFeeOnEntryExit = IERC4626(
+            address(new FeeOnEntryExitERC4626(usdc, "VaultFeeOnEntryExit", "VAULTFEEONENTRYEXIT", 0.1e4, 0.2e4))
+        );
+        vaultLimits = IERC4626(
+            address(
+                new LimitsERC4626(address(this), usdc, "VaultLimits", "VAULTLIMITS", 1000e6, 2000e6, 3000e6, 4000e6)
+            )
+        );
+        vaultNonERC4626 = IERC4626(address(new ERC20Mock()));
+        vaultERC7540FullyAsync =
+            IERC4626(address(new FullyAsyncVault(ERC20(address(usdc)), "VaultERC7540", "VAULTERC7540")));
+        vaultERC7540ControlledAsyncDeposit =
+            IERC4626(address(new ControlledAsyncDeposit(ERC20(address(usdc)), "VaultERC7540", "VAULTERC7540")));
+        vaultERC7540ControlledAsyncRedeem =
+            IERC4626(address(new ControlledAsyncRedeem(ERC20(address(usdc)), "VaultERC7540", "VAULTERC7540")));
+        vaultInvalidUnderlying = IERC4626(
+            address(new ERC4626Solady(address(weth), "VaultInvalidUnderlying", "VAULTINVALIDUNDERLYING", true, 0))
+        );
+    }
+
+    function _deploySizeMarket2() internal {
+        collateral2 = IERC20Metadata(address(new ERC20Mock()));
+        priceFeed2 = new PriceFeedMock(address(this));
+        priceFeed2.setPrice(1e18);
+
+        ISize market = sizeFactory.getMarket(0);
+        InitializeFeeConfigParams memory feeConfigParams = market.feeConfig();
+
+        InitializeRiskConfigParams memory riskConfigParams = market.riskConfig();
+        riskConfigParams.crOpening = 1.12e18;
+        riskConfigParams.crLiquidation = 1.09e18;
+
+        InitializeOracleParams memory oracleParams = market.oracle();
+        oracleParams.priceFeed = address(priceFeed2);
+
+        DataView memory dataView = market.data();
+        InitializeDataParams memory dataParams = InitializeDataParams({
+            weth: address(weth),
+            underlyingCollateralToken: address(collateral2),
+            underlyingBorrowToken: address(dataView.underlyingBorrowToken),
+            variablePool: address(dataView.variablePool),
+            borrowTokenVault: address(dataView.borrowTokenVault),
+            sizeFactory: address(sizeFactory)
+        });
+        size2 = SizeMock(address(sizeFactory.createMarket(feeConfigParams, riskConfigParams, oracleParams, dataParams)));
+        size1 = size;
+
+        hevm.label(address(size1), "Size1");
+        hevm.label(address(size2), "Size2");
     }
 }

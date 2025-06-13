@@ -40,6 +40,7 @@ import {
     SetUserConfigurationOnBehalfOfParams,
     SetUserConfigurationParams
 } from "@src/market/libraries/actions/SetUserConfiguration.sol";
+import {SetVault, SetVaultOnBehalfOfParams, SetVaultParams} from "@src/market/libraries/actions/SetVault.sol";
 import {Withdraw, WithdrawOnBehalfOfParams, WithdrawParams} from "@src/market/libraries/actions/Withdraw.sol";
 
 import {
@@ -49,16 +50,12 @@ import {
 } from "@src/market/libraries/actions/BuyCreditLimit.sol";
 import {Liquidate, LiquidateParams} from "@src/market/libraries/actions/Liquidate.sol";
 
+import {ReentrancyGuardUpgradeableWithViewModifier} from "@src/helpers/ReentrancyGuardUpgradeableWithViewModifier.sol";
 import {State} from "@src/market/SizeStorage.sol";
 import {Multicall} from "@src/market/libraries/Multicall.sol";
 import {Compensate, CompensateOnBehalfOfParams, CompensateParams} from "@src/market/libraries/actions/Compensate.sol";
 import {PartialRepay, PartialRepayParams} from "@src/market/libraries/actions/PartialRepay.sol";
 
-import {
-    CopyLimitOrders,
-    CopyLimitOrdersOnBehalfOfParams,
-    CopyLimitOrdersParams
-} from "@src/market/libraries/actions/CopyLimitOrders.sol";
 import {
     LiquidateWithReplacement,
     LiquidateWithReplacementParams
@@ -69,8 +66,12 @@ import {
     SelfLiquidateOnBehalfOfParams,
     SelfLiquidateParams
 } from "@src/market/libraries/actions/SelfLiquidate.sol";
+import {
+    SetCopyLimitOrderConfigs,
+    SetCopyLimitOrderConfigsOnBehalfOfParams,
+    SetCopyLimitOrderConfigsParams
+} from "@src/market/libraries/actions/SetCopyLimitOrderConfigs.sol";
 
-import {CapsLibrary} from "@src/market/libraries/CapsLibrary.sol";
 import {RiskLibrary} from "@src/market/libraries/RiskLibrary.sol";
 
 import {SizeView} from "@src/market/SizeView.sol";
@@ -80,17 +81,28 @@ import {IMulticall} from "@src/market/interfaces/IMulticall.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {ISizeAdmin} from "@src/market/interfaces/ISizeAdmin.sol";
 import {ISizeV1_7} from "@src/market/interfaces/v1.7/ISizeV1_7.sol";
+import {ISizeV1_8} from "@src/market/interfaces/v1.8/ISizeV1_8.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 
 import {
     BORROW_RATE_UPDATER_ROLE, ISizeFactory, KEEPER_ROLE, PAUSER_ROLE
 } from "@src/factory/interfaces/ISizeFactory.sol";
 
+import {UserView} from "@src/market/SizeViewData.sol";
+import {ISizeView} from "@src/market/interfaces/ISizeView.sol";
+
 /// @title Size
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice See the documentation in {ISize}.
-contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, PausableUpgradeable, UUPSUpgradeable {
+contract Size is
+    ISize,
+    SizeView,
+    AccessControlUpgradeable,
+    PausableUpgradeable,
+    /*ReentrancyGuardUpgradeableWithViewModifier,*/
+    UUPSUpgradeable
+{
     using Initialize for State;
     using UpdateConfig for State;
     using Deposit for State;
@@ -108,9 +120,9 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     using PartialRepay for State;
     using SetUserConfiguration for State;
     using RiskLibrary for State;
-    using CapsLibrary for State;
     using Multicall for State;
-    using CopyLimitOrders for State;
+    using SetCopyLimitOrderConfigs for State;
+    using SetVault for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -128,6 +140,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
 
         __AccessControl_init();
         __Pausable_init();
+        __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 
         state.executeInitialize(f, r, o, d);
@@ -135,6 +148,11 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         _grantRole(PAUSER_ROLE, owner);
         _grantRole(KEEPER_ROLE, owner);
         _grantRole(BORROW_RATE_UPDATER_ROLE, owner);
+    }
+
+    /// @inheritdoc ISizeV1_8
+    function reinitialize() external onlyRole(DEFAULT_ADMIN_ROLE) reinitializer(1_08_00) {
+        __ReentrancyGuard_init();
     }
 
     function _hasRole(bytes32 role, address account) internal view returns (bool) {
@@ -152,29 +170,6 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
             revert AccessControlUnauthorizedAccount(msg.sender, role);
         }
         _;
-    }
-
-    function reinitialize(ISizeFactory _sizeFactory)
-        external
-        override(ISizeV1_7)
-        onlyRoleOrSizeFactoryHasRole(DEFAULT_ADMIN_ROLE)
-        reinitializer(1_07_00)
-    {
-        // validate _sizeFactory
-        if (address(_sizeFactory) == address(0)) {
-            // _sizeFactory cannot be 0 address (markets deployed with v1.6 Size implementation)
-            revert Errors.NULL_ADDRESS();
-        }
-        if (address(state.data.sizeFactory) != address(0)) {
-            // _sizeFactory cannot be already set (new markets deployed with v1.7 Size implementation)
-            revert Errors.NOT_SUPPORTED();
-        }
-        if (!_sizeFactory.isMarket(address(this))) {
-            // sanity check for ISizeFactory
-            revert Errors.INVALID_MARKET(address(this));
-        }
-
-        state.data.sizeFactory = _sizeFactory;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -207,6 +202,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     function setVariablePoolBorrowRate(uint128 borrowRate)
         external
         override(ISizeAdmin)
+        nonReentrant
         onlyRoleOrSizeFactoryHasRole(BORROW_RATE_UPDATER_ROLE)
     {
         uint128 oldBorrowRate = state.oracle.variablePoolBorrowRate;
@@ -246,6 +242,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
         state.validateDeposit(params);
@@ -262,6 +259,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
         state.validateWithdraw(externalParams);
@@ -278,6 +276,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
         state.validateBuyCreditLimit(externalParams);
@@ -294,6 +293,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
         state.validateSellCreditLimit(externalParams);
@@ -312,14 +312,14 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
         state.validateBuyCreditMarket(externalParams);
-        uint256 amount = state.executeBuyCreditMarket(externalParams);
+        state.executeBuyCreditMarket(externalParams);
         if (externalParams.params.creditPositionId == RESERVED_ID) {
             state.validateUserIsNotBelowOpeningLimitBorrowCR(externalParams.params.borrower);
         }
-        state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
     /// @inheritdoc ISize
@@ -334,24 +334,24 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
         state.validateSellCreditMarket(externalParams);
-        uint256 amount = state.executeSellCreditMarket(externalParams);
+        state.executeSellCreditMarket(externalParams);
         if (externalParams.params.creditPositionId == RESERVED_ID) {
             state.validateUserIsNotBelowOpeningLimitBorrowCR(externalParams.onBehalfOf);
         }
-        state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
     /// @inheritdoc ISize
-    function repay(RepayParams calldata params) external payable override(ISize) whenNotPaused {
+    function repay(RepayParams calldata params) external payable override(ISize) nonReentrant whenNotPaused {
         state.validateRepay(params);
         state.executeRepay(params);
     }
 
     /// @inheritdoc ISize
-    function claim(ClaimParams calldata params) external payable override(ISize) whenNotPaused {
+    function claim(ClaimParams calldata params) external payable override(ISize) nonReentrant whenNotPaused {
         state.validateClaim(params);
         state.executeClaim(params);
     }
@@ -361,6 +361,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         external
         payable
         override(ISize)
+        nonReentrant
         whenNotPaused
         returns (uint256 liquidatorProfitCollateralToken)
     {
@@ -381,6 +382,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
         state.validateSelfLiquidate(externalParams);
@@ -392,17 +394,15 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         external
         payable
         override(ISize)
+        nonReentrant
         whenNotPaused
         onlyRoleOrSizeFactoryHasRole(KEEPER_ROLE)
         returns (uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken)
     {
         state.validateLiquidateWithReplacement(params);
-        uint256 amount;
-        (amount, liquidatorProfitCollateralToken, liquidatorProfitBorrowToken) =
-            state.executeLiquidateWithReplacement(params);
+        (liquidatorProfitCollateralToken, liquidatorProfitBorrowToken) = state.executeLiquidateWithReplacement(params);
         state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
         state.validateMinimumCollateralProfit(params, liquidatorProfitCollateralToken);
-        state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
     /// @inheritdoc ISize
@@ -415,6 +415,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
         mustImproveCollateralRatio(externalParams.onBehalfOf)
     {
@@ -423,7 +424,13 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function partialRepay(PartialRepayParams calldata params) external payable override(ISize) whenNotPaused {
+    function partialRepay(PartialRepayParams calldata params)
+        external
+        payable
+        override(ISize)
+        nonReentrant
+        whenNotPaused
+    {
         state.validatePartialRepay(params);
         state.executePartialRepay(params);
     }
@@ -438,6 +445,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
         state.validateSetUserConfiguration(externalParams);
@@ -445,18 +453,42 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function copyLimitOrders(CopyLimitOrdersParams calldata params) external payable override(ISize) {
-        copyLimitOrdersOnBehalfOf(CopyLimitOrdersOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
+    function setCopyLimitOrderConfigs(SetCopyLimitOrderConfigsParams calldata params)
+        external
+        payable
+        override(ISize)
+    {
+        setCopyLimitOrderConfigsOnBehalfOf(
+            SetCopyLimitOrderConfigsOnBehalfOfParams({params: params, onBehalfOf: msg.sender})
+        );
     }
 
     /// @inheritdoc ISizeV1_7
-    function copyLimitOrdersOnBehalfOf(CopyLimitOrdersOnBehalfOfParams memory externalParams)
+    function setCopyLimitOrderConfigsOnBehalfOf(SetCopyLimitOrderConfigsOnBehalfOfParams memory externalParams)
         public
         payable
         override(ISizeV1_7)
+        nonReentrant
         whenNotPaused
     {
-        state.validateCopyLimitOrders(externalParams);
-        state.executeCopyLimitOrders(externalParams);
+        state.validateSetCopyLimitOrderConfigs(externalParams);
+        state.executeSetCopyLimitOrderConfigs(externalParams);
+    }
+
+    /// @inheritdoc ISizeV1_8
+    function setVault(SetVaultParams calldata params) external payable override(ISizeV1_8) {
+        setVaultOnBehalfOf(SetVaultOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
+    }
+
+    /// @inheritdoc ISizeV1_8
+    function setVaultOnBehalfOf(SetVaultOnBehalfOfParams memory externalParams)
+        public
+        payable
+        override(ISizeV1_8)
+        nonReentrant
+        whenNotPaused
+    {
+        state.validateSetVault(externalParams);
+        state.executeSetVault(externalParams);
     }
 }

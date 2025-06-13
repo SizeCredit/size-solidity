@@ -52,7 +52,7 @@ abstract contract Logger {
             }
         }
         console.log("collateralBalance", userView.collateralTokenBalance);
-        console.log("borrowATokenBalance", userView.borrowATokenBalance);
+        console.log("borrowTokenBalance", userView.borrowTokenBalance);
         console.log("debtBalance", userView.debtBalance);
     }
 
@@ -60,7 +60,6 @@ abstract contract Logger {
         console.log("borrower", debtPosition.borrower);
         console.log("futureValue", debtPosition.futureValue);
         console.log("dueDate", debtPosition.dueDate);
-        console.log("liquidityIndexAtRepayment", debtPosition.liquidityIndexAtRepayment);
     }
 
     function _log(CreditPosition memory creditPosition) internal pure {
