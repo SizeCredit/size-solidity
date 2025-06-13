@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {DataView} from "@src/market/SizeViewData.sol";
 
@@ -106,8 +104,6 @@ abstract contract Deploy {
     IERC4626 internal vaultERC7540ControlledAsyncDeposit;
     IERC4626 internal vaultERC7540ControlledAsyncRedeem;
     IERC4626 internal vaultInvalidUnderlying;
-
-    EnumerableSet.AddressSet internal vaults;
 
     SizeMock internal size1;
     SizeMock internal size2;

@@ -8,12 +8,9 @@ import {KEEPER_ROLE} from "@src/factory/SizeFactory.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {Helper} from "@test/invariants/Helper.sol";
 
-import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {DEFAULT_VAULT} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
 abstract contract SetupLocal is Helper, BaseSetup {
-    using EnumerableSet for EnumerableSet.AddressSet;
-
     function setup() internal override {
         setupLocal(address(this), address(this));
         size.grantRole(KEEPER_ROLE, USER2);
@@ -37,13 +34,5 @@ abstract contract SetupLocal is Helper, BaseSetup {
         borrowTokenVault.setVaultAdapter(address(vault), bytes32("ERC4626Adapter"));
         borrowTokenVault.setVaultAdapter(address(vault2), bytes32("ERC4626Adapter"));
         borrowTokenVault.setVaultAdapter(address(vault3), bytes32("ERC4626Adapter"));
-        borrowTokenVault.setVaultAdapter(address(vaultFeeOnTransfer), bytes32("ERC4626Adapter"));
-        borrowTokenVault.setVaultAdapter(address(vaultFeeOnEntryExit), bytes32("ERC4626Adapter"));
-        borrowTokenVault.setVaultAdapter(address(vaultLimits), bytes32("ERC4626Adapter"));
-
-        vaults.add(address(vault));
-        vaults.add(address(vault2));
-        vaults.add(address(vault3));
-        vaults.add(DEFAULT_VAULT);
     }
 }

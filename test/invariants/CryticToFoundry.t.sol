@@ -648,4 +648,9 @@ contract CryticToFoundry is BaseTest, TargetFunctions, SetupLocal, FoundryAssert
         setVault(address(0x27), false);
         deposit(address(0xdeadbeef), 1);
     }
+
+    function test_CryticToFoundry_39() public {
+        setVault(address(0xee35211C4D9126D520bBfeaf3cFee5FE7B86F221), false);
+        deposit(address(0xdeadbeef), 1);
+    }
 }
