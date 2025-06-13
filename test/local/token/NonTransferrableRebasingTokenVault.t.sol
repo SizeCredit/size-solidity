@@ -585,4 +585,27 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vault)));
         adapterAave.totalSupply(address(vault));
     }
+
+    function test_NonTransferrableRebasingTokenVault_exit_through_transferFrom_should_revert_if_not_enough_liquidity()
+        public
+    {
+        vm.prank(owner);
+        token.setVaultAdapter(address(vaultFeeOnEntryExit), "ERC4626Adapter");
+
+        vm.prank(address(size));
+        token.setVault(bob, address(vaultFeeOnEntryExit), false);
+
+        _deposit(alice, address(underlying), 100e6);
+
+        vm.prank(address(size));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAdapter.InsufficientAssets.selector, address(vaultFeeOnEntryExit), 90909090, 100e6)
+        );
+        token.transferFrom(alice, bob, 100e6);
+
+        _deposit(bob, address(underlying), 1_000e6);
+
+        vm.prank(address(size));
+        token.transferFrom(alice, bob, 100e6);
+    }
 }

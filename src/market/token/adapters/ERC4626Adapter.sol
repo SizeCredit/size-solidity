@@ -113,9 +113,7 @@ contract ERC4626Adapter is Ownable, IAdapter {
 
     /// @inheritdoc IAdapter
     function transferFrom(address vault, address from, address to, uint256 value) external onlyOwner {
-        if (IERC4626(vault).maxWithdraw(address(tokenVault)) < value) {
-            revert InsufficientAssets(address(vault), IERC4626(vault).maxWithdraw(address(tokenVault)), value);
-        }
+        checkLiquidity(vault, value);
 
         uint256 shares = IERC4626(vault).convertToShares(value);
 
@@ -131,6 +129,13 @@ contract ERC4626Adapter is Ownable, IAdapter {
     function validate(address vault) external view {
         if (IERC4626(vault).asset() != address(underlyingToken)) {
             revert Errors.INVALID_VAULT(vault);
+        }
+    }
+
+    /// @inheritdoc IAdapter
+    function checkLiquidity(address vault, uint256 amount) public view {
+        if (IERC4626(vault).maxWithdraw(address(tokenVault)) < amount) {
+            revert InsufficientAssets(address(vault), IERC4626(vault).maxWithdraw(address(tokenVault)), amount);
         }
     }
 }
