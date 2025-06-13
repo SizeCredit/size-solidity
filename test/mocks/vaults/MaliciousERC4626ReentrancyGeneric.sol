@@ -25,7 +25,7 @@ contract MaliciousERC4626ReentrancyGeneric is ERC4626, Ownable {
     }
 
     function setOperation(bytes4 _operation) external onlyOwner {
-        bytes4[] memory operations = new bytes4[](11);
+        bytes4[] memory operations = new bytes4[](10);
         operations[0] = ISizeV1_7.depositOnBehalfOf.selector;
         operations[1] = ISizeV1_7.withdrawOnBehalfOf.selector;
         operations[2] = ISizeV1_7.buyCreditLimitOnBehalfOf.selector;
@@ -34,9 +34,8 @@ contract MaliciousERC4626ReentrancyGeneric is ERC4626, Ownable {
         operations[5] = ISizeV1_7.sellCreditMarketOnBehalfOf.selector;
         operations[6] = ISizeV1_7.selfLiquidateOnBehalfOf.selector;
         operations[7] = ISizeV1_7.compensateOnBehalfOf.selector;
-        operations[8] = ISizeV1_7.partialRepayOnBehalfOf.selector;
-        operations[9] = ISizeV1_7.setUserConfigurationOnBehalfOf.selector;
-        operations[10] = ISizeV1_7.setCopyLimitOrderConfigsOnBehalfOf.selector;
-        operation = operations[uint256(_operation) % operations.length];
+        operations[8] = ISizeV1_7.setUserConfigurationOnBehalfOf.selector;
+        operations[9] = ISizeV1_7.setCopyLimitOrderConfigsOnBehalfOf.selector;
+        operation = operations[uint256(uint32(_operation)) % operations.length];
     }
 }
