@@ -509,7 +509,7 @@ contract CryticToFoundry is BaseTest, TargetFunctions, SetupLocal, FoundryAssert
         _setUp2(8799, 503665, address(0x30000));
         setPrice(354799019315603478131068628955202262294569903751579818178515037114763646);
         _setUp2(63828, 786237, address(0x30000));
-        copyLimitOrders(
+        setCopyLimitOrderConfigs(
             -226305955988121278682556131242956794266986625152212368009729130287401915740,
             26485358679284639675051377527398819606534310692904963201271205653903680747271
         );
@@ -636,5 +636,21 @@ contract CryticToFoundry is BaseTest, TargetFunctions, SetupLocal, FoundryAssert
     function test_CryticToFoundry_36() public {
         deposit(address(0xdeadbeef), 1);
         setVault(address(0x0), true);
+    }
+
+    function test_CryticToFoundry_37() public {
+        deposit(address(0xdeadbeef), 244589);
+        setVault(address(0x2155d5323cb425a89ecd3ab87ae5ffdf4db5f7), false);
+        withdraw(address(0xdeadbeef), 10);
+    }
+
+    function test_CryticToFoundry_38() public {
+        setVault(address(0x27), false);
+        deposit(address(0xdeadbeef), 1);
+    }
+
+    function test_CryticToFoundry_39() public {
+        setVault(address(0xee35211C4D9126D520bBfeaf3cFee5FE7B86F221), false);
+        deposit(address(0xdeadbeef), 1);
     }
 }

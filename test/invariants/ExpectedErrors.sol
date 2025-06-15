@@ -154,11 +154,11 @@ abstract contract ExpectedErrors is Deploy, Properties {
         PARTIAL_REPAY_ERRORS.push(Errors.NULL_AMOUNT.selector);
         PARTIAL_REPAY_ERRORS.push(Errors.INVALID_AMOUNT.selector);
         PARTIAL_REPAY_ERRORS.push(Errors.INVALID_BORROWER.selector);
+        PARTIAL_REPAY_ERRORS.push(IAdapter.InsufficientAssets.selector);
 
         // SET_VAULT_ERRORS
         SET_VAULT_ERRORS.push(Errors.INVALID_VAULT.selector);
         SET_VAULT_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
-        SET_VAULT_ERRORS.push(ERC4626OpenZeppelin.ERC4626ExceededMaxDeposit.selector);
         SET_VAULT_ERRORS.push(bytes4(keccak256("Error(string)"))); // ZERO_ASSETS / ZERO_SHARES from ERC4626Solmate
     }
 

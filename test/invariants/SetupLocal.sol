@@ -4,7 +4,11 @@ pragma solidity 0.8.23;
 import {BaseSetup} from "@chimera/BaseSetup.sol";
 import "@crytic/properties/contracts/util/Hevm.sol";
 import {KEEPER_ROLE} from "@src/factory/SizeFactory.sol";
+
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {Helper} from "@test/invariants/Helper.sol";
+
+import {DEFAULT_VAULT} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
 abstract contract SetupLocal is Helper, BaseSetup {
     function setup() internal override {
@@ -25,5 +29,10 @@ abstract contract SetupLocal is Helper, BaseSetup {
             weth.deposit{value: MAX_AMOUNT_WETH}();
             weth.transfer(user, MAX_AMOUNT_WETH);
         }
+
+        NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
+        borrowTokenVault.setVaultAdapter(address(vault), bytes32("ERC4626Adapter"));
+        borrowTokenVault.setVaultAdapter(address(vault2), bytes32("ERC4626Adapter"));
+        borrowTokenVault.setVaultAdapter(address(vault3), bytes32("ERC4626Adapter"));
     }
 }
