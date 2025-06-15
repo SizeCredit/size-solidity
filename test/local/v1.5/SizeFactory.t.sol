@@ -6,7 +6,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {MockERC20} from "@solady/../test/utils/mocks/MockERC20.sol";
+import {MockERC20} from "@solady/test/utils/mocks/MockERC20.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 
 import {SizeFactory} from "@src/factory/SizeFactory.sol";
@@ -163,12 +163,12 @@ contract SizeFactoryTest is BaseTest {
         );
     }
 
-    function test_SizeFactory_createBorrowATokenV1_5_unauthorized() public {
+    function test_SizeFactory_createBorrowTokenVault_unauthorized() public {
         vm.prank(alice);
         vm.expectRevert(
             abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, address(alice), 0x00)
         );
-        sizeFactory.createBorrowATokenV1_5(IPool(address(0)), IERC20Metadata(address(0)));
+        sizeFactory.createBorrowTokenVault(IPool(address(0)), IERC20Metadata(address(0)));
     }
 
     function test_SizeFactory_getMarketsCount() public {
@@ -221,15 +221,15 @@ contract SizeFactoryTest is BaseTest {
         assertEq(SizeMock(address(sizeFactory.getMarket(1))).v(), 2);
     }
 
-    function test_SizeFactory_setNonTransferrableScaledTokenV1_5Implementation() public {
+    function test_SizeFactory_setNonTransferrableRebasingTokenVaultImplementation() public {
         vm.prank(owner);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        sizeFactory.setNonTransferrableScaledTokenV1_5Implementation(address(0));
+        sizeFactory.setNonTransferrableRebasingTokenVaultImplementation(address(0));
 
         address newImplementation = makeAddr("newImplementation");
         vm.prank(owner);
-        sizeFactory.setNonTransferrableScaledTokenV1_5Implementation(newImplementation);
-        assertEq(sizeFactory.nonTransferrableScaledTokenV1_5Implementation(), newImplementation);
+        sizeFactory.setNonTransferrableRebasingTokenVaultImplementation(newImplementation);
+        assertEq(sizeFactory.nonTransferrableTokenVaultImplementation(), newImplementation);
     }
 
     function test_SizeFactory_upgade() public {

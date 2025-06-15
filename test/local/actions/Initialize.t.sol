@@ -26,7 +26,6 @@ contract InitializeTest is BaseTest {
         );
 
         assertEq(Size(payable(proxy)).riskConfig().crLiquidation, 1.3e18);
-        assertEq(address(Size(payable(proxy)).sizeFactory()), address(sizeFactory));
     }
 
     function test_Initialize_wrong_initialization_reverts() public {

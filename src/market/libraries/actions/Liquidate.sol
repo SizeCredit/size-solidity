@@ -129,13 +129,13 @@ library Liquidate {
             liquidatorProfitCollateralToken = assignedCollateral;
         }
 
-        state.data.borrowATokenV1_5.transferFrom(msg.sender, address(this), debtPosition.futureValue);
+        state.data.borrowTokenVault.transferFrom(msg.sender, address(this), debtPosition.futureValue);
         state.data.collateralToken.transferFrom(debtPosition.borrower, msg.sender, liquidatorProfitCollateralToken);
         state.data.collateralToken.transferFrom(
             debtPosition.borrower, state.feeConfig.feeRecipient, protocolProfitCollateralToken
         );
 
-        debtPosition.liquidityIndexAtRepayment = state.data.borrowATokenV1_5.liquidityIndex();
+        debtPosition.liquidityIndexAtRepayment = state.data.borrowTokenVault.liquidityIndex();
         state.repayDebt(params.debtPositionId, debtPosition.futureValue);
     }
 }

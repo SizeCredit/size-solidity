@@ -4,8 +4,6 @@ pragma solidity 0.8.23;
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 import {State} from "@src/market/SizeStorage.sol";
-import {CapsLibrary} from "@src/market/libraries/CapsLibrary.sol";
-import {RiskLibrary} from "@src/market/libraries/RiskLibrary.sol";
 
 /// @notice Provides a function to batch together multiple calls in a single external call.
 /// @custom:security-contact security@size.credit
@@ -18,29 +16,12 @@ import {RiskLibrary} from "@src/market/libraries/RiskLibrary.sol";
 ///        - https://forum.openzeppelin.com/t/query-regarding-multicall-fucntion-in-multicallupgradeable-sol/35537
 ///        - https://twitter.com/haydenzadams/status/1427784837738418180?lang=en
 library Multicall {
-    using CapsLibrary for State;
-    using RiskLibrary for State;
-
     /// @dev Receives and executes a batch of function calls on this contract.
     /// @custom:oz-upgrades-unsafe-allow-reachable delegatecall
-    function multicall(State storage state, bytes[] calldata data) internal returns (bytes[] memory results) {
-        state.data.isMulticall = true;
-
-        uint256 borrowATokenSupplyBefore = state.data.borrowATokenV1_5.totalSupply();
-        uint256 debtTokenSupplyBefore = state.data.debtToken.totalSupply();
-
+    function multicall(State storage, bytes[] calldata data) internal returns (bytes[] memory results) {
         results = new bytes[](data.length);
         for (uint256 i = 0; i < data.length; i++) {
             results[i] = Address.functionDelegateCall(address(this), data[i]);
         }
-
-        uint256 borrowATokenSupplyAfter = state.data.borrowATokenV1_5.totalSupply();
-        uint256 debtTokenSupplyAfter = state.data.debtToken.totalSupply();
-
-        state.validateBorrowATokenIncreaseLteDebtTokenDecrease(
-            borrowATokenSupplyBefore, debtTokenSupplyBefore, borrowATokenSupplyAfter, debtTokenSupplyAfter
-        );
-
-        state.data.isMulticall = false;
     }
 }

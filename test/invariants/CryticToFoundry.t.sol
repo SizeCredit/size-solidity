@@ -445,25 +445,6 @@ contract CryticToFoundry is BaseTest, TargetFunctions, SetupLocal, FoundryAssert
         sellCreditLimit(0, 0);
     }
 
-    function test_CryticToFoundry_28() public {
-        setLiquidityIndex(1, 0);
-        updateConfig(21068319789506710821654, 0);
-        deposit(address(0xdeadbeef), 996270874);
-        buyCreditLimit(3427614, 0);
-        deposit(address(0x0), 1122084065464051538);
-        sellCreditMarket(
-            address(0x0),
-            0,
-            2702324600881186461580514346189664772384372337446035588170931995036,
-            5600056819510204218881125300736394812903208854577664090813535893675594506082,
-            false
-        );
-        uint256 borrowATokenBalanceBefore = size.data().borrowAToken.balanceOf(size.feeConfig().feeRecipient);
-        sellCreditMarket(address(0x0), 0, 8474006695743451680011881010275008915614345497988616, 0, false);
-        uint256 borrowATokenBalanceAfter = size.data().borrowAToken.balanceOf(size.feeConfig().feeRecipient);
-        gte(borrowATokenBalanceAfter, borrowATokenBalanceBefore, FEES_01);
-    }
-
     function test_CryticToFoundry_29() public {
         deposit(address(0xdeadbeef), 82884843379321);
         buyCreditLimit(4305533, 0);
@@ -529,7 +510,6 @@ contract CryticToFoundry is BaseTest, TargetFunctions, SetupLocal, FoundryAssert
         setPrice(354799019315603478131068628955202262294569903751579818178515037114763646);
         _setUp2(63828, 786237, address(0x30000));
         copyLimitOrders(
-            address(0x2388d),
             -226305955988121278682556131242956794266986625152212368009729130287401915740,
             26485358679284639675051377527398819606534310692904963201271205653903680747271
         );
@@ -630,5 +610,31 @@ contract CryticToFoundry is BaseTest, TargetFunctions, SetupLocal, FoundryAssert
             1552131752024866076968664758268551688392561045176396323169143409519343661,
             false
         );
+    }
+
+    function test_CryticToFoundry_34() public {
+        deposit(address(0xdeadbeef), 131517674500638319745157882289651720);
+        deposit(address(0x0), 1380643884702402163);
+        sellCreditLimit(3654, 910562266395310398499599316921525701530215632404315429838763005448);
+        buyCreditMarket(address(0x0), 0, 3617, 633258988859755354870327498269440313237497870260514417667042464, false);
+        withdraw(address(0xdeadbeef), 36337511858728064);
+        repay(0);
+    }
+
+    function test_CryticToFoundry_35() public {
+        deposit(address(0xdeadbeef), 1055638851044691326944228290708463161739128);
+        deposit(address(0x0), 107418248651714866);
+        sellCreditLimit(3671, 119503918065355919493572781092901852805326361965670651787522708628874);
+        buyCreditMarket(
+            address(0x0), 0, 3628, 278002298894456598944414134612683733467000526625994539290377528081, false
+        );
+        withdraw(address(0xdeadbeef), 103601660404921818530);
+        setPrice(0);
+        liquidate(0, 0);
+    }
+
+    function test_CryticToFoundry_36() public {
+        deposit(address(0xdeadbeef), 1);
+        setVault(address(0x0), true);
     }
 }

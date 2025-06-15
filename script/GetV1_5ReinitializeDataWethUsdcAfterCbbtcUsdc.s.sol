@@ -28,16 +28,16 @@ contract GetV1_5ReinitializeDataWethUsdcAfterCbbtcUsdcScript is BaseScript, Netw
         string memory marketName = "base-production-weth-usdc";
         uint256 deploymentBlock = uint256(17147278);
         ISize market0 = sizeFactory.getMarket(0);
-        address borrowATokenV1_5 = address(market0.data().borrowAToken);
+        address borrowTokenVault = address(market0.data().borrowTokenVault);
 
         console.log("GetV1_5ReinitializeDataWethUsdcAfterCbbtcUsdc...");
 
         (ISize market,,) = importDeployments(marketName);
 
-        // We use .data().borrowAToken here since, before the migration, it points to the V1_2 token.
+        // We use .data().borrowTokenVault here since, before the migration, it points to the V1_2 token.
         // After the migration, it will point to the V1_5 token
         NonTransferrableScaledTokenV1_2 borrowATokenV1_2 =
-            NonTransferrableScaledTokenV1_2(address(market.data().borrowAToken));
+            NonTransferrableScaledTokenV1_2(address(market.data().borrowTokenVault));
 
         bytes32[] memory topics = new bytes32[](1);
         topics[0] = IERC20.Transfer.selector;
@@ -73,6 +73,6 @@ contract GetV1_5ReinitializeDataWethUsdcAfterCbbtcUsdcScript is BaseScript, Netw
 
         string memory networkConfiguration = string.concat(marketName, "-after-cbbtc-usdc");
 
-        exportV1_5ReinitializeData(networkConfiguration, addresses, toBlock, borrowATokenV1_5);
+        exportV1_5ReinitializeData(networkConfiguration, addresses, toBlock, borrowTokenVault);
     }
 }

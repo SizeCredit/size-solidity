@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
@@ -27,14 +30,14 @@ struct NetworkConfiguration {
     uint256 fragmentationFee;
     uint256 crOpening;
     uint256 crLiquidation;
-    uint256 minimumCreditBorrowAToken;
-    uint256 borrowATokenCap;
+    uint256 minimumCreditBorrowToken;
     PriceFeedParams priceFeedParams;
 }
 
 enum Contract {
     WETH,
     SIZE_FACTORY,
+    SIZE_GOVERNANCE,
     MORPHO_CHAINLINK_ORACLE_V2_FACTORY
 }
 
@@ -54,7 +57,11 @@ abstract contract Networks {
 
         contracts[ETHEREUM_MAINNET][Contract.SIZE_FACTORY] = 0x3A9C05c3Da48E6E26f39928653258D7D4Eb594C1;
         contracts[BASE_MAINNET][Contract.SIZE_FACTORY] = 0x330Dc31dB45672c1F565cf3EC91F9a01f8f3DF0b;
-        contracts[BASE_SEPOLIA][Contract.SIZE_FACTORY] = 0xB653e1eda8AB42ddF6B82696a4045A029D5f9d8c;
+        contracts[BASE_SEPOLIA][Contract.SIZE_FACTORY] = 0x1bC2Aa26D4F3eCD612ddC4aB2518B59E04468191;
+
+        contracts[ETHEREUM_MAINNET][Contract.SIZE_GOVERNANCE] = 0x462B545e8BBb6f9E5860928748Bfe9eCC712c3a7;
+        contracts[BASE_MAINNET][Contract.SIZE_GOVERNANCE] = 0x462B545e8BBb6f9E5860928748Bfe9eCC712c3a7;
+        contracts[BASE_SEPOLIA][Contract.SIZE_GOVERNANCE] = 0xf7164d2fC05350C75387Fa6C0Cc4F97634cA9451;
 
         contracts[ETHEREUM_MAINNET][Contract.MORPHO_CHAINLINK_ORACLE_V2_FACTORY] =
             0x3A7bB36Ee3f3eE32A60e9f2b33c1e5f2E83ad766;
@@ -72,8 +79,7 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -96,8 +102,7 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -120,8 +125,7 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -144,8 +148,7 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -168,8 +171,7 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -192,8 +194,7 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -216,8 +217,7 @@ abstract contract Networks {
                 fragmentationFee: 0.0005e18,
                 crOpening: 1.3e18,
                 crLiquidation: 1.1e18,
-                minimumCreditBorrowAToken: 0.005e18,
-                borrowATokenCap: 500e18,
+                minimumCreditBorrowToken: 0.005e18,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -240,8 +240,7 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.3e18,
                 crLiquidation: 1.1e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -475,13 +474,20 @@ abstract contract Networks {
         quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
     }
 
-    function multiSendCallOnly(string memory network) public pure returns (IMultiSendCallOnly) {
-        if (Strings.equal(network, "base-production")) {
-            return IMultiSendCallOnly(0xA1dabEF33b3B82c7814B6D82A79e50F4AC44102B);
-        } else if (Strings.equal(network, "mainnet")) {
-            return IMultiSendCallOnly(0x40A2aCCbd92BCA938b02010E17A5b8929b49130D);
-        } else {
-            revert InvalidNetworkConfiguration(network);
+    function getUnpausedMarkets(ISizeFactory _sizeFactory) public view returns (ISize[] memory markets) {
+        markets = _sizeFactory.getMarkets();
+        uint256 j = 0;
+        for (uint256 i = 0; i < markets.length; i++) {
+            if (!PausableUpgradeable(address(markets[i])).paused()) {
+                markets[j++] = markets[i];
+            }
+        }
+        _unsafeSetLength(markets, j);
+    }
+
+    function _unsafeSetLength(ISize[] memory markets, uint256 length) internal pure {
+        assembly ("memory-safe") {
+            mstore(markets, length)
         }
     }
 }

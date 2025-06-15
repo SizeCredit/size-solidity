@@ -71,8 +71,8 @@ contract SellCreditMarketTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - amount - swapFee);
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + amount);
+        assertEq(_after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance - amount - swapFee);
+        assertEq(_after.bob.borrowTokenBalance, _before.bob.borrowTokenBalance + amount);
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
         assertEq(_after.bob.debtBalance, futureValue);
     }
@@ -103,8 +103,8 @@ contract SellCreditMarketTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - amount - swapFee);
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + amount);
+        assertEq(_after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance - amount - swapFee);
+        assertEq(_after.bob.borrowTokenBalance, _before.bob.borrowTokenBalance + amount);
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
         assertEq(_after.bob.debtBalance, futureValue);
     }
@@ -136,11 +136,11 @@ contract SellCreditMarketTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertLt(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance);
-        assertGt(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);
+        assertLt(_after.candy.borrowTokenBalance, _before.candy.borrowTokenBalance);
+        assertGt(_after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance);
         assertGt(
-            _after.feeRecipient.borrowATokenBalance,
-            _before.feeRecipient.borrowATokenBalance + size.feeConfig().fragmentationFee
+            _after.feeRecipient.borrowTokenBalance,
+            _before.feeRecipient.borrowTokenBalance + size.feeConfig().fragmentationFee
         );
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
         assertEq(_after.alice.debtBalance, _before.alice.debtBalance);
@@ -177,9 +177,9 @@ contract SellCreditMarketTest is BaseTest {
         Vars memory _after = _state();
         (uint256 debtPositionsCountAfter,) = size.getPositionsCount();
 
-        assertLt(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance);
-        assertGt(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);
-        assertGt(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance);
+        assertLt(_after.candy.borrowTokenBalance, _before.candy.borrowTokenBalance);
+        assertGt(_after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance);
+        assertGt(_after.feeRecipient.borrowTokenBalance, _before.feeRecipient.borrowTokenBalance);
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
         assertEq(_after.alice.debtBalance, _before.alice.debtBalance);
         assertEq(_after.bob, _before.bob);
@@ -206,8 +206,8 @@ contract SellCreditMarketTest is BaseTest {
         Vars memory _after = _state();
         (uint256 debtPositionsCountAfter,) = size.getPositionsCount();
 
-        assertLt(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance);
-        assertGe(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);
+        assertLt(_after.candy.borrowTokenBalance, _before.candy.borrowTokenBalance);
+        assertGe(_after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance);
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
         assertEq(_after.alice.debtBalance, _before.alice.debtBalance);
         assertEq(_after.bob, _before.bob);
@@ -221,7 +221,7 @@ contract SellCreditMarketTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 12 days;
         vm.startPrank(bob);
-        uint256 apr = size.getLoanOfferAPR(alice, tenor);
+        uint256 apr = size.getUserDefinedLoanOfferAPR(alice, tenor);
         vm.expectRevert(
             abi.encodeWithSelector(
                 Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0, size.riskConfig().crOpening
@@ -235,7 +235,9 @@ contract SellCreditMarketTest is BaseTest {
                 tenor: tenor,
                 deadline: block.timestamp,
                 maxAPR: apr,
-                exactAmountIn: false
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
     }
@@ -260,7 +262,9 @@ contract SellCreditMarketTest is BaseTest {
                 tenor: tenor,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: false
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
     }
@@ -363,7 +367,7 @@ contract SellCreditMarketTest is BaseTest {
             abi.encodeWithSelector(
                 Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector,
                 amount + 1,
-                size.riskConfig().minimumCreditBorrowAToken
+                size.riskConfig().minimumCreditBorrowToken
             )
         );
         size.sellCreditMarket(
@@ -374,7 +378,9 @@ contract SellCreditMarketTest is BaseTest {
                 tenor: tenor,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: false
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -410,7 +416,7 @@ contract SellCreditMarketTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + 79.2e6);
+        assertEq(_after.bob.borrowTokenBalance, _before.bob.borrowTokenBalance + 79.2e6);
         assertEq(size.getCreditPosition(creditPositionId).lender, candy);
     }
 
@@ -436,9 +442,9 @@ contract SellCreditMarketTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + 50e6);
-        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance - 50e6 - 0.555556e6 - 5e6);
-        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + 0.555556e6 + 5e6);
+        assertEq(_after.bob.borrowTokenBalance, _before.bob.borrowTokenBalance + 50e6);
+        assertEq(_after.candy.borrowTokenBalance, _before.candy.borrowTokenBalance - 50e6 - 0.555556e6 - 5e6);
+        assertEq(_after.feeRecipient.borrowTokenBalance, _before.feeRecipient.borrowTokenBalance + 0.555556e6 + 5e6);
     }
 
     function testFuzz_SellCreditMarket_sellCreditMarket_exactAmountIn_properties(
@@ -451,7 +457,7 @@ contract SellCreditMarketTest is BaseTest {
 
         apr = bound(apr, 0, MAX_RATE);
         tenor = bound(tenor, size.riskConfig().minTenor, MAX_TENOR);
-        futureValue = bound(futureValue, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
+        futureValue = bound(futureValue, size.riskConfig().minimumCreditBorrowToken, MAX_AMOUNT_USDC);
         uint256 ratePerTenor = Math.aprToRatePerTenor(apr, tenor);
 
         _buyCreditLimit(alice, block.timestamp + tenor, YieldCurveHelper.pointCurve(tenor, int256(apr)));
@@ -464,10 +470,10 @@ contract SellCreditMarketTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - cash);
+        assertEq(_after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance - cash);
         assertEq(
-            _after.bob.borrowATokenBalance,
-            _before.bob.borrowATokenBalance + cash - Math.mulDivUp(cash, swapFeePercent, PERCENT)
+            _after.bob.borrowTokenBalance,
+            _before.bob.borrowTokenBalance + cash - Math.mulDivUp(cash, swapFeePercent, PERCENT)
         );
     }
 
@@ -484,7 +490,7 @@ contract SellCreditMarketTest is BaseTest {
 
         input.apr1 = bound(input.apr1, 0, MAX_RATE);
         input.deltaT1 = bound(input.deltaT1, size.riskConfig().minTenor, MAX_TENOR);
-        input.A1 = bound(input.A1, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
+        input.A1 = bound(input.A1, size.riskConfig().minimumCreditBorrowToken, MAX_AMOUNT_USDC);
 
         _buyCreditLimit(
             alice, block.timestamp + input.deltaT1, YieldCurveHelper.pointCurve(input.deltaT1, int256(input.apr1))
@@ -498,8 +504,8 @@ contract SellCreditMarketTest is BaseTest {
         vm.warp(block.timestamp + (input.deltaT1 - input.deltaT2));
         input.apr2 = bound(input.apr2, 0, MAX_RATE);
         local.r2 = Math.aprToRatePerTenor(input.apr2, input.deltaT2);
-        input.A2 = bound(input.A2, size.riskConfig().minimumCreditBorrowAToken, input.A1);
-        vm.assume(input.A1 - input.A2 >= size.riskConfig().minimumCreditBorrowAToken);
+        input.A2 = bound(input.A2, size.riskConfig().minimumCreditBorrowToken, input.A1);
+        vm.assume(input.A1 - input.A2 >= size.riskConfig().minimumCreditBorrowToken);
         _buyCreditLimit(
             candy, block.timestamp + input.deltaT2, YieldCurveHelper.pointCurve(input.deltaT2, int256(input.apr2))
         );
@@ -514,7 +520,9 @@ contract SellCreditMarketTest is BaseTest {
             tenor: type(uint256).max,
             deadline: block.timestamp,
             maxAPR: type(uint256).max,
-            exactAmountIn: true
+            exactAmountIn: true,
+            collectionId: RESERVED_ID,
+            rateProvider: address(0)
         });
 
         try size.getSellCreditMarketSwapData(params) returns (SellCreditMarket.SwapDataSellCreditMarket memory expected)
@@ -531,14 +539,14 @@ contract SellCreditMarketTest is BaseTest {
                     PERCENT
                 ) - fragmentationFee;
 
-                assertGe(local.V2, _after.alice.borrowATokenBalance - _before.alice.borrowATokenBalance);
-                assertEqApprox(local.V2, _after.alice.borrowATokenBalance - _before.alice.borrowATokenBalance, 1e6);
+                assertGe(local.V2, _after.alice.borrowTokenBalance - _before.alice.borrowTokenBalance);
+                assertEqApprox(local.V2, _after.alice.borrowTokenBalance - _before.alice.borrowTokenBalance, 1e6);
                 uint256 credit =
                     size.getCreditPositionsByDebtPositionId(local.debtPositionId)[input.A2 == input.A1 ? 0 : 1].credit;
                 assertEq(input.A2, credit);
 
                 assertEq(expected.creditAmountIn, input.A2);
-                assertEq(expected.cashAmountOut, _after.alice.borrowATokenBalance - _before.alice.borrowATokenBalance);
+                assertEq(expected.cashAmountOut, _after.alice.borrowTokenBalance - _before.alice.borrowTokenBalance);
                 assertGt(expected.swapFee, 0);
                 assertEq(expected.fragmentationFee, fragmentationFee);
                 assertEq(expected.tenor, input.deltaT2);
@@ -560,7 +568,7 @@ contract SellCreditMarketTest is BaseTest {
 
         apr = bound(apr, 0, MAX_RATE);
         tenor = bound(tenor, size.riskConfig().minTenor, MAX_TENOR);
-        cash = bound(cash, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
+        cash = bound(cash, size.riskConfig().minimumCreditBorrowToken, MAX_AMOUNT_USDC);
 
         _buyCreditLimit(alice, block.timestamp + tenor, YieldCurveHelper.pointCurve(tenor, int256(apr)));
 
@@ -574,8 +582,8 @@ contract SellCreditMarketTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - cash - swapFee);
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + cash);
+        assertEq(_after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance - cash - swapFee);
+        assertEq(_after.bob.borrowTokenBalance, _before.bob.borrowTokenBalance + cash);
     }
 
     function testFuzz_SellCreditMarket_sellCreditMarket_exactAmountOut_specification(
@@ -591,7 +599,7 @@ contract SellCreditMarketTest is BaseTest {
 
         input.apr1 = bound(input.apr1, 0, MAX_RATE);
         input.deltaT1 = bound(input.deltaT1, size.riskConfig().minTenor, MAX_TENOR);
-        input.A1 = bound(input.A1, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
+        input.A1 = bound(input.A1, size.riskConfig().minimumCreditBorrowToken, MAX_AMOUNT_USDC);
 
         _buyCreditLimit(
             alice, block.timestamp + input.deltaT1, YieldCurveHelper.pointCurve(input.deltaT1, int256(input.apr1))
@@ -606,7 +614,7 @@ contract SellCreditMarketTest is BaseTest {
         vm.warp(block.timestamp + (input.deltaT1 - input.deltaT2));
         input.apr2 = bound(input.apr2, 0, MAX_RATE);
         local.r2 = Math.aprToRatePerTenor(input.apr2, input.deltaT2);
-        input.V2 = bound(input.V2, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
+        input.V2 = bound(input.V2, size.riskConfig().minimumCreditBorrowToken, MAX_AMOUNT_USDC);
         _buyCreditLimit(
             candy, block.timestamp + input.deltaT2, YieldCurveHelper.pointCurve(input.deltaT2, int256(input.apr2))
         );
@@ -626,7 +634,9 @@ contract SellCreditMarketTest is BaseTest {
             tenor: type(uint256).max,
             deadline: block.timestamp,
             maxAPR: type(uint256).max,
-            exactAmountIn: false
+            exactAmountIn: false,
+            collectionId: RESERVED_ID,
+            rateProvider: address(0)
         });
 
         try size.getSellCreditMarketSwapData(params) returns (SellCreditMarket.SwapDataSellCreditMarket memory expected)
@@ -650,7 +660,7 @@ contract SellCreditMarketTest is BaseTest {
                 } else {
                     assertEqApprox(local.A2, credit, 0.00001e6);
                 }
-                assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + input.V2);
+                assertEq(_after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance + input.V2);
 
                 assertEq(expected.creditAmountIn, credit);
                 assertEq(expected.cashAmountOut, input.V2);

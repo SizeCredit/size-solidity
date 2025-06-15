@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+
 import {State} from "@src/market/SizeStorage.sol";
 
 import {AccountingLibrary} from "@src/market/libraries/AccountingLibrary.sol";
@@ -56,8 +58,8 @@ library Repay {
 
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
 
-        state.data.borrowATokenV1_5.transferFrom(msg.sender, address(this), debtPosition.futureValue);
-        debtPosition.liquidityIndexAtRepayment = state.data.borrowATokenV1_5.liquidityIndex();
+        state.data.borrowTokenVault.transferFrom(msg.sender, address(this), debtPosition.futureValue);
+        debtPosition.liquidityIndexAtRepayment = state.data.borrowTokenVault.liquidityIndex();
         state.repayDebt(params.debtPositionId, debtPosition.futureValue);
     }
 }

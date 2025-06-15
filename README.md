@@ -1,4 +1,4 @@
-# size-solidity
+# size-solidity [![Coverage Status](https://coveralls.io/repos/github/SizeCredit/size-solidity/badge.svg?branch=main)](https://coveralls.io/github/SizeCredit/size-solidity?branch=main) [![CI](https://github.com/SizeCredit/size-solidity/actions/workflows/ci.yml/badge.svg)](https://github.com/SizeCredit/size-solidity/actions/workflows/ci.yml)
 
 <a href="https://github.com/SizeLending/size-solidity/raw/main/size.png"><img src="https://github.com/SizeLending/size-solidity/raw/main/size.png" width="300" alt="Size"/></a>
 
@@ -13,6 +13,8 @@ Networks:
 
 | Date | Version | Auditor | Report |
 |------|---------|----------|---------|
+| 2025-06-06 | v1.8-rc.1 | Cantina | TBD |
+| 2025-05-26 | v1.8-rc.1 | Custodia Security | TBD |
 | 2025-02-26 | v1.7 | Cantina | [Report](./audits/2025-02-26-Cantina.pdf) |
 | 2025-02-12 | v1.6.1 | Custodia Security | [Report](./audits/2025-02-12-Custodia-Security.pdf) |
 | 2024-12-10 | v1.5.1 | ChainDefenders | [Report](./audits/2024-12-10-ChainDefenders.pdf) |
@@ -88,6 +90,28 @@ After v1.5, markets can be deployed through a `SizeFactory` contract. This contr
 
 After v1.7, the `SizeFactory` also holds the access control for all Size markets. A fallback mechanism is still used on individual markets, where roles are first checked on each deployment, and then on the factory contract. This means the administrator must take appropriate care to revoke roles both on the factory and on individual markets in case of a privilege de-escalation scenario. The benefit of this approach is that existing markets will continue to work as usual even if all accounts have not been granted roles on the SizeFactory contract. Note: This change allows the factory access control to act on behalf of a role (e.g., pause a market) but does not grant it the ability to manage roles (grant/revoke). Role management in `AccessControl`'s for market is strictly governed by the market-scoped `DEFAULT_ADMIN_ROLE`, which is not overridden by the factory access control, which means, if the admin revokes his role with `renounceRole`, it may not be able to revoke other roles later.
 
+#### Copy trading
+
+In Size v1.6.1, a `copyLimitOrders` function was introduced so that users could copy other users' limit orders. The feature behaved as follows:
+
+- Users could copy borrow/loan offers from other users
+- Users could copy both or a single offer from a single address
+- Users could specify safeguards per copied curve:
+  - min/max APR (safety envelope): if the calculated APR fell outside of this range, the min/max would be used instead
+  - min/max tenor: if the requested tenor went outside of this range, the market order would revert
+- Users could specify offset APRs to be applied to the curves
+- Once a copy offer was set, the user's own offers would be ignored, even if they updated them. Copy offers had precedence until erased (setting them to null/default values)
+
+As an additional safety measure against inverted curves, market orders checked that the borrow offer was lower than the user's loan offer for a given tenor. This did not prevent the copy address from changing curves in a single multicall transaction and bypassing this check.
+
+Notes:
+
+1. Copying another account's limit orders introduced the risk of them placing suboptimal rates and executing market orders against delegators, incurring monetary losses. Only trusted addresses should be copied.
+2. The max/min parameters from the `copyLimitOrder` method were not a global max/min for the user-defined limit orders; they were specific to copy offers. Once the copy address offer was no longer valid, max/min guards for mismatched curves would not be applied. The only reason to stop market orders was in the event of "self arbitrage," i.e., for a given tenor, when the borrow curve >= lending curve, since these users could be drained by an attacker by borrowing high and lending low in a single transaction.
+3. The offset APR parameters were not validated and could cause market orders to revert depending on the final APR result.
+
+After v1.8, the `CollectionsManager` core contract was introduced, which superseded the copy trading feature, making some of the previous behavior changed. See the corresponding section further down below for more information.
+
 #### Authorization
 
 Users can authorize other operator accounts to perform specific actions or any action on their behalf on any market (per chain) through a new `setAuthorization` method called on the `SizeFactory` introduced in v1.7. This enables users to delegate all Size functionalities to third parties, enabling more complex strategies and automations.
@@ -117,25 +141,47 @@ A non-exhaustive list of the risks of improper authorization includes:
 
 Because of the related risks, a recommended pattern is to authorize pre-vetted smart contracts in the beginning of a `multicall` operation, and revoke the authorization at the end of it. This way, the strategy contract will not hold any funds or credit on behalf of the user, and will be only responsible for specific actions during a limited time.
 
-#### Copy trading
+#### Custom vaults
 
-Since Size v1.6.1, users can copy other users' limit orders.
+Since v1.8, users can select variable pools in addition to Aave to deposit underlying borrow tokens to earn variable yield while their limit orders on the orderbook remain unmatched. This can be done through the `setUserConfiguration` call, which introduces a new `vault` parameter (a breaking change from the previous version). This parameter is used to `setVault` on the `NonTransferrableRebasingTokenVault` contract (e.g., svUSDC), an upgrade from the previous `NonTransferrableScaledTokenV1_5` (e.g., saUSDC) introduced in v1.5. If not set, the default vault is Aave.
 
-- Users can copy borrow/loan offers from other users
-- Users can copy both or a single offer from a single address
-- Users can specify safeguards per copied curve:
-  - min/max APR (safety envelope): if the calculated APR falls outside of this range, the min/max is used instead
-  - min/max tenor: if the requested tenor goes outside of this range, the market order reverts
-- Users can specify offset APRs to be applied to the curves
-- Once a copy offer is set, the user's own offers should be ignored, even if they update them. Copy offers have precedence until erased (setting them to null/default vales)
+The token vault contract is a "vault of vaults" in a sense, a non-transferrable rebasing ERC-20 token that takes underlying tokens from users and deposits them into different vaults. Vaults are whitelisted by the admin, who must confirm these are non-malicious and ERC4626 compatible. In the event where a vault is compromised, only users adopting that vault should be affected (market order reverts, balances unreliable, etc.), and the rest of the protocol should function without issues.
 
-As an additional safety measure against inverted curves, market orders check that the borrow offer is lower than the user's loan offer for a given tenor. This does not prevent the copy address from changing curves in a single multicall transaction and bypassing this check.
+To keep accounting in check, several mappings are : from user to vault, from user to vault shares, and from vault to adapter. Currently, only two adapters are supported through a ["strategy" design pattern](https://refactoring.guru/design-patterns/strategy): `AaveAdapter` and `ERC4626Adapter`. Adapters must implement the `IAdapter` interface (deposit, withdraw, balanceOf, etc.). In the future, other adapters may be introduced by the admin.
 
-Notes
+In some cases, [withdrawing from the vault may leave "dust" shares](https://slowmist.medium.com/slowmist-aave-v2-security-audit-checklist-0d9ef442436b#5aed) with the user, which are then burned so that they do not roll over during a vault change. These dust shares are tracked in a specific-purpose mapping, and can be used by the admin if needed.
 
-1. Copying another account's limit orders introduces the risk of them placing suboptimal rates and executing market orders against delegators, incurring monetary losses. Only trusted addresses should be copied.
-2. The max/min params from the `copyLimitOrder` method are not global max/min for the user-defined limit orders; they are specific to copy offers. Once the copy address offer is no longer valid, max/min guards for mismatched curves will not be applied. The only reason to stop market orders is in the event of "self arbitrage," i.e., for a given tenor, when the borrow curve >= lending curve, since these users could be drained by an attacker by borrowing high and lending low in a single transaction.
-3. The offset APR parameters are not validated and can cause market orders reverts depending on the final APR result
+Since there can be an unlimited number of whitelisted vaults, the amount of underlying held by `NonTransferrableRebasingTokenVault` cannot be computed in constant time, so  `totalSupply` loops ver all vaults to calculate the underlying sum. Because of that, it SHOULD NOT be used onchain. In addition, due to the rounding of scaled/shares accounting, the invariant `SUM(balanceOf) == totalSupply()` may not hold true. However, we should still have `SUM(balanceOf) <= totalSupply()`, since `balanceOf` rounds down, and also to guarantee the solvency of the protocol.
+
+#### Collections, curators and rate providers
+
+Since Size v1.8, collections of markets, curators and rate providers are core entities of the ecosystem. This superseedes the previous `copyLimitOrders` feature from v1.6.1, but with more functionality:
+
+- A *collection* is a set of markets grouped under a curator.
+- A *Curator* defines *rate providers* (RPs) for each market, which sets yield curves and competes in pricing credit.
+- Collections are defined on-chain. Updates made by curators are automatically reflected across all subscribed users without backend or user intervention, since users' yield curves are just pointers.
+- When a curator updates the RP for a market, all users subscribed to that collection inherit the new configuration.
+- Delegation logic remains under the control of curators, not rate providers, ensuring curators can update or reassign markets freely. In a sense, a curator "owns" the liquidity of users subscribing to their collections. If a RP is not performing well, they can be replaced without compromise to the curator.
+- Each market may support multiple rate providers. When overlapping offers exist, market order "takers" can pick the best available rate to them (e.g., lowest loan offer APR during a sell credit market order).
+- Curators can define copy limit order configurations, which include safeguard parameters for each market (min/max APR, min/max tenor), along with an offset APR that shifts the result of the yield curve linear interpolation.
+- These copy limit order configurations apply when the user has not defined their own.
+- Users can also define their own yield curves and safeguards at the market level. If set, these take precedence over curator defaults.
+- If users want to rely exclusively on curator-defined curves, they must explicitly unset their own limit orders (changed behavior from v1.6).
+- Users now support multiple yield curves per market, one per collection they are subscribed to, plus an optional personal configuration.
+- Curators can transfer ownership of their collections.
+- Since users can subscribe to multiple collections, each with potentially many rate providers, the "borrow offer should be lower than loan offer" check now has O(C × R) complexity, where C is the number of collections and R is the number of rate providers. Users should avoid subscribing to too many collections or collections with excessive rate providers, as this may cause market orders to revert due to high gas usage.
+- A rate provider in any market belonging to any collection can prevent all subscribed users from market orders if they set the borrow offer APR greater than or equal to the lend offer APR.
+
+##### Breaking changes
+
+- Copy trading behavior was updated: rate providers' limit orders no longer take precedence over a user's own yield curve.
+- During reinitialization:
+  - All users who previously used the `copyLimitOrder` feature are now subscribed to a new collection that mirrors the rate provider they had copied.
+  - Their existing limit orders are cleared, since these may now be used by the taker side of a market order.
+  - By default, market orders now select the user-defined yield curve. Since migrated users will have no personal curve set, market orders will revert unless integrators pass an explicit collection parameter.
+- To indicate "no copy," users should pass a `CopyLimitOrderConfig` with all fields set to null except `offsetAPR`. Passing zero min/max bounds will cause reverts—even if the curator has configured valid bounds.
+- For the sake of clarity, `getLoanOfferAPR` and `getBorrowOfferAPR` on the `SizeView` contract were renamed to `getUserDefinedLoanOfferAPR` and `getUserDefinedBorrowOfferAPR` to be explicit about whether the yield curve is from a rate provider or from the user themselves.
+- Some infrequently utilized `SizeView` functions were removed to make room for the additional `WithCollection` functions and not break the max contract size limit.
 
 ## Test
 
@@ -143,177 +189,6 @@ Notes
 forge install
 forge test
 ```
-
-## Coverage
-
-```bash
-yarn coverage
-```
-
-<!-- BEGIN_COVERAGE -->
-### FIles
-
-```markdown
-| File                                                                    | % Lines            | % Statements       | % Branches       | % Funcs          |
-+=========================================================================================================================================================+
-| src/factory/SizeFactory.sol                                             | 100.00% (60/60)    | 100.00% (50/50)    | 100.00% (6/6)    | 100.00% (13/13)  |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/factory/SizeFactoryOffchainGetters.sol                              | 100.00% (23/23)    | 100.00% (27/27)    | 100.00% (2/2)    | 100.00% (6/6)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/factory/libraries/Authorization.sol                                 | 100.00% (18/18)    | 100.00% (21/21)    | 100.00% (0/0)    | 100.00% (7/7)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/factory/libraries/MarketFactoryLibrary.sol                          | 100.00% (3/3)      | 100.00% (3/3)      | 100.00% (0/0)    | 100.00% (1/1)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/factory/libraries/NonTransferrableScaledTokenV1_5FactoryLibrary.sol | 100.00% (2/2)      | 100.00% (1/1)      | 100.00% (0/0)    | 100.00% (1/1)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/factory/libraries/PriceFeedFactoryLibrary.sol                       | 100.00% (2/2)      | 100.00% (1/1)      | 100.00% (0/0)    | 100.00% (1/1)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/Size.sol                                                     | 100.00% (125/125)  | 100.00% (93/93)    | 100.00% (11/11)  | 100.00% (37/37)  |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/SizeView.sol                                                 | 100.00% (49/49)    | 100.00% (44/44)    | 100.00% (1/1)    | 100.00% (23/23)  |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/AccountingLibrary.sol                              | 96.81% (91/94)     | 96.88% (93/96)     | 86.96% (20/23)   | 100.00% (12/12)  |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/CapsLibrary.sol                                    | 93.33% (14/15)     | 93.33% (14/15)     | 75.00% (3/4)     | 100.00% (3/3)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/DepositTokenLibrary.sol                            | 100.00% (14/14)    | 100.00% (10/10)    | 100.00% (0/0)    | 100.00% (4/4)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/LoanLibrary.sol                                    | 97.44% (38/39)     | 97.83% (45/46)     | 93.33% (14/15)   | 100.00% (8/8)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/Math.sol                                           | 100.00% (23/23)    | 100.00% (25/25)    | 100.00% (5/5)    | 100.00% (6/6)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/Multicall.sol                                      | 100.00% (11/11)    | 100.00% (16/16)    | 100.00% (0/0)    | 100.00% (1/1)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/OfferLibrary.sol                                   | 100.00% (52/52)    | 100.00% (67/67)    | 100.00% (14/14)  | 100.00% (10/10)  |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/RiskLibrary.sol                                    | 97.06% (33/34)     | 97.83% (45/46)     | 83.33% (5/6)     | 100.00% (9/9)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/YieldCurveLibrary.sol                              | 97.44% (38/39)     | 98.25% (56/57)     | 93.33% (14/15)   | 100.00% (4/4)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/actions/BuyCreditLimit.sol                         | 100.00% (13/13)    | 100.00% (11/11)    | 100.00% (2/2)    | 100.00% (2/2)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/actions/BuyCreditMarket.sol                        | 100.00% (66/66)    | 100.00% (73/73)    | 100.00% (19/19)  | 100.00% (3/3)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/actions/Claim.sol                                  | 100.00% (13/13)    | 100.00% (16/16)    | 100.00% (2/2)    | 100.00% (2/2)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/actions/Compensate.sol                             | 100.00% (45/45)    | 100.00% (46/46)    | 100.00% (9/9)    | 100.00% (2/2)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/actions/CopyLimitOrders.sol                        | 100.00% (30/30)    | 100.00% (27/27)    | 100.00% (12/12)  | 100.00% (2/2)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/actions/Deposit.sol                                | 100.00% (32/32)    | 100.00% (30/30)    | 100.00% (9/9)    | 100.00% (2/2)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/actions/Initialize.sol                             | 100.00% (86/86)    | 100.00% (77/77)    | 100.00% (20/20)  | 100.00% (11/11)  |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/actions/Liquidate.sol                              | 100.00% (32/32)    | 100.00% (38/38)    | 100.00% (5/5)    | 100.00% (3/3)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/actions/LiquidateWithReplacement.sol               | 100.00% (35/35)    | 100.00% (41/41)    | 100.00% (6/6)    | 100.00% (3/3)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/actions/PartialRepay.sol                           | 100.00% (19/19)    | 100.00% (21/21)    | 100.00% (4/4)    | 100.00% (2/2)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/actions/Repay.sol                                  | 100.00% (11/11)    | 100.00% (11/11)    | 100.00% (2/2)    | 100.00% (2/2)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/actions/SelfLiquidate.sol                          | 100.00% (24/24)    | 100.00% (27/27)    | 100.00% (4/4)    | 100.00% (2/2)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/actions/SellCreditLimit.sol                        | 100.00% (13/13)    | 100.00% (11/11)    | 100.00% (2/2)    | 100.00% (2/2)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/actions/SellCreditMarket.sol                       | 100.00% (60/60)    | 100.00% (64/64)    | 100.00% (18/18)  | 100.00% (3/3)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/actions/SetUserConfiguration.sol                   | 100.00% (22/22)    | 100.00% (27/27)    | 100.00% (3/3)    | 100.00% (2/2)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/actions/UpdateConfig.sol                           | 100.00% (53/53)    | 100.00% (51/51)    | 100.00% (32/32)  | 100.00% (5/5)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/libraries/actions/Withdraw.sol                               | 100.00% (26/26)    | 100.00% (24/24)    | 100.00% (8/8)    | 100.00% (2/2)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/token/NonTransferrableScaledTokenV1_5.sol                    | 100.00% (90/90)    | 100.00% (87/87)    | 100.00% (8/8)    | 100.00% (20/20)  |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/market/token/NonTransferrableToken.sol                              | 100.00% (19/19)    | 100.00% (13/13)    | 100.00% (1/1)    | 100.00% (8/8)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/oracle/adapters/ChainlinkPriceFeed.sol                              | 100.00% (25/25)    | 100.00% (39/39)    | 100.00% (9/9)    | 100.00% (3/3)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/oracle/adapters/ChainlinkSequencerUptimeFeed.sol                    | 100.00% (9/9)      | 100.00% (11/11)    | 100.00% (3/3)    | 100.00% (2/2)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/oracle/adapters/UniswapV3PriceFeed.sol                              | 100.00% (29/29)    | 100.00% (40/40)    | 100.00% (5/5)    | 100.00% (2/2)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/oracle/adapters/morpho/MorphoPriceFeed.sol                          | 0.00% (0/15)       | 0.00% (0/23)       | 0.00% (0/3)      | 0.00% (0/2)      |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/oracle/v1.5.1/PriceFeed.sol                                         | 100.00% (18/18)    | 100.00% (16/16)    | 100.00% (2/2)    | 100.00% (6/6)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/oracle/v1.5.2/PriceFeedChainlinkUniswapV3TWAPx2.sol                 | 0.00% (0/13)       | 0.00% (0/13)       | 0.00% (0/2)      | 0.00% (0/3)      |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/oracle/v1.5.2/PriceFeedUniswapV3TWAPChainlink.sol                   | 100.00% (11/11)    | 100.00% (12/12)    | 100.00% (0/0)    | 100.00% (3/3)    |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/oracle/v1.5.3/PriceFeedUniswapV3TWAP.sol                            | 0.00% (0/8)        | 0.00% (0/7)        | 100.00% (0/0)    | 0.00% (0/3)      |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/oracle/v1.6.2/PriceFeedMorpho.sol                                   | 0.00% (0/8)        | 0.00% (0/7)        | 100.00% (0/0)    | 0.00% (0/3)      |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/oracle/v1.7.1/PriceFeedMorphoChainlinkOracleV2.sol                  | 0.00% (0/9)        | 0.00% (0/8)        | 0.00% (0/1)      | 0.00% (0/3)      |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/oracle/v1.7.1/PriceFeedPendleSparkLinearDiscountChainlink.sol       | 0.00% (0/18)       | 0.00% (0/23)       | 0.00% (0/1)      | 0.00% (0/3)      |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| src/oracle/v1.7.2/PriceFeedPendleTWAPChainlink.sol                      | 0.00% (0/18)       | 0.00% (0/24)       | 0.00% (0/1)      | 0.00% (0/3)      |
-|-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
-| Total                                                                   | 93.48% (1377/1473) | 92.71% (1424/1536) | 94.92% (280/295) | 92.31% (240/260) |
-╰-------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------╯
-```
-
-### Tests per file
-
-```markdown
-┌──────────────────────────────────────┬────────┐
-│ (index)                              │ Values │
-├──────────────────────────────────────┼────────┤
-│ AuthorizationBuyCreditLimit          │ 2      │
-│ AuthorizationBuyCreditMarket         │ 2      │
-│ AuthorizationCompensate              │ 2      │
-│ AuthorizationCopyLimitOrders         │ 2      │
-│ AuthorizationDeposit                 │ 4      │
-│ AuthorizationRevokeAllAuthorizations │ 1      │
-│ AuthorizationSelfLiquidate           │ 2      │
-│ AuthorizationSellCreditLimit         │ 2      │
-│ AuthorizationSellCreditMarket        │ 2      │
-│ AuthorizationSetAuthorization        │ 9      │
-│ AuthorizationSetUserConfiguration    │ 2      │
-│ AuthorizationWithdraw                │ 2      │
-│ BuyCreditLimit                       │ 4      │
-│ BuyCreditMarket                      │ 10     │
-│ ChainlinkPriceFeed                   │ 8      │
-│ ChainlinkSequencerUptimeFeed         │ 2      │
-│ Claim                                │ 10     │
-│ Compensate                           │ 21     │
-│ CopyLimitOrders                      │ 16     │
-│ CryticToFoundry                      │ 31     │
-│ Deposit                              │ 5      │
-│ GenericMarket                        │ 20     │
-│ Initialize                           │ 4      │
-│ LiquidateWithReplacement             │ 6      │
-│ Liquidate                            │ 12     │
-│ Math                                 │ 6      │
-│ Multicall                            │ 10     │
-│ NonTransferrableScaledTokenV1        │ 21     │
-│ NonTransferrableToken                │ 8      │
-│ OfferLibrary                         │ 1      │
-│ PartialRepay                         │ 4      │
-│ Pause                                │ 2      │
-│ PriceFeedUniswapV3TWAPChainlink      │ 3      │
-│ PriceFeed                            │ 9      │
-│ ReinitializeV1                       │ 5      │
-│ Repay                                │ 7      │
-│ SelfLiquidate                        │ 10     │
-│ SellCreditLimit                      │ 5      │
-│ SellCreditMarket                     │ 13     │
-│ SetUserConfiguration                 │ 3      │
-│ SizeFactoryReinitializeV1            │ 5      │
-│ SizeFactory                          │ 15     │
-│ SizeView                             │ 5      │
-│ SwapData                             │ 3      │
-│ UniswapV3PriceFeed                   │ 5      │
-│ UpdateConfig                         │ 7      │
-│ Upgrade                              │ 2      │
-│ Withdraw                             │ 9      │
-│ YieldCurve                           │ 15     │
-└──────────────────────────────────────┴────────┘
-```
-<!-- END_COVERAGE -->
 
 ## Protocol invariants
 

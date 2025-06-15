@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/market/libraries/LoanLibrary.sol";
 import {Math} from "@src/market/libraries/Math.sol";
 
@@ -52,9 +54,9 @@ library Claim {
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         uint256 claimAmount = Math.mulDivDown(
-            creditPosition.credit, state.data.borrowATokenV1_5.liquidityIndex(), debtPosition.liquidityIndexAtRepayment
+            creditPosition.credit, state.data.borrowTokenVault.liquidityIndex(), debtPosition.liquidityIndexAtRepayment
         );
         state.reduceCredit(params.creditPositionId, creditPosition.credit);
-        state.data.borrowATokenV1_5.transferFrom(address(this), creditPosition.lender, claimAmount);
+        state.data.borrowTokenVault.transferFrom(address(this), creditPosition.lender, claimAmount);
     }
 }

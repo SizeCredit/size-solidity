@@ -8,12 +8,6 @@ import {Action, ActionsBitmap} from "@src/factory/libraries/Authorization.sol";
 /// @author Size (https://size.credit/)
 /// @notice The interface for the size factory v1.7
 interface ISizeFactoryV1_7 {
-    /// @notice Reinitialize the size factory
-    ///         In production, the factory will be configured as an `Ownable2StepUpgradeable` contract
-    ///         This function will be called by the owner to set `AccessControlUpgradeable` roles and transfer ownership to the zero address
-    ///         This function can only be called once
-    function reinitialize() external;
-
     /// @notice Set the authorization for an action for an `operator` account to perform on behalf of the `msg.sender` account
     /// @param operator The operator account
     /// @param actionsBitmap The actions bitmap
