@@ -163,7 +163,7 @@ Since Size v1.8, collections of markets, curators and rate providers are core en
 - When a curator updates the RP for a market, all users subscribed to that collection inherit the new configuration.
 - Delegation logic remains under the control of curators, not rate providers, ensuring curators can update or reassign markets freely. In a sense, a curator "owns" the liquidity of users subscribing to their collections. If a RP is not performing well, they can be replaced without compromise to the curator.
 - Each market may support multiple rate providers. When overlapping offers exist, market order "takers" can pick the best available rate to them (e.g., lowest loan offer APR during a sell credit market order).
-- Curators can define copy limit order configurations, which includes safeguard parameters for each market (min/max APR, min/max tenor), in addition to an offset APR, which is applied at end of the yield curve linear interpolation.
+- Curators can define copy limit order configurations, which include safeguard parameters for each market (min/max APR, min/max tenor), along with an offset APR that shifts the result of the yield curve linear interpolation.
 - These copy limit order configurations apply when the user has not defined their own.
 - Users can also define their own yield curves and safeguards at the market level. If set, these take precedence over curator defaults.
 - If users want to rely exclusively on curator-defined curves, they must explicitly unset their own limit orders (changed behavior from v1.6).
