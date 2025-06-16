@@ -14,6 +14,7 @@ import {console} from "forge-std/console.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {Properties} from "@test/invariants/Properties.sol";
 
+import {ERC4626 as ERC4626OpenZeppelin} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
 import {ERC4626 as ERC4626Solady} from "@solady/src/tokens/ERC4626.sol";
 
 abstract contract ExpectedErrors is Deploy, Properties {
@@ -40,6 +41,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
     constructor() {
         // VAULT_ERRORS
         VAULT_ERRORS.push(ERC4626Solady.WithdrawMoreThanMax.selector);
+        VAULT_ERRORS.push(ERC4626OpenZeppelin.ERC4626ExceededMaxWithdraw.selector);
         VAULT_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         VAULT_ERRORS.push(bytes4(keccak256("Error(string)"))); // ZERO_ASSETS / ZERO_SHARES from ERC4626Solmate
         VAULT_ERRORS.push(IAdapter.InsufficientAssets.selector);
