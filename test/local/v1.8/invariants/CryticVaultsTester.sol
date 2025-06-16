@@ -6,141 +6,60 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 import {CryticAsserts} from "@chimera/CryticAsserts.sol";
 import {vm} from "@chimera/Hevm.sol";
 
-import {NonTransferrableScaledTokenV1} from "@deprecated/token/NonTransferrableScaledTokenV1.sol";
-import {NonTransferrableScaledTokenV1_2} from "@deprecated/token/NonTransferrableScaledTokenV1_2.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
-import {INonTransferrableScaledTokenCall} from
-    "@test/local/token/differential/interfaces/INonTransferrableScaledTokenCall.sol";
-import {INonTransferrableScaledTokenStaticcall} from
-    "@test/local/token/differential/interfaces/INonTransferrableScaledTokenStaticcall.sol";
+
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {ERC4626 as ERC4626OpenZeppelin} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
+
+import {Deploy} from "@script/Deploy.sol";
+import {SetupLocal} from "@test/invariants/SetupLocal.sol";
 import {SimplePool} from "@test/local/token/differential/mocks/SimplePool.sol";
 import {USDC} from "@test/mocks/USDC.sol";
+import {MaliciousERC4626ReentrancyGeneric} from "@test/mocks/vaults/MaliciousERC4626ReentrancyGeneric.sol";
+
+import {DepositParams} from "@src/market/libraries/actions/Deposit.sol";
+import {WithdrawParams} from "@src/market/libraries/actions/Withdraw.sol";
 
 // echidna . --contract CryticVaultsTester --config echidna.yaml
 // medusa fuzz
-contract CryticVaultsTester is CryticAsserts {
+contract CryticVaultsTester is CryticAsserts, Deploy, SetupLocal {
     string private constant ERROR = "ERROR";
 
-    NonTransferrableScaledTokenV1 private v1;
-    NonTransferrableScaledTokenV1_2 private v1_2;
-    USDC private underlying;
-    IPool private pool;
+    NonTransferrableRebasingTokenVault private borrowTokenVault;
 
     constructor() {
-        underlying = new USDC(address(this));
-        pool = IPool(address(new SimplePool()));
-        v1 = new NonTransferrableScaledTokenV1(
-            pool,
-            IERC20Metadata(underlying),
-            msg.sender,
-            string.concat(underlying.name(), " Test"),
-            string.concat(underlying.symbol(), " TEST"),
-            underlying.decimals()
-        );
-        v1_2 = new NonTransferrableScaledTokenV1_2(
-            pool,
-            IERC20Metadata(underlying),
-            msg.sender,
-            string.concat(underlying.name(), " Test"),
-            string.concat(underlying.symbol(), " TEST"),
-            underlying.decimals()
-        );
+        setup();
+
+        borrowTokenVault = size.data().borrowTokenVault;
+
+        borrowTokenVault.setVaultAdapter(address(vaultMaliciousReentrancyGeneric), bytes32("ERC4626Adapter"));
+        MaliciousERC4626ReentrancyGeneric(address(vaultMaliciousReentrancyGeneric)).setSize(size);
+        MaliciousERC4626ReentrancyGeneric(address(vaultMaliciousReentrancyGeneric)).setOnBehalfOf(USER2);
     }
 
-    // Helper function for regular calls
-    function callFunction(address target1, address target2, bytes memory data) internal {
+    function approve(address _token, uint256 _amount) public {
         vm.prank(msg.sender);
-        (bool success1, bytes memory result1) = target1.call(data);
+        IERC20Metadata(_token).approve(address(size), _amount);
+    }
 
+    function deposit(address _token, uint256 _amount, address _to) public {
         vm.prank(msg.sender);
-        (bool success2, bytes memory result2) = target2.call(data);
-
-        t(success1 == success2, ERROR);
-        if (success1) {
-            t(keccak256(result1) == keccak256(result2), ERROR);
-        }
+        size.deposit(DepositParams({token: _token, amount: _amount, to: _to}));
     }
 
-    function staticCallFunction(address target1, address target2, bytes memory data) internal {
+    function withdraw(address _token, uint256 _amount, address _to) public {
         vm.prank(msg.sender);
-        (bool success1, bytes memory result1) = target1.staticcall(data);
-
-        vm.prank(msg.sender);
-        (bool success2, bytes memory result2) = target2.staticcall(data);
-
-        t(success1 == success2, ERROR);
-        if (success1) {
-            t(keccak256(result1) == keccak256(result2), ERROR);
-        }
+        size.withdraw(WithdrawParams({token: _token, amount: _amount, to: _to}));
     }
 
-    function mintScaled(address to, uint256 scaledAmount) external {
-        callFunction(
-            address(v1), address(v1_2), abi.encodeCall(INonTransferrableScaledTokenCall.mintScaled, (to, scaledAmount))
-        );
+    function transferFrom(address _from, address _to, uint256 _amount) public {
+        vm.prank(address(size));
+        borrowTokenVault.transferFrom(_from, _to, _amount);
     }
 
-    function burnScaled(address from, uint256 scaledAmount) external {
-        callFunction(
-            address(v1),
-            address(v1_2),
-            abi.encodeCall(INonTransferrableScaledTokenCall.burnScaled, (from, scaledAmount))
-        );
-    }
-
-    function transferFrom(address from, address to, uint256 value) external {
-        callFunction(
-            address(v1), address(v1_2), abi.encodeCall(INonTransferrableScaledTokenCall.transferFrom, (from, to, value))
-        );
-    }
-
-    function transfer(address to, uint256 value) external {
-        callFunction(address(v1), address(v1_2), abi.encodeCall(INonTransferrableScaledTokenCall.transfer, (to, value)));
-    }
-
-    function approve(address spender, uint256 value) external {
-        callFunction(
-            address(v1), address(v1_2), abi.encodeCall(INonTransferrableScaledTokenCall.approve, (spender, value))
-        );
-    }
-
-    function allowance(address owner, address spender) external {
-        staticCallFunction(
-            address(v1),
-            address(v1_2),
-            abi.encodeCall(INonTransferrableScaledTokenStaticcall.allowance, (owner, spender))
-        );
-    }
-
-    function scaledBalanceOf(address account) external {
-        staticCallFunction(
-            address(v1),
-            address(v1_2),
-            abi.encodeCall(INonTransferrableScaledTokenStaticcall.scaledBalanceOf, (account))
-        );
-    }
-
-    function balanceOf(address account) external {
-        staticCallFunction(
-            address(v1), address(v1_2), abi.encodeCall(INonTransferrableScaledTokenStaticcall.balanceOf, (account))
-        );
-    }
-
-    function scaledTotalSupply() external {
-        staticCallFunction(
-            address(v1), address(v1_2), abi.encodeCall(INonTransferrableScaledTokenStaticcall.scaledTotalSupply, ())
-        );
-    }
-
-    function totalSupply() external {
-        staticCallFunction(
-            address(v1), address(v1_2), abi.encodeCall(INonTransferrableScaledTokenStaticcall.totalSupply, ())
-        );
-    }
-
-    function liquidityIndex() external {
-        staticCallFunction(
-            address(v1), address(v1_2), abi.encodeCall(INonTransferrableScaledTokenStaticcall.liquidityIndex, ())
-        );
+    function setVault(address _user, address _vault, bool _forfeitOldShares) public {
+        vm.prank(address(size));
+        borrowTokenVault.setVault(_user, _vault, _forfeitOldShares);
     }
 }

@@ -17,7 +17,17 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
 
     address public constant INVALID_VAULT = address(type(uint160).max);
 
-    error InvariantViolated(
+    event InvariantViolatedEvent(
+        string property,
+        uint256 sharesOfBefore,
+        uint256 sharesOfAfter,
+        address vaultOfBefore,
+        address vaultOfAfter,
+        uint256 countSetVaultOf,
+        uint256 countSetSharesOf
+    );
+
+    error InvariantViolatedError(
         string property,
         uint256 sharesOfBefore,
         uint256 sharesOfAfter,
@@ -59,15 +69,7 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
             _before[user].shareOf > 0 && _before[user].vaultOf != _after[user].vaultOf
                 && (countSetVaultOf != 1 || countSetSharesOf == 0)
         ) {
-            revert InvariantViolated(
-                VAULTS_02,
-                _before[user].shareOf,
-                _after[user].shareOf,
-                _before[user].vaultOf,
-                _after[user].vaultOf,
-                countSetVaultOf,
-                countSetSharesOf
-            );
+            _checkInvariant(user);
         }
     }
 
@@ -88,17 +90,7 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
 
         __after(to);
 
-        if (_before[to].vaultOf != _after[to].vaultOf) {
-            revert InvariantViolated(
-                VAULTS_04,
-                _before[to].shareOf,
-                _after[to].shareOf,
-                _before[to].vaultOf,
-                _after[to].vaultOf,
-                countSetVaultOf,
-                countSetSharesOf
-            );
-        }
+        _checkInvariant(to);
     }
 
     function withdraw(address from, address to, uint256 amount)
@@ -116,19 +108,8 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
         __after(from);
         __after(to);
 
-        if (_before[from].vaultOf != _after[from].vaultOf || _before[to].vaultOf != _after[to].vaultOf) {
-            revert InvariantViolated(
-                VAULTS_04,
-                _before[from].shareOf,
-                _after[from].shareOf,
-                _before[from].vaultOf,
-                _after[from].vaultOf,
-                countSetVaultOf,
-                countSetSharesOf
-            );
-        }
-
-        return assets;
+        _checkInvariant(from);
+        _checkInvariant(to);
     }
 
     function fullWithdraw(address from, address to)
@@ -146,17 +127,8 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
         __after(from);
         __after(to);
 
-        if (_before[from].vaultOf != _after[from].vaultOf || _before[to].vaultOf != _after[to].vaultOf) {
-            revert InvariantViolated(
-                VAULTS_04,
-                _before[from].shareOf,
-                _after[from].shareOf,
-                _before[from].vaultOf,
-                _after[from].vaultOf,
-                countSetVaultOf,
-                countSetSharesOf
-            );
-        }
+        _checkInvariant(from);
+        _checkInvariant(to);
     }
 
     function transferFrom(address from, address to, uint256 amount)
@@ -174,13 +146,28 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
         __after(from);
         __after(to);
 
-        if (_before[from].vaultOf != _after[from].vaultOf || _before[to].vaultOf != _after[to].vaultOf) {
-            revert InvariantViolated(
+        _checkInvariant(from);
+        _checkInvariant(to);
+    }
+
+    function _checkInvariant(address account) internal {
+        if (_before[account].vaultOf != _after[account].vaultOf) {
+            emit InvariantViolatedEvent(
                 VAULTS_04,
-                _before[from].shareOf,
-                _after[from].shareOf,
-                _before[from].vaultOf,
-                _after[from].vaultOf,
+                _before[account].shareOf,
+                _after[account].shareOf,
+                _before[account].vaultOf,
+                _after[account].vaultOf,
+                countSetVaultOf,
+                countSetSharesOf
+            );
+            assert(false);
+            revert InvariantViolatedError(
+                VAULTS_04,
+                _before[account].shareOf,
+                _after[account].shareOf,
+                _before[account].vaultOf,
+                _after[account].vaultOf,
                 countSetVaultOf,
                 countSetSharesOf
             );

@@ -19,6 +19,7 @@ contract MaliciousERC4626ReentrancyGeneric is ERC4626, Ownable {
     ISize public size;
     bytes4 public operation;
     bool public forfeitOldShares;
+    address public onBehalfOf;
 
     constructor(IERC20 underlying_, string memory name_, string memory symbol_)
         ERC4626(underlying_)
@@ -32,6 +33,10 @@ contract MaliciousERC4626ReentrancyGeneric is ERC4626, Ownable {
 
     function setForfeitOldShares(bool _forfeitOldShares) external onlyOwner {
         forfeitOldShares = _forfeitOldShares;
+    }
+
+    function setOnBehalfOf(address _onBehalfOf) external onlyOwner {
+        onBehalfOf = _onBehalfOf;
     }
 
     function setOperation(bytes4 _operation) external onlyOwner {
@@ -52,21 +57,21 @@ contract MaliciousERC4626ReentrancyGeneric is ERC4626, Ownable {
                         amount: IERC20(asset()).balanceOf(address(this)),
                         to: address(this)
                     }),
-                    onBehalfOf: owner()
+                    onBehalfOf: onBehalfOf
                 })
             );
         } else if (operation == ISizeV1_7.withdrawOnBehalfOf.selector) {
             size.withdrawOnBehalfOf(
                 WithdrawOnBehalfOfParams({
                     params: WithdrawParams({token: asset(), amount: type(uint256).max, to: address(this)}),
-                    onBehalfOf: owner()
+                    onBehalfOf: onBehalfOf
                 })
             );
         } else if (operation == ISizeV1_8.setVaultOnBehalfOf.selector) {
             size.setVaultOnBehalfOf(
                 SetVaultOnBehalfOfParams({
                     params: SetVaultParams({vault: address(this), forfeitOldShares: forfeitOldShares}),
-                    onBehalfOf: owner()
+                    onBehalfOf: onBehalfOf
                 })
             );
         } else if (operation == IERC20.approve.selector) {
