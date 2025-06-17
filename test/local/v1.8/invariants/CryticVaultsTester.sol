@@ -21,45 +21,75 @@ import {MaliciousERC4626ReentrancyGeneric} from "@test/mocks/vaults/MaliciousERC
 import {DepositParams} from "@src/market/libraries/actions/Deposit.sol";
 import {WithdrawParams} from "@src/market/libraries/actions/Withdraw.sol";
 
+import {Action, ActionsBitmap, Authorization} from "@src/factory/libraries/Authorization.sol";
+
 // echidna . --contract CryticVaultsTester --config echidna.yaml
 // medusa fuzz
 contract CryticVaultsTester is CryticAsserts, Deploy, SetupLocal {
-    string private constant ERROR = "ERROR";
-
     NonTransferrableRebasingTokenVault private borrowTokenVault;
+    MaliciousERC4626ReentrancyGeneric private maliciousVault;
+
+    modifier asSender() {
+        vm.prank(msg.sender);
+        _;
+    }
+
+    modifier asSize() {
+        vm.prank(address(size));
+        _;
+    }
 
     constructor() {
         setup();
 
         borrowTokenVault = size.data().borrowTokenVault;
 
-        borrowTokenVault.setVaultAdapter(address(vaultMaliciousReentrancyGeneric), bytes32("ERC4626Adapter"));
-        MaliciousERC4626ReentrancyGeneric(address(vaultMaliciousReentrancyGeneric)).setSize(size);
-        MaliciousERC4626ReentrancyGeneric(address(vaultMaliciousReentrancyGeneric)).setOnBehalfOf(USER2);
+        maliciousVault = MaliciousERC4626ReentrancyGeneric(address(vaultMaliciousReentrancyGeneric));
+
+        borrowTokenVault.setVaultAdapter(address(maliciousVault), bytes32("ERC4626Adapter"));
+        maliciousVault.setSize(size);
+        maliciousVault.setOnBehalfOf(USER2);
+
+        Action[] memory actions = new Action[](3);
+        actions[0] = Action.DEPOSIT;
+        actions[1] = Action.WITHDRAW;
+        actions[2] = Action.SET_VAULT;
+        sizeFactory.setAuthorization(address(maliciousVault), Authorization.getActionsBitmap(actions));
     }
 
-    function approve(address _token, uint256 _amount) public {
-        vm.prank(msg.sender);
+    function token_approve(address _token, uint256 _amount) public asSender {
         IERC20Metadata(_token).approve(address(size), _amount);
     }
 
-    function deposit(address _token, uint256 _amount, address _to) public {
-        vm.prank(msg.sender);
+    function size_deposit(address _token, uint256 _amount, address _to) public asSender {
         size.deposit(DepositParams({token: _token, amount: _amount, to: _to}));
     }
 
-    function withdraw(address _token, uint256 _amount, address _to) public {
-        vm.prank(msg.sender);
+    function size_withdraw(address _token, uint256 _amount, address _to) public asSender {
         size.withdraw(WithdrawParams({token: _token, amount: _amount, to: _to}));
     }
 
-    function transferFrom(address _from, address _to, uint256 _amount) public {
-        vm.prank(address(size));
+    function borrowTokenVault_transferFrom(address _from, address _to, uint256 _amount) public asSize {
         borrowTokenVault.transferFrom(_from, _to, _amount);
     }
 
-    function setVault(address _user, address _vault, bool _forfeitOldShares) public {
-        vm.prank(address(size));
+    function borrowTokenVault_setVault(address _user, address _vault, bool _forfeitOldShares) public asSize {
         borrowTokenVault.setVault(_user, _vault, _forfeitOldShares);
+    }
+
+    function maliciousVault_setOnBehalfOf(address _user) public asSender {
+        maliciousVault.setOnBehalfOf(_user);
+    }
+
+    function maliciousVault_setReenterCount(uint256 _reenterCount) public asSender {
+        maliciousVault.setReenterCount(_reenterCount);
+    }
+
+    function maliciousVault_setOperation(bytes4 _operation) public asSender {
+        maliciousVault.setOperation(_operation);
+    }
+
+    function maliciousVault_setForfeitOldShares(bool _forfeitOldShares) public asSender {
+        maliciousVault.setForfeitOldShares(_forfeitOldShares);
     }
 }

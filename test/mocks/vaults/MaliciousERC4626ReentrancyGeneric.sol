@@ -20,6 +20,7 @@ contract MaliciousERC4626ReentrancyGeneric is ERC4626, Ownable {
     bytes4 public operation;
     bool public forfeitOldShares;
     address public onBehalfOf;
+    uint256 public reenterCount;
 
     constructor(IERC20 underlying_, string memory name_, string memory symbol_)
         ERC4626(underlying_)
@@ -37,6 +38,10 @@ contract MaliciousERC4626ReentrancyGeneric is ERC4626, Ownable {
 
     function setOnBehalfOf(address _onBehalfOf) external onlyOwner {
         onBehalfOf = _onBehalfOf;
+    }
+
+    function setReenterCount(uint256 _reenterCount) external onlyOwner {
+        reenterCount = _reenterCount;
     }
 
     function setOperation(bytes4 _operation) external onlyOwner {
@@ -78,6 +83,20 @@ contract MaliciousERC4626ReentrancyGeneric is ERC4626, Ownable {
             IERC20(asset()).approve(address(size), type(uint256).max);
         } else {
             revert Errors.NOT_SUPPORTED();
+        }
+    }
+
+    function _update(address from, address to, uint256 value) internal virtual override {
+        if (reenterCount > 0) {
+            _reenter();
+            reenterCount--;
+        }
+
+        super._update(from, to, value);
+
+        if (reenterCount > 0) {
+            _reenter();
+            reenterCount--;
         }
     }
 }
