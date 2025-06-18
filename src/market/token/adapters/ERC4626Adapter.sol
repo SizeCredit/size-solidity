@@ -80,6 +80,11 @@ contract ERC4626Adapter is Ownable, IAdapter {
         onlyOwner
         returns (uint256 assets)
     {
+        uint256 userBalanceBefore = balanceOf(vault, from);
+        if (userBalanceBefore < amount) {
+            revert IERC20Errors.ERC20InsufficientBalance(from, userBalanceBefore, amount);
+        }
+
         uint256 sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
         uint256 assetsBefore = underlyingToken.balanceOf(address(this));
         uint256 userSharesBefore = tokenVault.sharesOf(from);
@@ -93,7 +98,7 @@ contract ERC4626Adapter is Ownable, IAdapter {
         assets = underlyingToken.balanceOf(address(this)) - assetsBefore;
 
         if (userSharesBefore < shares) {
-            revert IERC20Errors.ERC20InsufficientBalance(from, balanceOf(vault, from), amount);
+            revert IERC20Errors.ERC20InsufficientBalance(from, userBalanceBefore, amount);
         }
 
         underlyingToken.safeTransfer(to, assets);
