@@ -387,7 +387,7 @@ abstract contract Networks {
         priceFeed = IPriceFeed(0xFa64CC164b87De05382dD7EfB3B2236ce8D90709);
         morphoOracle = IMorphoChainlinkOracleV2(0xcc62A6fad56ee6277250eabe49959002dA42191C);
         baseToken = IERC20Metadata(0xb7de5dFCb74d25c2f21841fbd6230355C50d9308);
-        quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
+        quoteToken = IERC20Metadata(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     }
 
     function priceFeedPendleChainlink29May2025UsdcMainnet()
@@ -411,7 +411,29 @@ abstract contract Networks {
         underlyingStalePriceInterval = 86400 * 1.1e18 / 1e18;
         quoteStalePriceInterval = 86400 * 1.1e18 / 1e18;
         baseToken = IERC20Metadata(0xb7de5dFCb74d25c2f21841fbd6230355C50d9308);
-        quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
+        quoteToken = IERC20Metadata(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    }
+
+    function priceFeedPendleSparkLinearDiscountChainlinkSusde24Sep2025UsdcMainnet()
+        public
+        pure
+        returns (
+            PendleSparkLinearDiscountOracle pendleOracle,
+            AggregatorV3Interface underlyingChainlinkOracle,
+            AggregatorV3Interface quoteChainlinkOracle,
+            uint256 underlyingStalePriceInterval,
+            uint256 quoteStalePriceInterval,
+            IERC20Metadata baseToken,
+            IERC20Metadata quoteToken
+        )
+    {
+        pendleOracle = PendleSparkLinearDiscountOracle(0xf0CF5c188213759495f7cC6a6aB497b771B7Cc5b);
+        underlyingChainlinkOracle = AggregatorV3Interface(0xa569d910839Ae8865Da8F8e70FfFb0cBA869F961);
+        quoteChainlinkOracle = AggregatorV3Interface(0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6);
+        underlyingStalePriceInterval = 86400 * 1.1e18 / 1e18;
+        quoteStalePriceInterval = 86400 * 1.1e18 / 1e18;
+        baseToken = IERC20Metadata(0xb7de5dFCb74d25c2f21841fbd6230355C50d9308);
+        quoteToken = IERC20Metadata(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     }
 
     function priceFeedPendleChainlinkPtSusde30July2025UsdcMainnet()
@@ -433,7 +455,7 @@ abstract contract Networks {
         underlyingStalePriceInterval = 86400 * 1.1e18 / 1e18;
         quoteStalePriceInterval = 86400 * 1.1e18 / 1e18;
         baseToken = IERC20Metadata(0x3b3fB9C57858EF816833dC91565EFcd85D96f634);
-        quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
+        quoteToken = IERC20Metadata(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     }
 
     function priceFeedPendleChainlinkWstusrUsdc24Sep2025Mainnet()
@@ -476,8 +498,8 @@ abstract contract Networks {
         quoteChainlinkOracle = AggregatorV3Interface(0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6);
         underlyingStalePriceInterval = 86400 * 1.1e18 / 1e18;
         quoteStalePriceInterval = 86400 * 1.1e18 / 1e18;
-        baseToken = IERC20Metadata(0x9f56094c450763769ba0ea9fe2876070c0fd5f77);
-        quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
+        baseToken = IERC20Metadata(0x9F56094C450763769BA0EA9Fe2876070c0fD5F77);
+        quoteToken = IERC20Metadata(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     }
 
     function priceFeedMorphoPtEusde29May2025UsdcMainnet()
@@ -493,7 +515,7 @@ abstract contract Networks {
         priceFeed = IPriceFeed(address(0));
         morphoOracle = IMorphoChainlinkOracleV2(0x9c0363336Bf9DaF57a16BB4e2867459bf4Dd5EB0);
         baseToken = IERC20Metadata(0x50D2C7992b802Eef16c04FeADAB310f31866a545);
-        quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
+        quoteToken = IERC20Metadata(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     }
 
     function getUnpausedMarkets(ISizeFactory _sizeFactory) public view returns (ISize[] memory markets) {

@@ -85,7 +85,8 @@ contract ProposeSafeTxDeployPTMarketScript is BaseScript, Networks {
             borrowATokenV1_5: address(dataView.borrowAToken),
             sizeFactory: address(sizeFactory)
         });
-        bytes memory data = abi.encodeCall(ISizeFactory.createMarket, (feeConfigParams, riskConfigParams, oracleParams, dataParams));
+        bytes memory data =
+            abi.encodeCall(ISizeFactory.createMarket, (feeConfigParams, riskConfigParams, oracleParams, dataParams));
         address target = address(sizeFactory);
         safe.proposeTransaction(target, data, signer, derivationPath);
         Tenderly.VirtualTestnet memory vnet = tenderly.createVirtualTestnet("pt-market-vnet", block.chainid);
