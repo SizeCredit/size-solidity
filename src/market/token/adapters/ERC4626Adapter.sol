@@ -6,6 +6,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {Math} from "@src/market/libraries/Math.sol";
+import {console} from "forge-std/console.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -90,6 +91,10 @@ contract ERC4626Adapter is Ownable, IAdapter {
 
         uint256 shares = sharesBefore - IERC4626(vault).balanceOf(address(tokenVault));
         assets = underlyingToken.balanceOf(address(this)) - assetsBefore;
+
+        if (userSharesBefore < shares) {
+            revert IERC20Errors.ERC20InsufficientBalance(from, balanceOf(vault, from), amount);
+        }
 
         underlyingToken.safeTransfer(to, assets);
         tokenVault.setSharesOf(from, userSharesBefore - shares);
