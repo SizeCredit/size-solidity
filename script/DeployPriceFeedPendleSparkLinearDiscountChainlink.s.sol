@@ -23,14 +23,22 @@ contract DeployPriceFeedPendleSparkLinearDiscountChainlinkScript is BaseScript, 
         console.log("[PriceFeedPendleSparkLinearDiscountChainlink] deploying...");
 
         (
-            ,
             PendleSparkLinearDiscountOracle pendleOracle,
             AggregatorV3Interface underlyingChainlinkOracle,
             AggregatorV3Interface quoteChainlinkOracle,
             uint256 underlyingStalePriceInterval,
             uint256 quoteStalePriceInterval,
-            ,
-        ) = priceFeedPendleChainlink29May2025UsdcMainnet();
+            IERC20Metadata baseToken,
+            IERC20Metadata quoteToken
+        ) = priceFeedPendleSparkLinearDiscountChainlinkSusde24Sep2025UsdcMainnet();
+
+        console.log("pendleOracle", address(pendleOracle));
+        console.log("underlyingChainlinkOracle", underlyingChainlinkOracle.description());
+        console.log("quoteChainlinkOracle", quoteChainlinkOracle.description());
+        console.log("underlyingStalePriceInterval", underlyingStalePriceInterval);
+        console.log("quoteStalePriceInterval", quoteStalePriceInterval);
+        console.log("baseToken", baseToken.symbol());
+        console.log("quoteToken", quoteToken.symbol());
 
         PriceFeedPendleSparkLinearDiscountChainlink priceFeedPendleChainlink = new PriceFeedPendleSparkLinearDiscountChainlink(
             pendleOracle,
