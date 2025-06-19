@@ -13,6 +13,7 @@ Networks:
 
 | Date | Version | Auditor | Report |
 |------|---------|----------|---------|
+| 2025-06-23 | v1.8 | TBD | TBD |
 | 2025-06-06 | v1.8-rc.1 | Cantina | TBD |
 | 2025-05-26 | v1.8-rc.1 | Custodia Security | TBD |
 | 2025-02-26 | v1.7 | Cantina | [Report](./audits/2025-02-26-Cantina.pdf) |
