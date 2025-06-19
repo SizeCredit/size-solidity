@@ -28,6 +28,7 @@ import {Action, ActionsBitmap, Authorization} from "@src/factory/libraries/Autho
 contract CryticVaultsTester is CryticAsserts, Deploy, SetupLocal {
     NonTransferrableRebasingTokenVault private borrowTokenVault;
     MaliciousERC4626ReentrancyGeneric private maliciousVault;
+    address private token;
 
     modifier asSender() {
         vm.prank(msg.sender);
@@ -43,6 +44,7 @@ contract CryticVaultsTester is CryticAsserts, Deploy, SetupLocal {
         setup();
 
         borrowTokenVault = size.data().borrowTokenVault;
+        token = address(usdc);
 
         maliciousVault = MaliciousERC4626ReentrancyGeneric(address(vaultMaliciousReentrancyGeneric));
 
@@ -54,19 +56,21 @@ contract CryticVaultsTester is CryticAsserts, Deploy, SetupLocal {
         actions[0] = Action.DEPOSIT;
         actions[1] = Action.WITHDRAW;
         actions[2] = Action.SET_VAULT;
-        sizeFactory.setAuthorization(address(maliciousVault), Authorization.getActionsBitmap(actions));
+        ActionsBitmap actionsBitmap = Authorization.getActionsBitmap(actions);
+        vm.prank(USER2);
+        sizeFactory.setAuthorization(address(maliciousVault), actionsBitmap);
     }
 
-    function token_approve(address _token, uint256 _amount) public asSender {
-        IERC20Metadata(_token).approve(address(size), _amount);
+    function token_approve(uint256 _amount) public asSender {
+        IERC20Metadata(token).approve(address(size), _amount);
     }
 
-    function size_deposit(address _token, uint256 _amount, address _to) public asSender {
-        size.deposit(DepositParams({token: _token, amount: _amount, to: _to}));
+    function size_deposit(uint256 _amount, address _to) public asSender {
+        size.deposit(DepositParams({token: token, amount: _amount, to: _to}));
     }
 
-    function size_withdraw(address _token, uint256 _amount, address _to) public asSender {
-        size.withdraw(WithdrawParams({token: _token, amount: _amount, to: _to}));
+    function size_withdraw(uint256 _amount, address _to) public asSender {
+        size.withdraw(WithdrawParams({token: token, amount: _amount, to: _to}));
     }
 
     function borrowTokenVault_transferFrom(address _from, address _to, uint256 _amount) public asSize {
