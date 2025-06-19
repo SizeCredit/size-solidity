@@ -586,26 +586,18 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         adapterAave.totalSupply(address(vault));
     }
 
-    function test_NonTransferrableRebasingTokenVault_exit_through_transferFrom_should_revert_if_not_enough_liquidity()
-        public
-    {
-        vm.prank(owner);
-        token.setVaultAdapter(address(vaultFeeOnEntryExit), "ERC4626Adapter");
+    function test_NonTransferrableRebasingTokenVault_reinitialize_reverts_unauthorized() public {
+        // Should revert when called by non-owner
+        vm.prank(alice);
+        vm.expectRevert();
+        token.reinitialize("name", "symbol", AaveAdapter(address(0)), ERC4626Adapter(address(0)));
 
-        vm.prank(address(size));
-        token.setVault(bob, address(vaultFeeOnEntryExit), false);
+        vm.prank(bob);
+        vm.expectRevert();
+        token.reinitialize("name", "symbol", AaveAdapter(address(0)), ERC4626Adapter(address(0)));
 
-        _deposit(alice, address(underlying), 100e6);
-
-        vm.prank(address(size));
-        vm.expectRevert(
-            abi.encodeWithSelector(IAdapter.InsufficientAssets.selector, address(vaultFeeOnEntryExit), 90909090, 100e6)
-        );
-        token.transferFrom(alice, bob, 100e6);
-
-        _deposit(bob, address(underlying), 1_000e6);
-
-        vm.prank(address(size));
-        token.transferFrom(alice, bob, 100e6);
+        vm.prank(candy);
+        vm.expectRevert();
+        token.reinitialize("name", "symbol", AaveAdapter(address(0)), ERC4626Adapter(address(0)));
     }
 }

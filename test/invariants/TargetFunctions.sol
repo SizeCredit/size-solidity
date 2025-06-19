@@ -48,9 +48,12 @@ import {PartialRepayParams} from "@src/market/libraries/actions/PartialRepay.sol
 import {SetCopyLimitOrderConfigsParams} from "@src/market/libraries/actions/SetCopyLimitOrderConfigs.sol";
 import {SetVaultParams} from "@src/market/libraries/actions/SetVault.sol";
 
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
 abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
+    using EnumerableSet for EnumerableSet.AddressSet;
+
     function deposit(address token, uint256 amount) public getSender checkExpectedErrors(DEPOSIT_ERRORS) {
         token = uint160(token) % 2 == 0 ? address(weth) : address(usdc);
         amount = between(amount, 0, token == address(weth) ? MAX_AMOUNT_WETH : MAX_AMOUNT_USDC);
@@ -111,7 +114,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                     );
                 }
                 eq(_after.senderBorrowAmount, _before.senderBorrowAmount + withdrawnAmount, WITHDRAW_01);
-                eq(_after.sizeBorrowAmount, _before.sizeBorrowAmount - withdrawnAmount, WITHDRAW_01);
+                eq(_after.sizeBorrowAmount, _before.sizeBorrowAmount - withdrawnAmount, WITHDRAW_02);
             }
         }
     }
@@ -155,7 +158,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                     gt(_after.sender.borrowTokenBalance, _before.sender.borrowTokenBalance, BORROW_01);
                 } else {
                     // fragmentationFee can eat the whole cash and leave only 1 as cashAmountOut,
-                    //   which would be rounded down in NonTransferrableScaledTokenV1_5.transferFrom
+                    //   which would be rounded down in NonTransferrableRebasingTokenVault.transferFrom
                 }
             }
 
@@ -472,7 +475,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         }
     }
 
-    function copyLimitOrders(int256 loanOffsetAPR, int256 borrowOffsetAPR)
+    function setCopyLimitOrderConfigs(int256 loanOffsetAPR, int256 borrowOffsetAPR)
         public
         getSender
         checkExpectedErrors(SET_COPY_LIMIT_ORDER_CONFIGS_ERRORS)

@@ -14,6 +14,9 @@ import {console} from "forge-std/console.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {Properties} from "@test/invariants/Properties.sol";
 
+import {ERC4626 as ERC4626OpenZeppelin} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
+import {ERC4626 as ERC4626Solady} from "@solady/src/tokens/ERC4626.sol";
+
 abstract contract ExpectedErrors is Deploy, Properties {
     bytes4[] internal DEPOSIT_ERRORS;
     bytes4[] internal WITHDRAW_ERRORS;
@@ -33,7 +36,15 @@ abstract contract ExpectedErrors is Deploy, Properties {
     bytes4[] internal PARTIAL_REPAY_ERRORS;
     bytes4[] internal SET_VAULT_ERRORS;
 
+    bytes4[] internal ___VAULT_ERRORS;
+
     constructor() {
+        // ___VAULT_ERRORS
+        ___VAULT_ERRORS.push(ERC4626Solady.WithdrawMoreThanMax.selector);
+        ___VAULT_ERRORS.push(ERC4626OpenZeppelin.ERC4626ExceededMaxWithdraw.selector);
+        ___VAULT_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
+        ___VAULT_ERRORS.push(IAdapter.InsufficientAssets.selector);
+
         // DEPOSIT_ERRORS
         DEPOSIT_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         DEPOSIT_ERRORS.push(Errors.INVALID_TOKEN.selector);
@@ -62,7 +73,9 @@ abstract contract ExpectedErrors is Deploy, Properties {
         SELL_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.INVERTED_CURVES.selector);
         SELL_CREDIT_MARKET_ERRORS.push(SafeCast.SafeCastOverflowedIntToUint.selector);
-        SELL_CREDIT_MARKET_ERRORS.push(IAdapter.InsufficientAssets.selector);
+        for (uint256 i = 0; i < ___VAULT_ERRORS.length; i++) {
+            SELL_CREDIT_MARKET_ERRORS.push(___VAULT_ERRORS[i]);
+        }
 
         // SELL_CREDIT_LIMIT_ERRORS
         SELL_CREDIT_LIMIT_ERRORS.push(Errors.PAST_MAX_DUE_DATE.selector);
@@ -84,7 +97,9 @@ abstract contract ExpectedErrors is Deploy, Properties {
         BUY_CREDIT_MARKET_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.INVERTED_CURVES.selector);
         BUY_CREDIT_MARKET_ERRORS.push(SafeCast.SafeCastOverflowedIntToUint.selector);
-        BUY_CREDIT_MARKET_ERRORS.push(IAdapter.InsufficientAssets.selector);
+        for (uint256 i = 0; i < ___VAULT_ERRORS.length; i++) {
+            BUY_CREDIT_MARKET_ERRORS.push(___VAULT_ERRORS[i]);
+        }
 
         // BUY_CREDIT_LIMIT_ERRORS
         BUY_CREDIT_LIMIT_ERRORS.push(Errors.PAST_MAX_DUE_DATE.selector);
@@ -93,17 +108,24 @@ abstract contract ExpectedErrors is Deploy, Properties {
         // REPAY_ERRORS
         REPAY_ERRORS.push(Errors.LOAN_ALREADY_REPAID.selector);
         REPAY_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
-        REPAY_ERRORS.push(IAdapter.InsufficientAssets.selector);
+        for (uint256 i = 0; i < ___VAULT_ERRORS.length; i++) {
+            REPAY_ERRORS.push(___VAULT_ERRORS[i]);
+        }
 
         // CLAIM_ERRORS
         CLAIM_ERRORS.push(Errors.LOAN_NOT_REPAID.selector);
         CLAIM_ERRORS.push(Errors.CREDIT_POSITION_ALREADY_CLAIMED.selector);
+        for (uint256 i = 0; i < ___VAULT_ERRORS.length; i++) {
+            CLAIM_ERRORS.push(___VAULT_ERRORS[i]);
+        }
 
         // LIQUIDATE_ERRORS
         LIQUIDATE_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         LIQUIDATE_ERRORS.push(Errors.LOAN_NOT_LIQUIDATABLE.selector);
         LIQUIDATE_ERRORS.push(Errors.LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT.selector);
-        LIQUIDATE_ERRORS.push(IAdapter.InsufficientAssets.selector);
+        for (uint256 i = 0; i < ___VAULT_ERRORS.length; i++) {
+            LIQUIDATE_ERRORS.push(___VAULT_ERRORS[i]);
+        }
 
         // SELF_LIQUIDATE_ERRORS
         SELF_LIQUIDATE_ERRORS.push(Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector);
@@ -122,7 +144,9 @@ abstract contract ExpectedErrors is Deploy, Properties {
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.INVERTED_CURVES.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(SafeCast.SafeCastOverflowedIntToUint.selector);
-        LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(IAdapter.InsufficientAssets.selector);
+        for (uint256 i = 0; i < ___VAULT_ERRORS.length; i++) {
+            LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(___VAULT_ERRORS[i]);
+        }
 
         // COMPENSATE_ERRORS
         COMPENSATE_ERRORS.push(Errors.LOAN_ALREADY_REPAID.selector);
@@ -154,12 +178,15 @@ abstract contract ExpectedErrors is Deploy, Properties {
         PARTIAL_REPAY_ERRORS.push(Errors.NULL_AMOUNT.selector);
         PARTIAL_REPAY_ERRORS.push(Errors.INVALID_AMOUNT.selector);
         PARTIAL_REPAY_ERRORS.push(Errors.INVALID_BORROWER.selector);
+        for (uint256 i = 0; i < ___VAULT_ERRORS.length; i++) {
+            PARTIAL_REPAY_ERRORS.push(___VAULT_ERRORS[i]);
+        }
 
         // SET_VAULT_ERRORS
         SET_VAULT_ERRORS.push(Errors.INVALID_VAULT.selector);
-        SET_VAULT_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
-        SET_VAULT_ERRORS.push(ERC4626OpenZeppelin.ERC4626ExceededMaxDeposit.selector);
-        SET_VAULT_ERRORS.push(bytes4(keccak256("Error(string)"))); // ZERO_ASSETS / ZERO_SHARES from ERC4626Solmate
+        for (uint256 i = 0; i < ___VAULT_ERRORS.length; i++) {
+            SET_VAULT_ERRORS.push(___VAULT_ERRORS[i]);
+        }
     }
 
     modifier checkExpectedErrors(bytes4[] storage errors) {

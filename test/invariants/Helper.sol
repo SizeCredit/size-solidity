@@ -17,36 +17,25 @@ abstract contract Helper is Deploy, PropertiesConstants, Bounds {
     }
 
     function _getRandomVault(address v) internal view returns (address) {
-        uint256 branches = 14;
-        if (uint160(v) % branches == 0) {
-            return address(0);
-        } else if (uint160(v) % branches == 1) {
-            return address(vault);
-        } else if (uint160(v) % branches == 2) {
-            return address(vault2);
-        } else if (uint160(v) % branches == 3) {
-            return address(vault3);
-        } else if (uint160(v) % branches == 4) {
-            return address(vaultMalicious);
-        } else if (uint160(v) % branches == 5) {
-            return address(vaultFeeOnTransfer);
-        } else if (uint160(v) % branches == 6) {
-            return address(vaultFeeOnEntryExit);
-        } else if (uint160(v) % branches == 7) {
-            return address(vaultLimits);
-        } else if (uint160(v) % branches == 8) {
-            return address(vaultNonERC4626);
-        } else if (uint160(v) % branches == 9) {
-            return address(vaultERC7540FullyAsync);
-        } else if (uint160(v) % branches == 10) {
-            return address(vaultERC7540ControlledAsyncDeposit);
-        } else if (uint160(v) % branches == 11) {
-            return address(vaultERC7540ControlledAsyncRedeem);
-        } else if (uint160(v) % branches == 12) {
-            return address(vaultInvalidUnderlying);
-        } else {
-            return address(v);
-        }
+        address[] memory vaults = new address[](16);
+        vaults[0] = address(0);
+        vaults[1] = address(vault);
+        vaults[2] = address(vault2);
+        vaults[3] = address(vault3);
+        vaults[4] = address(vaultMaliciousWithdrawNotAllowed);
+        vaults[5] = address(vaultMaliciousReentrancy);
+        vaults[6] = address(vaultMaliciousReentrancyGeneric);
+        vaults[7] = address(vaultFeeOnTransfer);
+        vaults[8] = address(vaultFeeOnEntryExit);
+        vaults[9] = address(vaultLimits);
+        vaults[10] = address(vaultNonERC4626);
+        vaults[11] = address(vaultERC7540FullyAsync);
+        vaults[12] = address(vaultERC7540ControlledAsyncDeposit);
+        vaults[13] = address(vaultERC7540ControlledAsyncRedeem);
+        vaults[14] = address(vaultInvalidUnderlying);
+        vaults[15] = address(v);
+
+        return vaults[uint256(uint160(v)) % vaults.length];
     }
 
     function _getCreditPositionId(uint256 creditPositionId) internal view returns (uint256) {
