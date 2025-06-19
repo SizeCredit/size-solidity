@@ -49,7 +49,7 @@ abstract contract VaultsTargetFunctions is Asserts, Deploy, SetupLocal {
         actions[1] = Action.WITHDRAW;
         actions[2] = Action.SET_VAULT;
         ActionsBitmap actionsBitmap = Authorization.getActionsBitmap(actions);
-        vm.prank(USER1);
+        vm.prank(USER2);
         sizeFactory.setAuthorization(address(maliciousVault), actionsBitmap);
     }
 
