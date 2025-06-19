@@ -81,7 +81,6 @@ contract AaveAdapter is Ownable, IAaveAdapter {
     }
 
     /// @inheritdoc IAdapter
-    /// @dev By withdrawing `type(uint256).max`, it is possible that the recipient receives amount +- 1 due to rounding
     function withdraw(address vault, address from, address to, uint256 amount)
         external
         onlyOwner
@@ -122,9 +121,7 @@ contract AaveAdapter is Ownable, IAaveAdapter {
 
     /// @inheritdoc IAdapter
     function transferFrom(address vault, address from, address to, uint256 value) external onlyOwner {
-        if (underlyingToken.balanceOf(address(aToken)) < value) {
-            revert InsufficientAssets(DEFAULT_VAULT, underlyingToken.balanceOf(address(aToken)), value);
-        }
+        checkLiquidity(vault, value);
 
         uint256 shares = Math.mulDivDown(value, WadRayMath.RAY, liquidityIndex());
         if (tokenVault.sharesOf(from) < shares) {
@@ -138,6 +135,13 @@ contract AaveAdapter is Ownable, IAaveAdapter {
     function validate(address vault) external pure {
         if (vault != DEFAULT_VAULT) {
             revert Errors.INVALID_VAULT(vault);
+        }
+    }
+
+    /// @inheritdoc IAdapter
+    function checkLiquidity(address, /*vault*/ uint256 amount) public view {
+        if (underlyingToken.balanceOf(address(aToken)) < amount) {
+            revert InsufficientAssets(DEFAULT_VAULT, underlyingToken.balanceOf(address(aToken)), amount);
         }
     }
 

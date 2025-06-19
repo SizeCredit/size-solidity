@@ -236,6 +236,7 @@ contract NonTransferrableRebasingTokenVault is
                 adapterFrom.withdraw(vaultOf[from], from, address(adapterTo), value);
                 // slither-disable-next-line unused-return
                 adapterTo.deposit(vaultOf[to], to, value);
+                adapterTo.checkLiquidity(vaultOf[to], value);
             }
         }
 

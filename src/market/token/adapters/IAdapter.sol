@@ -53,4 +53,9 @@ interface IAdapter {
     /// @param vault The address of the vault
     /// @dev This function is used to validate the vault, including whether the underlying token is the same as the NonTransferrableRebasingTokenVault's underlying token
     function validate(address vault) external;
+
+    /// @notice Checks if the vault has enough liquidity for the corresponding `amount`
+    /// @param vault The address of the vault
+    /// @param amount The amount of assets to check
+    function checkLiquidity(address vault, uint256 amount) external view;
 }
