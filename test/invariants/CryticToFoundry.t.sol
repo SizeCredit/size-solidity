@@ -1201,4 +1201,10 @@ contract CryticToFoundry is BaseTest, TargetFunctions, SetupLocal, FoundryAssert
             false
         );
     }
+
+    function test_CryticToFoundry_59() public {
+        deposit(address(0xdeadbeef), 171429460436063665973934632640910126655054508986205194790392464);
+        setLiquidityIndex(7991566235569499788427520349748599846018569123546869845, 0);
+        withdraw(address(0xdeadbeef), 1);
+    }
 }
