@@ -77,7 +77,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                     eq(_after.sender.borrowTokenBalance, _before.sender.borrowTokenBalance + amount, DEPOSIT_01);
                 }
                 eq(_after.senderBorrowAmount, _before.senderBorrowAmount - amount, DEPOSIT_01);
-                // eq(_after.sizeBorrowAmount, _before.sizeBorrowAmount + amount, DEPOSIT_02);
+                eq(_after.sizeBorrowAmount, _before.sizeBorrowAmount + amount, DEPOSIT_02);
             }
         }
     }
@@ -114,7 +114,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                     );
                 }
                 eq(_after.senderBorrowAmount, _before.senderBorrowAmount + withdrawnAmount, WITHDRAW_01);
-                // eq(_after.sizeBorrowAmount, _before.sizeBorrowAmount - withdrawnAmount, WITHDRAW_02);
+                eq(_after.sizeBorrowAmount, _before.sizeBorrowAmount - withdrawnAmount, WITHDRAW_02);
             }
         }
     }
