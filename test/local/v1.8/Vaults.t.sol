@@ -139,7 +139,9 @@ contract VaultsTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        vm.expectRevert(abi.encodeWithSelector(ERC4626Solady.WithdrawMoreThanMax.selector));
+        vm.expectRevert(
+            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, alice, 99e6, 100e6)
+        );
         vm.prank(bob);
         size.sellCreditMarket(
             SellCreditMarketParams({
@@ -798,7 +800,7 @@ contract VaultsTest is BaseTest {
         vm.prank(alice);
         try size.multicall(data) {}
         catch (bytes memory err) {
-            assertEq(bytes4(err), ERC4626OpenZeppelin.ERC4626ExceededMaxWithdraw.selector);
+            assertEq(bytes4(err), IERC20Errors.ERC20InsufficientBalance.selector);
         }
     }
 

@@ -31,7 +31,7 @@ jobs:
       - name: Contract sizes
         run: |
           forge --version
-          forge build --sizes --skip CryticTester
+          forge build --sizes --skip CryticTester --skip CryticVaultsTester --skip CryticNonTransferrableScaledTokenDifferentialCryticTester
         id: build
 
   fmt:
