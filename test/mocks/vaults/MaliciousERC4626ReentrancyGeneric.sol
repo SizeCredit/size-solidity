@@ -48,8 +48,8 @@ contract MaliciousERC4626ReentrancyGeneric is ERC4626, Ownable {
         bytes4[] memory operations = new bytes4[](4);
         operations[0] = ISizeV1_7.depositOnBehalfOf.selector;
         operations[1] = ISizeV1_7.withdrawOnBehalfOf.selector;
-        operations[3] = ISizeV1_8.setVaultOnBehalfOf.selector;
-        operations[4] = IERC20.approve.selector;
+        operations[2] = ISizeV1_8.setVaultOnBehalfOf.selector;
+        operations[3] = IERC20.approve.selector;
         operation = operations[uint256(uint32(_operation)) % operations.length];
     }
 

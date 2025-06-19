@@ -11,7 +11,7 @@ import {Helper} from "@test/invariants/Helper.sol";
 import {DEFAULT_VAULT} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
 abstract contract SetupLocal is Helper, BaseSetup {
-    function setup() internal override {
+    function setup() internal virtual override {
         setupLocal(address(this), address(this));
         size.grantRole(KEEPER_ROLE, USER2);
 
