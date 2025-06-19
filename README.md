@@ -1,4 +1,4 @@
-# size-solidity [![Coverage Status](https://coveralls.io/repos/github/SizeCredit/size-solidity/badge.svg?branch=main)](https://coveralls.io/github/SizeCredit/size-solidity?branch=main)
+# size-solidity [![Coverage Status](https://coveralls.io/repos/github/SizeCredit/size-solidity/badge.svg?branch=main)](https://coveralls.io/github/SizeCredit/size-solidity?branch=main) [![CI](https://github.com/SizeCredit/size-solidity/actions/workflows/ci.yml/badge.svg)](https://github.com/SizeCredit/size-solidity/actions/workflows/ci.yml)
 
 <a href="https://github.com/SizeLending/size-solidity/raw/main/size.png"><img src="https://github.com/SizeLending/size-solidity/raw/main/size.png" width="300" alt="Size"/></a>
 
@@ -164,13 +164,13 @@ Since Size v1.8, collections of markets, curators and rate providers are core en
 - When a curator updates the RP for a market, all users subscribed to that collection inherit the new configuration.
 - Delegation logic remains under the control of curators, not rate providers, ensuring curators can update or reassign markets freely. In a sense, a curator "owns" the liquidity of users subscribing to their collections. If a RP is not performing well, they can be replaced without compromise to the curator.
 - Each market may support multiple rate providers. When overlapping offers exist, market order "takers" can pick the best available rate to them (e.g., lowest loan offer APR during a sell credit market order).
-- Curators can define copy limit order configurations, which includes safeguard parameters for each market (min/max APR, min/max tenor), in addition to an offset APR, which is applied at end of the yield curve linear interpolation.
+- Curators can define copy limit order configurations, which include safeguard parameters for each market (min/max APR, min/max tenor), along with an offset APR that shifts the result of the yield curve linear interpolation.
 - These copy limit order configurations apply when the user has not defined their own.
 - Users can also define their own yield curves and safeguards at the market level. If set, these take precedence over curator defaults.
 - If users want to rely exclusively on curator-defined curves, they must explicitly unset their own limit orders (changed behavior from v1.6).
 - Users now support multiple yield curves per market, one per collection they are subscribed to, plus an optional personal configuration.
 - Curators can transfer ownership of their collections.
-- Since users cn subscribe to many collections, each having many rate providers, the "borrow offer should be lower than loan offer" check now has O(C * R) complexity. Users should be aware not to subscribe to too many collections or collections with too many rate providers, or market orders targeting them might revert due to gas costs.
+- Since users can subscribe to multiple collections, each with potentially many rate providers, the "borrow offer should be lower than loan offer" check now has O(C × R) complexity, where C is the number of collections and R is the number of rate providers. Users should avoid subscribing to too many collections or collections with excessive rate providers, as this may cause market orders to revert due to high gas usage.
 - A rate provider in any market belonging to any collection can prevent all subscribed users from market orders if they set the borrow offer APR greater than or equal to the lend offer APR.
 
 ##### Breaking changes
