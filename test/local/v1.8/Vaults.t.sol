@@ -139,9 +139,7 @@ contract VaultsTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        vm.expectRevert(
-            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, alice, 99e6, 100e6)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, alice, 99e6, 100e6));
         vm.prank(bob);
         size.sellCreditMarket(
             SellCreditMarketParams({
