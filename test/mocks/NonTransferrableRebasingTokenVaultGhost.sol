@@ -68,7 +68,7 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
         __setVars(_after[user], user);
     }
 
-    function setVault(address user, address vault, bool forfeitOldShares) public override resetVars(user) {
+    function setVault(address user, address vault, bool forfeitOldShares) public virtual override resetVars(user) {
         __before(user);
         super.setVault(user, vault, forfeitOldShares);
         __after(user);
@@ -91,7 +91,7 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
         super._setSharesOf(user, shares);
     }
 
-    function deposit(address to, uint256 amount) public override resetVars(to) returns (uint256 assets) {
+    function deposit(address to, uint256 amount) public virtual override resetVars(to) returns (uint256 assets) {
         __before(to);
 
         assets = super.deposit(to, amount);
@@ -103,6 +103,7 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
 
     function withdraw(address from, address to, uint256 amount)
         public
+        virtual
         override
         resetVars(from)
         resetVars(to)
@@ -122,6 +123,7 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
 
     function fullWithdraw(address from, address to)
         public
+        virtual
         override
         resetVars(from)
         resetVars(to)
@@ -141,6 +143,7 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
 
     function transferFrom(address from, address to, uint256 amount)
         public
+        virtual
         override
         resetVars(from)
         resetVars(to)

@@ -19,7 +19,8 @@ import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferr
 import {AaveAdapter} from "@src/market/token/adapters/AaveAdapter.sol";
 import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
 
-import {NonTransferrableRebasingTokenVaultGhost} from "@test/mocks/NonTransferrableRebasingTokenVaultGhost.sol";
+import {HalmosNonTransferrableRebasingTokenVaultGhost} from
+    "@test/mocks/HalmosNonTransferrableRebasingTokenVaultGhost.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 import {SizeFactoryMock} from "@test/mocks/SizeFactoryMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
@@ -46,7 +47,7 @@ contract HalmosVaultsTester is Test, PropertiesConstants, PropertiesSpecificatio
 
         sizeFactory = new SizeFactoryMock(address(this));
 
-        token = new NonTransferrableRebasingTokenVaultGhost();
+        token = new HalmosNonTransferrableRebasingTokenVaultGhost();
         token.initialize(
             ISizeFactory(address(sizeFactory)),
             variablePool,
