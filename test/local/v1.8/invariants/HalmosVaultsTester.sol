@@ -46,24 +46,15 @@ contract HalmosVaultsTester is Test, PropertiesConstants, PropertiesSpecificatio
 
         sizeFactory = new SizeFactoryMock(address(this));
 
-        token = NonTransferrableRebasingTokenVault(
-            address(
-                new ERC1967Proxy(
-                    address(new NonTransferrableRebasingTokenVaultGhost()),
-                    abi.encodeCall(
-                        NonTransferrableRebasingTokenVault.initialize,
-                        (
-                            ISizeFactory(address(sizeFactory)),
-                            variablePool,
-                            usdc,
-                            address(this),
-                            string.concat("Size ", usdc.name(), " Vault"),
-                            string.concat("sv", usdc.symbol()),
-                            usdc.decimals()
-                        )
-                    )
-                )
-            )
+        token = new NonTransferrableRebasingTokenVaultGhost();
+        token.initialize(
+            ISizeFactory(address(sizeFactory)),
+            variablePool,
+            usdc,
+            address(this),
+            string.concat("Size ", usdc.name(), " Vault"),
+            string.concat("sv", usdc.symbol()),
+            usdc.decimals()
         );
 
         AaveAdapter aaveAdapter = new AaveAdapter(token, variablePool, usdc);

@@ -10,6 +10,14 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
         address vaultOf;
     }
 
+    constructor() {
+        bytes32 slot = _initializableStorageSlot();
+        // re-enables initialize()
+        assembly {
+            sstore(slot, 0)
+        }
+    }
+
     mapping(address user => Vars vars) internal _before;
     mapping(address user => Vars vars) internal _after;
     uint256 public countSetVaultOf;
