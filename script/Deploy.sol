@@ -50,10 +50,9 @@ import {NonTransferrableRebasingTokenVaultGhost} from "@test/mocks/NonTransferra
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 import {ERC4626Mock as ERC4626OpenZeppelin} from "@openzeppelin/contracts/mocks/token/ERC4626Mock.sol";
-import {ERC4626} from "@solady/src/tokens/ERC4626.sol";
 import {MockERC4626 as ERC4626Solady} from "@solady/test/utils/mocks/MockERC4626.sol";
 import {MockERC4626 as ERC4626Solmate} from "@solmate/src/test/utils/mocks/MockERC4626.sol";
-import {ERC20} from "@solmate/src/tokens/ERC20.sol";
+import {ERC20 as ERC20Solmate} from "@solmate/src/tokens/ERC20.sol";
 
 import {ControlledAsyncDeposit} from "@ERC-7540-Reference/src/ControlledAsyncDeposit.sol";
 import {ControlledAsyncRedeem} from "@ERC-7540-Reference/src/ControlledAsyncRedeem.sol";
@@ -90,9 +89,9 @@ abstract contract Deploy {
 
     bool internal shouldDeploySizeFactory = true;
 
-    IERC4626 internal vault;
-    IERC4626 internal vault2;
-    IERC4626 internal vault3;
+    IERC4626 internal vaultSolady;
+    IERC4626 internal vaultOpenZeppelin;
+    IERC4626 internal vaultSolmate;
     IERC4626 internal vaultMaliciousWithdrawNotAllowed;
     IERC4626 internal vaultMaliciousReentrancy;
     IERC4626 internal vaultMaliciousReentrancyGeneric;
@@ -239,8 +238,6 @@ abstract contract Deploy {
 
         address borrowTokenVaultImplementation = address(new NonTransferrableRebasingTokenVaultGhost());
 
-        vault = IERC4626(address(new ERC4626Solady(address(borrowToken), "Vault", "VAULT", true, 0)));
-
         hevm.prank(owner);
         sizeFactory.setNonTransferrableRebasingTokenVaultImplementation(borrowTokenVaultImplementation);
 
@@ -310,9 +307,10 @@ abstract contract Deploy {
     }
 
     function _deployVaults() internal {
-        vault = IERC4626(address(new ERC4626Solady(address(usdc), "Vault", "VAULT", true, 0)));
-        vault2 = IERC4626(address(new ERC4626OpenZeppelin(address(usdc))));
-        vault3 = IERC4626(address(new ERC4626Solmate(ERC20(address(usdc)), "Vault3", "VAULT3")));
+        vaultSolady = IERC4626(address(new ERC4626Solady(address(usdc), "VaultSolady", "VAULTSOLADY", true, 0)));
+        vaultOpenZeppelin = IERC4626(address(new ERC4626OpenZeppelin(address(usdc))));
+        vaultSolmate =
+            IERC4626(address(new ERC4626Solmate(ERC20Solmate(address(usdc)), "VaultSolmate", "VAULTSOLMATE")));
         vaultMaliciousWithdrawNotAllowed = IERC4626(
             address(
                 new MaliciousERC4626WithdrawNotAllowed(
@@ -340,11 +338,11 @@ abstract contract Deploy {
         );
         vaultNonERC4626 = IERC4626(address(new ERC20Mock()));
         vaultERC7540FullyAsync =
-            IERC4626(address(new FullyAsyncVault(ERC20(address(usdc)), "VaultERC7540", "VAULTERC7540")));
+            IERC4626(address(new FullyAsyncVault(ERC20Solmate(address(usdc)), "VaultERC7540", "VAULTERC7540")));
         vaultERC7540ControlledAsyncDeposit =
-            IERC4626(address(new ControlledAsyncDeposit(ERC20(address(usdc)), "VaultERC7540", "VAULTERC7540")));
+            IERC4626(address(new ControlledAsyncDeposit(ERC20Solmate(address(usdc)), "VaultERC7540", "VAULTERC7540")));
         vaultERC7540ControlledAsyncRedeem =
-            IERC4626(address(new ControlledAsyncRedeem(ERC20(address(usdc)), "VaultERC7540", "VAULTERC7540")));
+            IERC4626(address(new ControlledAsyncRedeem(ERC20Solmate(address(usdc)), "VaultERC7540", "VAULTERC7540")));
         vaultInvalidUnderlying = IERC4626(
             address(new ERC4626Solady(address(weth), "VaultInvalidUnderlying", "VAULTINVALIDUNDERLYING", true, 0))
         );

@@ -64,8 +64,8 @@ contract VaultsTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        _setVaultAdapter(vault, "ERC4626Adapter");
-        _setVault(bob, address(vault), false);
+        _setVaultAdapter(vaultSolady, "ERC4626Adapter");
+        _setVault(bob, address(vaultSolady), false);
 
         _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
     }
@@ -78,8 +78,8 @@ contract VaultsTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        _setVaultAdapter(vault, "ERC4626Adapter");
-        _setVault(alice, address(vault), false);
+        _setVaultAdapter(vaultSolady, "ERC4626Adapter");
+        _setVault(alice, address(vaultSolady), false);
 
         _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
     }
@@ -92,9 +92,9 @@ contract VaultsTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        _setVaultAdapter(vault, "ERC4626Adapter");
-        _setVault(alice, address(vault), false);
-        _setVault(bob, address(vault), false);
+        _setVaultAdapter(vaultSolady, "ERC4626Adapter");
+        _setVault(alice, address(vaultSolady), false);
+        _setVault(bob, address(vaultSolady), false);
 
         _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
     }
@@ -107,9 +107,9 @@ contract VaultsTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        _setVaultAdapter(vault, "ERC4626Adapter");
-        _setVault(alice, address(vault), false);
-        _setVault(bob, address(vault), false);
+        _setVaultAdapter(vaultSolady, "ERC4626Adapter");
+        _setVault(alice, address(vaultSolady), false);
+        _setVault(bob, address(vaultSolady), false);
 
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
@@ -118,15 +118,15 @@ contract VaultsTest is BaseTest {
         _repay(bob, debtPositionId, bob);
 
         _setVault(alice, address(0), false);
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vault2)));
-        _setVault(alice, address(vault2), false);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vaultOpenZeppelin)));
+        _setVault(alice, address(vaultOpenZeppelin), false);
 
         _claim(alice, creditPositionId);
     }
 
     function test_Vaults_lender_vault_low_liquidity() public {
-        _setVaultAdapter(vault, "ERC4626Adapter");
-        _setVault(alice, address(vault), false);
+        _setVaultAdapter(vaultSolady, "ERC4626Adapter");
+        _setVault(alice, address(vaultSolady), false);
 
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -134,7 +134,7 @@ contract VaultsTest is BaseTest {
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
 
         // vault loses liquidity
-        deal(address(usdc), address(vault), 99e6);
+        deal(address(usdc), address(vaultSolady), 99e6);
 
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
@@ -419,8 +419,8 @@ contract VaultsTest is BaseTest {
     }
 
     function test_Vaults_total_supply_across_multiple_vaults() public {
-        _setVaultAdapter(vault2, "ERC4626Adapter");
-        _setVault(alice, address(vault2), false);
+        _setVaultAdapter(vaultOpenZeppelin, "ERC4626Adapter");
+        _setVault(alice, address(vaultOpenZeppelin), false);
 
         _deposit(alice, usdc, 200e6);
         _deposit(bob, usdc, 100e6);
@@ -429,17 +429,17 @@ contract VaultsTest is BaseTest {
 
         deal(address(usdc), address(liquidator), 10e6);
         vm.prank(liquidator);
-        usdc.transfer(address(vault2), 10e6);
+        usdc.transfer(address(vaultOpenZeppelin), 10e6);
 
         address aToken = size.data().variablePool.getReserveData(address(usdc)).aTokenAddress;
 
         assertEqApprox(size.data().borrowTokenVault.totalSupply(), 310e6, 1);
-        assertEq(usdc.balanceOf(address(vault2)) + usdc.balanceOf(aToken), 310e6);
+        assertEq(usdc.balanceOf(address(vaultOpenZeppelin)) + usdc.balanceOf(aToken), 310e6);
 
         _withdraw(alice, usdc, 50e6);
 
         assertEqApprox(size.data().borrowTokenVault.totalSupply(), 260e6, 1);
-        assertEq(usdc.balanceOf(address(vault2)) + usdc.balanceOf(aToken), 260e6);
+        assertEq(usdc.balanceOf(address(vaultOpenZeppelin)) + usdc.balanceOf(aToken), 260e6);
     }
 
     function testFuzz_Vaults_changing_vault_does_not_leave_dust_shares(
@@ -460,10 +460,10 @@ contract VaultsTest is BaseTest {
         _deposit(candy, usdc, cash * percent / PERCENT);
         _deposit(liquidator, usdc, cash * 100);
 
-        _setVaultAdapter(vault, "ERC4626Adapter");
-        _setVaultAdapter(vault2, "ERC4626Adapter");
-        _setVault(alice, address(vault), false);
-        _setVault(bob, address(vault2), false);
+        _setVaultAdapter(vaultSolady, "ERC4626Adapter");
+        _setVaultAdapter(vaultOpenZeppelin, "ERC4626Adapter");
+        _setVault(alice, address(vaultSolady), false);
+        _setVault(bob, address(vaultOpenZeppelin), false);
         // _setVault(candy, DEFAULT_VAULT, false);
         _setLiquidityIndex(index);
 
@@ -472,8 +472,8 @@ contract VaultsTest is BaseTest {
         _deposit(candy, usdc, cash * percent / PERCENT);
 
         _setVault(alice, DEFAULT_VAULT, false);
-        _setVault(bob, address(vault), false);
-        _setVault(candy, address(vault2), false);
+        _setVault(bob, address(vaultSolady), false);
+        _setVault(candy, address(vaultOpenZeppelin), false);
         _setLiquidityIndex(index * 1.1e18 / PERCENT);
 
         _deposit(alice, usdc, cash);
@@ -533,8 +533,8 @@ contract VaultsTest is BaseTest {
     }
 
     function test_Vaults_admin_can_DoS_user_operations_with_removeAdapter() public {
-        _setVaultAdapter(vault, "ERC4626Adapter");
-        _setVault(alice, address(vault), false);
+        _setVaultAdapter(vaultSolady, "ERC4626Adapter");
+        _setVault(alice, address(vaultSolady), false);
 
         _deposit(alice, usdc, 100e6);
 
@@ -631,14 +631,14 @@ contract VaultsTest is BaseTest {
     function testFuzz_Vaults_setVault_should_not_allow_dust_shares(uint256 amount, uint256 mint) public {
         amount = bound(amount, 1, 10);
         mint = bound(mint, 0, 1_000_000e6);
-        _setVaultAdapter(vault, "ERC4626Adapter");
-        _setVaultAdapter(vault3, "ERC4626Adapter");
+        _setVaultAdapter(vaultSolady, "ERC4626Adapter");
+        _setVaultAdapter(vaultSolmate, "ERC4626Adapter");
 
-        _setVault(alice, address(vault3), false);
+        _setVault(alice, address(vaultSolmate), false);
 
         _deposit(alice, usdc, 1);
 
-        _mint(address(usdc), address(vault3), mint);
+        _mint(address(usdc), address(vaultSolmate), mint);
 
         vm.assume(
             size.data().borrowTokenVault.balanceOf(alice) == 0 && size.data().borrowTokenVault.sharesOf(alice) > 0
@@ -670,9 +670,9 @@ contract VaultsTest is BaseTest {
         mintFrom = bound(mintFrom, 0, 1_000_000e6);
         mintTo = bound(mintTo, 0, 1_000_000e6);
         address[] memory vaults = new address[](7);
-        vaults[0] = address(vault);
-        vaults[1] = address(vault2);
-        vaults[2] = address(vault3);
+        vaults[0] = address(vaultSolady);
+        vaults[1] = address(vaultOpenZeppelin);
+        vaults[2] = address(vaultSolmate);
         vaults[3] = address(DEFAULT_VAULT);
         vaults[4] = address(vaultFeeOnTransfer);
         vaults[5] = address(vaultFeeOnEntryExit);
@@ -889,9 +889,9 @@ contract VaultsTest is BaseTest {
 
     function _getRandomVault(address x) internal view returns (address) {
         address[] memory vaults = new address[](4);
-        vaults[0] = address(vault);
-        vaults[1] = address(vault2);
-        vaults[2] = address(vault3);
+        vaults[0] = address(vaultSolady);
+        vaults[1] = address(vaultOpenZeppelin);
+        vaults[2] = address(vaultSolmate);
         vaults[3] = DEFAULT_VAULT;
         return vaults[uint256(uint160(x)) % vaults.length];
     }
