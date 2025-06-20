@@ -36,7 +36,7 @@ import {ISizeAdmin} from "@src/market/interfaces/ISizeAdmin.sol";
 import {ISizeV1_7} from "@src/market/interfaces/v1.7/ISizeV1_7.sol";
 import {ISizeV1_8} from "@src/market/interfaces/v1.8/ISizeV1_8.sol";
 
-string constant VERSION = "v1.7";
+string constant VERSION = "v1.8";
 
 /// @title ISize
 /// @custom:security-contact security@size.credit
