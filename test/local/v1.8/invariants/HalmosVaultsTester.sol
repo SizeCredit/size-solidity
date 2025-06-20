@@ -29,7 +29,7 @@ import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesC
 
 import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
 
-/// @custom:halmos --flamegraph --early-exit --invariant-depth 2
+/// @custom:halmos --flamegraph --early-exit --invariant-depth 3
 contract HalmosVaultsTester is Test, PropertiesConstants, PropertiesSpecifications {
     uint256 private constant USDC_INITIAL_BALANCE = 1_000e6;
 
@@ -74,11 +74,13 @@ contract HalmosVaultsTester is Test, PropertiesConstants, PropertiesSpecificatio
         for (uint256 i = 0; i < users.length; i++) {
             usdc.mint(users[i], USDC_INITIAL_BALANCE);
             sizeFactory.setMarket(users[i], true);
+            vm.prank(users[i]);
+            usdc.approve(address(token), USDC_INITIAL_BALANCE);
+
             targetSender(users[i]);
         }
 
         targetContract(address(token));
-        targetContract(address(usdc));
     }
 
     function invariant_VAULTS_01() public view {
@@ -94,18 +96,17 @@ contract HalmosVaultsTester is Test, PropertiesConstants, PropertiesSpecificatio
         assertTrue(true, string.concat(VAULTS_02, " / ", VAULTS_04));
     }
 
-    // This fails if users can directly donate USDC to the `token` contract
-    // function invariant_VAULTS_03() public view {
-    //     assertEq(usdc.balanceOf(address(token)), 0, VAULTS_03);
-    // }
-
-    function test_HalmosVaultsTester_01() public {
-        vm.warp(0x8000000000000000);
-        vm.prank(address(0x30000));
-        usdc.approve(address(token), 0x4000000000000000000000000000000000000000000000000000000000000000);
-        vm.warp(0x8000000000000000);
-        vm.prank(address(0x30000));
-        token.deposit(0x8000000000000000000000000000000000000000, 0x2f86489e);
-        invariant_VAULTS_01();
+    function invariant_VAULTS_03() public view {
+        assertEq(usdc.balanceOf(address(token)), 0, VAULTS_03);
     }
+
+    // function test_HalmosVaultsTester_01() public {
+    //     vm.warp(0x8000000000000000);
+    //     vm.prank(address(0x30000));
+    //     usdc.approve(address(token), 0x4000000000000000000000000000000000000000000000000000000000000000);
+    //     vm.warp(0x8000000000000000);
+    //     vm.prank(address(0x30000));
+    //     token.deposit(0x8000000000000000000000000000000000000000, 0x2f86489e);
+    //     invariant_VAULTS_01();
+    // }
 }

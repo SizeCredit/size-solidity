@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import {vm} from "@chimera/Hevm.sol";
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
 import {NonTransferrableRebasingTokenVaultGhost} from "@test/mocks/NonTransferrableRebasingTokenVaultGhost.sol";
 
@@ -8,8 +9,9 @@ contract HalmosNonTransferrableRebasingTokenVaultGhost is
     NonTransferrableRebasingTokenVaultGhost,
     PropertiesConstants
 {
-    function _getRandomUser(address user) internal pure returns (address) {
-        return uint160(user) % 3 == 0 ? USER1 : uint160(user) % 3 == 1 ? USER2 : USER3;
+    function _getRandomUser(address user) internal returns (address) {
+        vm.assume(user == USER1 || user == USER2 || user == USER3);
+        return user;
     }
 
     function setVault(address user, address vault, bool forfeitOldShares) public override {
