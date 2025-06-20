@@ -103,9 +103,9 @@ contract BaseTest is Test, Deploy, AssertsHelper {
 
         vm.label(address(sizeFactory), "SizeFactory");
 
-        vm.label(address(vault), "ERC4626Solady");
-        vm.label(address(vault2), "ERC4626OpenZeppelin");
-        vm.label(address(vault3), "ERC4626Solmate");
+        vm.label(address(vaultSolady), "ERC4626Solady");
+        vm.label(address(vaultOpenZeppelin), "ERC4626OpenZeppelin");
+        vm.label(address(vaultSolmate), "ERC4626Solmate");
         vm.label(address(vaultMaliciousWithdrawNotAllowed), "MaliciousERC4626WithdrawNotAllowed");
         vm.label(address(vaultMaliciousReentrancy), "MaliciousERC4626Reentrancy");
         vm.label(address(vaultMaliciousReentrancyGeneric), "MaliciousERC4626ReentrancyGeneric");

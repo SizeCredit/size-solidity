@@ -19,9 +19,9 @@ abstract contract Helper is Deploy, PropertiesConstants, Bounds {
     function _getRandomVault(address v) internal view returns (address) {
         address[] memory vaults = new address[](16);
         vaults[0] = address(0);
-        vaults[1] = address(vault);
-        vaults[2] = address(vault2);
-        vaults[3] = address(vault3);
+        vaults[1] = address(vaultSolady);
+        vaults[2] = address(vaultOpenZeppelin);
+        vaults[3] = address(vaultSolmate);
         vaults[4] = address(vaultMaliciousWithdrawNotAllowed);
         vaults[5] = address(vaultMaliciousReentrancy);
         vaults[6] = address(vaultMaliciousReentrancyGeneric);

@@ -293,7 +293,7 @@ contract CallMarketTest is BaseTest {
         uint256[] memory collectionIds = new uint256[](1);
         collectionIds[0] = collectionId;
 
-        _setVaultAdapter(vault2, "ERC4626Adapter");
+        _setVaultAdapter(vaultOpenZeppelin, "ERC4626Adapter");
 
         uint256 depositAmount = 100e6;
 
@@ -316,7 +316,7 @@ contract CallMarketTest is BaseTest {
                     ISizeV1_8.setVaultOnBehalfOf,
                     (
                         SetVaultOnBehalfOfParams({
-                            params: SetVaultParams({vault: address(vault2), forfeitOldShares: false}),
+                            params: SetVaultParams({vault: address(vaultOpenZeppelin), forfeitOldShares: false}),
                             onBehalfOf: candy
                         })
                     )
