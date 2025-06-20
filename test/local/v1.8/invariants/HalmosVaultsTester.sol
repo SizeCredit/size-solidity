@@ -74,7 +74,7 @@ contract HalmosVaultsTester is Test, PropertiesConstants, PropertiesSpecificatio
         token.setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
 
         address vault1 = address(new ERC4626OpenZeppelin(address(usdc)));
-        address vault2 = address(new ERC4626Solmate(ERC20Solmate(address(usdc)), "Vault3", "VAULT3"));
+        address vault2 = address(new ERC4626Solmate(ERC20Solmate(address(usdc)), "Vault", "VAULT"));
 
         token.setVaultAdapter(vault1, bytes32("ERC4626Adapter"));
         token.setVaultAdapter(vault2, bytes32("ERC4626Adapter"));
