@@ -97,4 +97,14 @@ contract HalmosVaultsTester is Test, PropertiesConstants, PropertiesSpecificatio
     // function invariant_VAULTS_03() public view {
     //     assertEq(usdc.balanceOf(address(token)), 0, VAULTS_03);
     // }
+
+    function test_HalmosVaultsTester_01() public {
+        vm.warp(0x8000000000000000);
+        vm.prank(address(0x30000));
+        usdc.approve(address(token), 0x4000000000000000000000000000000000000000000000000000000000000000);
+        vm.warp(0x8000000000000000);
+        vm.prank(address(0x30000));
+        token.deposit(0x8000000000000000000000000000000000000000, 0x2f86489e);
+        invariant_VAULTS_01();
+    }
 }
