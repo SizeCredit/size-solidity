@@ -85,7 +85,7 @@ contract HalmosVaultsTester is Test, PropertiesConstants, PropertiesSpecificatio
         for (uint256 i = 0; i < users.length; i++) {
             sumBalanceOf += token.balanceOf(users[i]);
         }
-        assertLe(sumBalanceOf, token.totalSupply(), VAULTS_01);
+        assertEq(sumBalanceOf, token.totalSupply(), VAULTS_01);
     }
 
     function invariant_VAULTS_02_04() public pure {
