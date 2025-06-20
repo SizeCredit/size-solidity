@@ -90,7 +90,7 @@ abstract contract VaultsTargetFunctions is Asserts, Deploy, SetupLocal {
     }
 
     function maliciousVault_setReenterCount(uint256 _reenterCount) public {
-        _reenterCount %= MAX_REENTER_COUNT;
+        _reenterCount = between(_reenterCount, 0, MAX_REENTER_COUNT);
         maliciousVault.setReenterCount(_reenterCount);
     }
 
