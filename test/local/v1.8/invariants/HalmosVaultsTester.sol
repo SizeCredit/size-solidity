@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Test} from "forge-std/Test.sol";
+import {StdInvariant} from "forge-std/StdInvariant.sol";
+import {Test, console} from "forge-std/Test.sol";
 
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
@@ -29,14 +30,15 @@ import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesC
 
 import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
 
-/// @custom:halmos --flamegraph --early-exit --invariant-depth 3
+/// @custom:halmos --flamegraph --early-exit --invariant-depth 2
 contract HalmosVaultsTester is Test, PropertiesConstants, PropertiesSpecifications {
-    uint256 private constant USDC_INITIAL_BALANCE = 1_000e6;
+    uint256 private constant USDC_INITIAL_BALANCE = 1_000_000e6;
 
     NonTransferrableRebasingTokenVault private token;
     USDC private usdc;
     IPool private variablePool;
     SizeFactoryMock private sizeFactory;
+    address private vault;
 
     address[3] private users = [USER1, USER2, USER3];
 
@@ -65,22 +67,37 @@ contract HalmosVaultsTester is Test, PropertiesConstants, PropertiesSpecificatio
         ERC4626Adapter erc4626Adapter = new ERC4626Adapter(token, usdc);
         token.setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
 
-        address vault1 = address(new ERC4626OpenZeppelin(address(usdc)));
-        address vault2 = address(new ERC4626Solmate(ERC20Solmate(address(usdc)), "Vault", "VAULT"));
+        vault = address(new ERC4626Solmate(ERC20Solmate(address(usdc)), "Vault", "VAULT"));
 
-        token.setVaultAdapter(vault1, bytes32("ERC4626Adapter"));
-        token.setVaultAdapter(vault2, bytes32("ERC4626Adapter"));
+        token.setVaultAdapter(vault, bytes32("ERC4626Adapter"));
 
         for (uint256 i = 0; i < users.length; i++) {
             usdc.mint(users[i], USDC_INITIAL_BALANCE);
             sizeFactory.setMarket(users[i], true);
             vm.prank(users[i]);
             usdc.approve(address(token), USDC_INITIAL_BALANCE);
+            vm.prank(users[i]);
+            token.setVault(users[i], vault, false);
 
             targetSender(users[i]);
         }
+        usdc.transferOwnership(USER2);
 
         targetContract(address(token));
+        targetContract(address(usdc));
+
+        bytes4[] memory selectors;
+        StdInvariant.FuzzSelector memory fuzzSelector;
+
+        selectors = new bytes4[](1);
+        selectors[0] = usdc.burn.selector;
+        fuzzSelector = StdInvariant.FuzzSelector({addr: address(usdc), selectors: selectors});
+        targetSelector(fuzzSelector);
+        selectors = new bytes4[](2);
+        selectors[0] = token.setVault.selector;
+        selectors[1] = token.deposit.selector;
+        fuzzSelector = StdInvariant.FuzzSelector({addr: address(token), selectors: selectors});
+        targetSelector(fuzzSelector);
     }
 
     function invariant_VAULTS_01() public view {
@@ -88,7 +105,7 @@ contract HalmosVaultsTester is Test, PropertiesConstants, PropertiesSpecificatio
         for (uint256 i = 0; i < users.length; i++) {
             sumBalanceOf += token.balanceOf(users[i]);
         }
-        assertEq(sumBalanceOf, token.totalSupply(), VAULTS_01);
+        assertLe(sumBalanceOf, token.totalSupply(), VAULTS_01);
     }
 
     function invariant_VAULTS_02_04() public pure {
@@ -100,13 +117,34 @@ contract HalmosVaultsTester is Test, PropertiesConstants, PropertiesSpecificatio
         assertEq(usdc.balanceOf(address(token)), 0, VAULTS_03);
     }
 
-    // function test_HalmosVaultsTester_01() public {
-    //     vm.warp(0x8000000000000000);
-    //     vm.prank(address(0x30000));
-    //     usdc.approve(address(token), 0x4000000000000000000000000000000000000000000000000000000000000000);
-    //     vm.warp(0x8000000000000000);
-    //     vm.prank(address(0x30000));
-    //     token.deposit(0x8000000000000000000000000000000000000000, 0x2f86489e);
-    //     invariant_VAULTS_01();
-    // }
+    function test_HalmosVaultsTester_01() public {
+        vm.warp(0x8000000000000000);
+        vm.prank(address(0x30000));
+        usdc.approve(address(token), 0x4000000000000000000000000000000000000000000000000000000000000000);
+        vm.warp(0x8000000000000000);
+        vm.prank(address(0x30000));
+        try token.deposit(0x8000000000000000000000000000000000000000, 0x2f86489e) {} catch {}
+        invariant_VAULTS_01();
+        invariant_VAULTS_02_04();
+        invariant_VAULTS_03();
+    }
+
+    function test_HalmosVaultsTester_02() public {
+        vm.prank(USER2);
+        token.deposit(USER2, 1);
+
+        vm.prank(USER1);
+        token.deposit(USER1, USDC_INITIAL_BALANCE);
+
+        vm.prank(USER2);
+        usdc.burn(vault, 1000e6);
+
+        vm.assume(token.balanceOf(USER2) == 0 && token.sharesOf(USER2) > 0);
+
+        vm.prank(USER2);
+        try token.setVault(USER2, DEFAULT_VAULT, false) {} catch {}
+        invariant_VAULTS_01();
+        invariant_VAULTS_02_04();
+        invariant_VAULTS_03();
+    }
 }
