@@ -31,7 +31,7 @@ abstract contract SetupLocal is Helper, BaseSetup {
         }
 
         NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
-        borrowTokenVault.setVaultAdapter(address(vault), bytes32("ERC4626Adapter"));
-        borrowTokenVault.setVaultAdapter(address(vault2), bytes32("ERC4626Adapter"));
+        borrowTokenVault.setVaultAdapter(address(vaultSolady), bytes32("ERC4626Adapter"));
+        borrowTokenVault.setVaultAdapter(address(vaultOpenZeppelin), bytes32("ERC4626Adapter"));
     }
 }

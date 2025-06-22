@@ -14,7 +14,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 contract AuthorizationSetVaultTest is BaseTest {
     function setUp() public override {
         super.setUp();
-        _setVaultAdapter(vault, "ERC4626Adapter");
+        _setVaultAdapter(vaultSolady, "ERC4626Adapter");
     }
 
     function test_AuthorizationSetVault_setVaultOnBehalfOf() public {
@@ -25,12 +25,12 @@ contract AuthorizationSetVaultTest is BaseTest {
         vm.prank(candy);
         size.setVaultOnBehalfOf(
             SetVaultOnBehalfOfParams({
-                params: SetVaultParams({vault: address(vault), forfeitOldShares: false}),
+                params: SetVaultParams({vault: address(vaultSolady), forfeitOldShares: false}),
                 onBehalfOf: alice
             })
         );
 
-        assertEq(size.data().borrowTokenVault.vaultOf(alice), address(vault));
+        assertEq(size.data().borrowTokenVault.vaultOf(alice), address(vaultSolady));
     }
 
     function test_AuthorizationSetVault_validation() public {
@@ -38,7 +38,7 @@ contract AuthorizationSetVaultTest is BaseTest {
         vm.prank(alice);
         size.setVaultOnBehalfOf(
             SetVaultOnBehalfOfParams({
-                params: SetVaultParams({vault: address(vault), forfeitOldShares: false}),
+                params: SetVaultParams({vault: address(vaultSolady), forfeitOldShares: false}),
                 onBehalfOf: bob
             })
         );

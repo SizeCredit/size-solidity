@@ -230,7 +230,7 @@ jobs:
 
       - name: Halmos
         run: |
-          for i in {1..5}; do halmos --loop $i; done
+          halmos
 
   abi:
     strategy:

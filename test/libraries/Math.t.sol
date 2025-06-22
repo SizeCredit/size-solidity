@@ -91,6 +91,7 @@ contract MathTest is Test, AssertsHelper {
         assertEqApprox((Math.aprToRatePerTenor(uint256(0.01e18), 30 days)), 0.000821917808219178e18, 1);
     }
 
+    /// @custom:halmos --loop 5
     function check_Math_binarySearch(uint256[] memory array, uint256 value) public pure {
         // array is strictly increasing
         for (uint256 i = 0; i < array.length - 1; i++) {
