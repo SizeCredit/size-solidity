@@ -30,7 +30,7 @@ import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesC
 
 import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
 
-/// @custom:halmos --flamegraph --early-exit --invariant-depth 2
+/// @custom:halmos --early-exit --invariant-depth 2
 contract HalmosVaultsTester is Test, PropertiesConstants, PropertiesSpecifications {
     uint256 private constant USDC_INITIAL_BALANCE = 1_000_000e6;
 
