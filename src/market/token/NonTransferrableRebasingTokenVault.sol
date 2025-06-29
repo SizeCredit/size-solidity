@@ -29,6 +29,8 @@ import {IAdapter} from "@src/market/token/adapters/IAdapter.sol";
 
 address constant DEFAULT_VAULT = address(0);
 
+import "halmos-helpers-lib/HalmosHelpers.sol";
+
 /// @title NonTransferrableRebasingTokenVault
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
@@ -46,8 +48,13 @@ contract NonTransferrableRebasingTokenVault is
     IERC20Metadata,
     IERC20Errors,
     Ownable2StepUpgradeable,
+<<<<<<< HEAD
     ReentrancyGuardUpgradeableWithViewModifier,
     UUPSUpgradeable
+=======
+    UUPSUpgradeable,
+    Test
+>>>>>>> f5b6a43 (implement halmos test balance intergrity)
 {
     using SafeERC20 for IERC20Metadata;
     using EnumerableMap for EnumerableMap.AddressToBytes32Map;
@@ -135,7 +142,6 @@ contract NonTransferrableRebasingTokenVault is
         __Ownable2Step_init();
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
-
         if (
             address(sizeFactory_) == address(0) || address(aavePool_) == address(0)
                 || address(underlyingToken_) == address(0)
@@ -390,7 +396,7 @@ contract NonTransferrableRebasingTokenVault is
     /// @notice Sets the shares of a user
     /// @dev Only callable by the adapter
     ///      Adapter helper functions operate via reentrancy, so they do not have the nonReentrant modifier
-    function setSharesOf(address user, uint256 shares) public onlyAdapter {
+    function setSharesOf(address user, uint256 shares) virtual public onlyAdapter {
         _setSharesOf(user, shares);
     }
 
@@ -488,11 +494,17 @@ contract NonTransferrableRebasingTokenVault is
     /// @dev Setting the vault to `address(0)` will use the default variable pool
     function _setVaultAdapter(address vault, bytes32 id) private {
         IAdapter adapter = IAdapter(IdToAdapterMap.get(id));
+<<<<<<< HEAD
         adapter.validate(vault);
 
+=======
+        if (adapter.getAsset(vault) != address(underlyingToken)) {
+            revert Errors.INVALID_VAULT(address(vault));
+        }
+>>>>>>> f5b6a43 (implement halmos test balance intergrity)
         // slither-disable-next-line unused-return
         vaultToIdMap.set(vault, id);
-        emit VaultAdapterSet(vault, id);
+        //emit VaultAdapterSet(vault, id);
     }
 
     /// @notice Removes a vault from the whitelist
