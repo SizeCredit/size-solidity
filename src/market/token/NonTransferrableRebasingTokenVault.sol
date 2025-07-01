@@ -84,8 +84,7 @@ contract NonTransferrableRebasingTokenVault is
     event VaultSet(address indexed user, address indexed previousVault, address indexed newVault);
     event VaultAdapterSet(address indexed vault, bytes32 indexed id);
     event VaultRemoved(address indexed vault);
-    event AdapterSet(bytes32 indexed id, address indexed adapter);
-    event AdapterRemoved(bytes32 indexed id, address indexed adapter);
+    event AdapterSet(bytes32 indexed id, bool indexed existed, address indexed adapter);
 
     /*//////////////////////////////////////////////////////////////
                             MODIFIERS
@@ -181,12 +180,6 @@ contract NonTransferrableRebasingTokenVault is
     ///      If an adapter is already set, it will be removed and replaced with the new adapter
     function setAdapter(bytes32 id, IAdapter adapter) external onlyOwner {
         _setAdapter(id, adapter);
-    }
-
-    /// @notice Removes the adapter
-    /// @dev Removing an adapter will brick the vault
-    function removeAdapter(bytes32 id) external onlyOwner {
-        _removeAdapter(id);
     }
 
     /// @notice Sets the adapter for a vault
@@ -467,26 +460,17 @@ contract NonTransferrableRebasingTokenVault is
         if (address(adapter) == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
+        bool existed = false;
         if (IdToAdapterMap.contains(id)) {
-            _removeAdapter(id);
+            address oldAdapter = IdToAdapterMap.get(id);
+            existed = adapterToIdMap.remove(oldAdapter);
         }
 
         IdToAdapterMap.set(id, address(adapter));
         adapterToIdMap.set(address(adapter), id);
-        emit AdapterSet(id, address(adapter));
+        emit AdapterSet(id, existed, address(adapter));
     }
     // slither-disable-end unused-return
-
-    /// @notice Removes the adapter
-    function _removeAdapter(bytes32 id) private {
-        address adapter = IdToAdapterMap.get(id);
-        bool removed = IdToAdapterMap.remove(id);
-        removed = adapterToIdMap.remove(adapter);
-
-        if (removed) {
-            emit AdapterRemoved(id, adapter);
-        }
-    }
 
     /// @notice Sets the adapter for a vault
     /// @dev Setting the vault to `address(0)` will use the default variable pool

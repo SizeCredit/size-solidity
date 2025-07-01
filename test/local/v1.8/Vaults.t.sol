@@ -532,31 +532,6 @@ contract VaultsTest is BaseTest {
         );
     }
 
-    function test_Vaults_admin_can_DoS_user_operations_with_removeAdapter() public {
-        _setVaultAdapter(vaultSolady, "ERC4626Adapter");
-        _setVault(alice, address(vaultSolady), false);
-
-        _deposit(alice, usdc, 100e6);
-
-        NonTransferrableRebasingTokenVault borrowTokenVault =
-            NonTransferrableRebasingTokenVault(address(size.data().borrowTokenVault));
-        vm.prank(address(this));
-        borrowTokenVault.removeAdapter(bytes32("ERC4626Adapter"));
-
-        vm.expectRevert();
-        _withdraw(alice, usdc, type(uint256).max);
-
-        vm.expectRevert();
-        _setVault(alice, DEFAULT_VAULT, false);
-
-        ERC4626Adapter newAdapter = new ERC4626Adapter(borrowTokenVault);
-
-        vm.prank(address(this));
-        borrowTokenVault.setAdapter(bytes32("ERC4626Adapter"), newAdapter);
-
-        _withdraw(alice, usdc, type(uint256).max);
-    }
-
     function test_Vaults_reentrancy_malicious_erc4626_same_market() public {
         MaliciousERC4626Reentrancy(address(vaultMaliciousReentrancy)).setSize(size);
         MaliciousERC4626Reentrancy(address(vaultMaliciousReentrancy)).setOnBehalfOf(alice);
