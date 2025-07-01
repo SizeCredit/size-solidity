@@ -82,8 +82,9 @@ contract ERC4626Adapter is Ownable, IAdapter {
         uint256 sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
         uint256 assetsBefore = underlyingToken.balanceOf(address(this));
         uint256 userSharesBefore = tokenVault.sharesOf(from);
+        uint256 previewWithdraw = IERC4626(vault).previewWithdraw(amount);
 
-        tokenVault.requestApprove(vault, type(uint256).max);
+        tokenVault.requestApprove(vault, previewWithdraw);
         // slither-disable-next-line unused-return
         IERC4626(vault).withdraw(amount, address(this), address(tokenVault));
         tokenVault.requestApprove(vault, 0);
@@ -104,7 +105,7 @@ contract ERC4626Adapter is Ownable, IAdapter {
         uint256 assetsBefore = underlyingToken.balanceOf(address(this));
         uint256 userSharesBefore = tokenVault.sharesOf(from);
 
-        tokenVault.requestApprove(vault, type(uint256).max);
+        tokenVault.requestApprove(vault, userSharesBefore);
         // slither-disable-next-line unused-return
         IERC4626(vault).redeem(userSharesBefore, address(this), address(tokenVault));
         tokenVault.requestApprove(vault, 0);
