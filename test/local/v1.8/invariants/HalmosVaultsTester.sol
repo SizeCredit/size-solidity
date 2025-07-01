@@ -15,7 +15,11 @@ import {MockERC4626 as ERC4626Solmate} from "@solmate/src/test/utils/mocks/MockE
 import {ERC20 as ERC20Solmate} from "@solmate/src/tokens/ERC20.sol";
 
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
-import {DEFAULT_VAULT} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
+import {
+    AAVE_ADAPTER_ID,
+    DEFAULT_VAULT,
+    ERC4626_ADAPTER_ID
+} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {AaveAdapter} from "@src/market/token/adapters/AaveAdapter.sol";
 import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
@@ -62,15 +66,15 @@ contract HalmosVaultsTester is Test, PropertiesConstants, PropertiesSpecificatio
         );
 
         AaveAdapter aaveAdapter = new AaveAdapter(token);
-        token.setAdapter(bytes32("AaveAdapter"), aaveAdapter);
-        token.setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
+        token.setAdapter(AAVE_ADAPTER_ID, aaveAdapter);
+        token.setVaultAdapter(DEFAULT_VAULT, AAVE_ADAPTER_ID);
 
         ERC4626Adapter erc4626Adapter = new ERC4626Adapter(token);
-        token.setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
+        token.setAdapter(ERC4626_ADAPTER_ID, erc4626Adapter);
 
         vault = address(new ERC4626Solmate(ERC20Solmate(address(usdc)), "Vault", "VAULT"));
 
-        token.setVaultAdapter(vault, bytes32("ERC4626Adapter"));
+        token.setVaultAdapter(vault, ERC4626_ADAPTER_ID);
 
         for (uint256 i = 0; i < users.length; i++) {
             usdc.mint(users[i], USDC_INITIAL_BALANCE);

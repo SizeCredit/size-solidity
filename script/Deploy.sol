@@ -25,7 +25,11 @@ import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 import {Size} from "@src/market/Size.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 
-import {DEFAULT_VAULT} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
+import {
+    AAVE_ADAPTER_ID,
+    DEFAULT_VAULT,
+    ERC4626_ADAPTER_ID
+} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {AaveAdapter} from "@src/market/token/adapters/AaveAdapter.sol";
 import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
 
@@ -148,13 +152,13 @@ abstract contract Deploy {
 
         AaveAdapter aaveAdapter = new AaveAdapter(borrowTokenVault);
         hevm.prank(owner);
-        borrowTokenVault.setAdapter(bytes32("AaveAdapter"), aaveAdapter);
+        borrowTokenVault.setAdapter(AAVE_ADAPTER_ID, aaveAdapter);
         hevm.prank(owner);
-        borrowTokenVault.setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
+        borrowTokenVault.setVaultAdapter(DEFAULT_VAULT, AAVE_ADAPTER_ID);
 
         ERC4626Adapter erc4626Adapter = new ERC4626Adapter(borrowTokenVault);
         hevm.prank(owner);
-        borrowTokenVault.setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
+        borrowTokenVault.setAdapter(ERC4626_ADAPTER_ID, erc4626Adapter);
 
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
@@ -247,13 +251,13 @@ abstract contract Deploy {
 
         AaveAdapter aaveAdapter = new AaveAdapter(borrowTokenVault);
         hevm.prank(owner);
-        borrowTokenVault.setAdapter(bytes32("AaveAdapter"), aaveAdapter);
+        borrowTokenVault.setAdapter(AAVE_ADAPTER_ID, aaveAdapter);
         hevm.prank(owner);
-        borrowTokenVault.setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
+        borrowTokenVault.setVaultAdapter(DEFAULT_VAULT, AAVE_ADAPTER_ID);
 
         ERC4626Adapter erc4626Adapter = new ERC4626Adapter(borrowTokenVault);
         hevm.prank(owner);
-        borrowTokenVault.setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
+        borrowTokenVault.setAdapter(ERC4626_ADAPTER_ID, erc4626Adapter);
 
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
