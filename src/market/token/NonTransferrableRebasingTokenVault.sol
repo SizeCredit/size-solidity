@@ -27,6 +27,8 @@ import {Errors} from "@src/market/libraries/Errors.sol";
 import {IAaveAdapter} from "@src/market/token/adapters/IAaveAdapter.sol";
 import {IAdapter} from "@src/market/token/adapters/IAdapter.sol";
 
+bytes32 constant AAVE_ADAPTER_ID = bytes32("AaveAdapter");
+bytes32 constant ERC4626_ADAPTER_ID = bytes32("ERC4626Adapter");
 address constant DEFAULT_VAULT = address(0);
 
 /// @title NonTransferrableRebasingTokenVault
@@ -84,8 +86,7 @@ contract NonTransferrableRebasingTokenVault is
     event VaultSet(address indexed user, address indexed previousVault, address indexed newVault);
     event VaultAdapterSet(address indexed vault, bytes32 indexed id);
     event VaultRemoved(address indexed vault);
-    event AdapterSet(bytes32 indexed id, address indexed adapter);
-    event AdapterRemoved(bytes32 indexed id, address indexed adapter);
+    event AdapterSet(bytes32 indexed id, bool indexed existed, address indexed adapter);
 
     /*//////////////////////////////////////////////////////////////
                             MODIFIERS
@@ -168,24 +169,19 @@ contract NonTransferrableRebasingTokenVault is
 
         __ReentrancyGuard_init();
 
-        _setAdapter(bytes32("AaveAdapter"), aaveAdapter);
-        _setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
+        _setAdapter(AAVE_ADAPTER_ID, aaveAdapter);
+        _setVaultAdapter(DEFAULT_VAULT, AAVE_ADAPTER_ID);
 
-        _setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
+        _setAdapter(ERC4626_ADAPTER_ID, erc4626Adapter);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     /// @notice Sets the adapter with id
     /// @dev The adapter contract must be trusted, since it can call sensitive functions guarded by the `onlyAdapter` modifier
+    ///      If an adapter is already set, it will be removed and replaced with the new adapter
     function setAdapter(bytes32 id, IAdapter adapter) external onlyOwner {
         _setAdapter(id, adapter);
-    }
-
-    /// @notice Removes the adapter
-    /// @dev Removing an adapter will brick the vault
-    function removeAdapter(bytes32 id) external onlyOwner {
-        _removeAdapter(id);
     }
 
     /// @notice Sets the adapter for a vault
@@ -273,7 +269,8 @@ contract NonTransferrableRebasingTokenVault is
     // slither-disable-next-line calls-loop
     function totalSupply() public view nonReentrantView returns (uint256) {
         uint256 assets = 0;
-        for (uint256 i = 0; i < vaultToIdMap.length(); i++) {
+        uint256 length = vaultToIdMap.length();
+        for (uint256 i = 0; i < length; i++) {
             // slither-disable-next-line unused-return
             (address vault,) = vaultToIdMap.at(i);
             IAdapter adapter = getWhitelistedVaultAdapter(vault);
@@ -308,9 +305,9 @@ contract NonTransferrableRebasingTokenVault is
     function setVault(address user, address vault, bool forfeitOldShares) public virtual onlyMarket nonReentrant {
         if (user == address(0)) {
             revert Errors.NULL_ADDRESS();
-        } else if (!vaultToIdMap.contains(vault)) {
+        } else if (!vaultToIdMap.contains(vault) || vaultOf[user] == vault) {
             revert Errors.INVALID_VAULT(vault);
-        } else if (vaultOf[user] != vault) {
+        } else {
             if (forfeitOldShares) {
                 _setSharesOf(user, 0);
             } else if (sharesOf[user] > 0) {
@@ -327,8 +324,6 @@ contract NonTransferrableRebasingTokenVault is
                 }
             }
             _setVaultOf(user, vault);
-        } else {
-            revert Errors.INVALID_VAULT(vault);
         }
     }
 
@@ -405,7 +400,7 @@ contract NonTransferrableRebasingTokenVault is
     /// @dev Only callable by the adapter
     ///      Adapter helper functions operate via reentrancy, so they do not have the nonReentrant modifier
     ///      This function is utilized instead of `requestApprove` in order to avoid an extra `AToken.transferFrom` call, which can cause rounding errors due to WadRay math.
-    function requestAaveWithdraw(uint256 amount, address to) public onlyAdapterId("AaveAdapter") {
+    function requestAaveWithdraw(uint256 amount, address to) public onlyAdapterId(AAVE_ADAPTER_ID) {
         // slither-disable-next-line unused-return
         aavePool.withdraw(address(underlyingToken), amount, to);
     }
@@ -442,10 +437,11 @@ contract NonTransferrableRebasingTokenVault is
         view
         returns (address[] memory vaults, address[] memory adapters, bytes32[] memory ids)
     {
-        vaults = new address[](vaultToIdMap.length());
-        adapters = new address[](vaultToIdMap.length());
-        ids = new bytes32[](vaultToIdMap.length());
-        for (uint256 i = 0; i < vaultToIdMap.length(); i++) {
+        uint256 length = vaultToIdMap.length();
+        vaults = new address[](length);
+        adapters = new address[](length);
+        ids = new bytes32[](length);
+        for (uint256 i = 0; i < length; i++) {
             (vaults[i], adapters[i], ids[i]) = getWhitelistedVault(i);
         }
     }
@@ -466,23 +462,17 @@ contract NonTransferrableRebasingTokenVault is
         if (address(adapter) == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
+        bool existed = false;
+        if (IdToAdapterMap.contains(id)) {
+            address oldAdapter = IdToAdapterMap.get(id);
+            existed = adapterToIdMap.remove(oldAdapter);
+        }
 
         IdToAdapterMap.set(id, address(adapter));
         adapterToIdMap.set(address(adapter), id);
-        emit AdapterSet(id, address(adapter));
+        emit AdapterSet(id, existed, address(adapter));
     }
     // slither-disable-end unused-return
-
-    /// @notice Removes the adapter
-    function _removeAdapter(bytes32 id) private {
-        address adapter = IdToAdapterMap.get(id);
-        bool removed = IdToAdapterMap.remove(id);
-        removed = adapterToIdMap.remove(adapter);
-
-        if (removed) {
-            emit AdapterRemoved(id, adapter);
-        }
-    }
 
     /// @notice Sets the adapter for a vault
     /// @dev Setting the vault to `address(0)` will use the default variable pool

@@ -116,13 +116,8 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
                 )
             )
         );
-        AaveAdapter aaveAdapter = new AaveAdapter(
-            NonTransferrableRebasingTokenVault(address(v1_5saToken)),
-            v1_5saToken.variablePool(),
-            v1_5saToken.underlyingToken()
-        );
-        ERC4626Adapter erc4626Adapter =
-            new ERC4626Adapter(NonTransferrableRebasingTokenVault(address(v1_5saToken)), v1_5saToken.underlyingToken());
+        AaveAdapter aaveAdapter = new AaveAdapter(NonTransferrableRebasingTokenVault(address(v1_5saToken)));
+        ERC4626Adapter erc4626Adapter = new ERC4626Adapter(NonTransferrableRebasingTokenVault(address(v1_5saToken)));
         /* deployment end */
 
         targets = new address[](markets.length + 2);

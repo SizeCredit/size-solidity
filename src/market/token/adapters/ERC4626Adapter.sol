@@ -30,14 +30,9 @@ contract ERC4626Adapter is Ownable, IAdapter {
     // slither-disable-end constable-states
     // slither-disable-end uninitialized-state
 
-    constructor(NonTransferrableRebasingTokenVault _tokenVault, IERC20Metadata _underlyingToken)
-        Ownable(address(_tokenVault))
-    {
-        if (address(_tokenVault) == address(0) || address(_underlyingToken) == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
+    constructor(NonTransferrableRebasingTokenVault _tokenVault) Ownable(address(_tokenVault)) {
         tokenVault = _tokenVault;
-        underlyingToken = _underlyingToken;
+        underlyingToken = _tokenVault.underlyingToken();
     }
 
     /// @inheritdoc IAdapter
@@ -87,8 +82,9 @@ contract ERC4626Adapter is Ownable, IAdapter {
         uint256 sharesBefore = IERC4626(vault).balanceOf(address(tokenVault));
         uint256 assetsBefore = underlyingToken.balanceOf(address(this));
         uint256 userSharesBefore = tokenVault.sharesOf(from);
+        uint256 previewWithdraw = IERC4626(vault).previewWithdraw(amount);
 
-        tokenVault.requestApprove(vault, type(uint256).max);
+        tokenVault.requestApprove(vault, previewWithdraw);
         // slither-disable-next-line unused-return
         IERC4626(vault).withdraw(amount, address(this), address(tokenVault));
         tokenVault.requestApprove(vault, 0);
@@ -109,7 +105,7 @@ contract ERC4626Adapter is Ownable, IAdapter {
         uint256 assetsBefore = underlyingToken.balanceOf(address(this));
         uint256 userSharesBefore = tokenVault.sharesOf(from);
 
-        tokenVault.requestApprove(vault, type(uint256).max);
+        tokenVault.requestApprove(vault, userSharesBefore);
         // slither-disable-next-line unused-return
         IERC4626(vault).redeem(userSharesBefore, address(this), address(tokenVault));
         tokenVault.requestApprove(vault, 0);
