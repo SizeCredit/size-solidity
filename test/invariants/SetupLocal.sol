@@ -8,7 +8,7 @@ import {KEEPER_ROLE} from "@src/factory/SizeFactory.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {Helper} from "@test/invariants/Helper.sol";
 
-import {DEFAULT_VAULT} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
+import {DEFAULT_VAULT, ERC4626_ADAPTER_ID} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
 abstract contract SetupLocal is Helper, BaseSetup {
     function setup() internal virtual override {
@@ -31,7 +31,7 @@ abstract contract SetupLocal is Helper, BaseSetup {
         }
 
         NonTransferrableRebasingTokenVault borrowTokenVault = size.data().borrowTokenVault;
-        borrowTokenVault.setVaultAdapter(address(vaultSolady), bytes32("ERC4626Adapter"));
-        borrowTokenVault.setVaultAdapter(address(vaultOpenZeppelin), bytes32("ERC4626Adapter"));
+        borrowTokenVault.setVaultAdapter(address(vaultSolady), bytes32(ERC4626_ADAPTER_ID));
+        borrowTokenVault.setVaultAdapter(address(vaultOpenZeppelin), bytes32(ERC4626_ADAPTER_ID));
     }
 }

@@ -27,6 +27,8 @@ import {Errors} from "@src/market/libraries/Errors.sol";
 import {IAaveAdapter} from "@src/market/token/adapters/IAaveAdapter.sol";
 import {IAdapter} from "@src/market/token/adapters/IAdapter.sol";
 
+bytes32 constant AAVE_ADAPTER_ID = bytes32("AaveAdapter");
+bytes32 constant ERC4626_ADAPTER_ID = bytes32("ERC4626Adapter");
 address constant DEFAULT_VAULT = address(0);
 
 /// @title NonTransferrableRebasingTokenVault
@@ -167,10 +169,10 @@ contract NonTransferrableRebasingTokenVault is
 
         __ReentrancyGuard_init();
 
-        _setAdapter(bytes32("AaveAdapter"), aaveAdapter);
-        _setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
+        _setAdapter(AAVE_ADAPTER_ID, aaveAdapter);
+        _setVaultAdapter(DEFAULT_VAULT, AAVE_ADAPTER_ID);
 
-        _setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
+        _setAdapter(ERC4626_ADAPTER_ID, erc4626Adapter);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
@@ -398,7 +400,7 @@ contract NonTransferrableRebasingTokenVault is
     /// @dev Only callable by the adapter
     ///      Adapter helper functions operate via reentrancy, so they do not have the nonReentrant modifier
     ///      This function is utilized instead of `requestApprove` in order to avoid an extra `AToken.transferFrom` call, which can cause rounding errors due to WadRay math.
-    function requestAaveWithdraw(uint256 amount, address to) public onlyAdapterId("AaveAdapter") {
+    function requestAaveWithdraw(uint256 amount, address to) public onlyAdapterId(AAVE_ADAPTER_ID) {
         // slither-disable-next-line unused-return
         aavePool.withdraw(address(underlyingToken), amount, to);
     }

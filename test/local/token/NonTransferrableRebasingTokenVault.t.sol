@@ -20,7 +20,11 @@ import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
-import {DEFAULT_VAULT} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
+import {
+    AAVE_ADAPTER_ID,
+    DEFAULT_VAULT,
+    ERC4626_ADAPTER_ID
+} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
 import {BaseTest} from "@test/BaseTest.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
@@ -125,7 +129,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         token.transferFrom(user, address(this), 50);
 
         vm.prank(address(owner));
-        token.setVaultAdapter(address(vaultSolady), "ERC4626Adapter");
+        token.setVaultAdapter(address(vaultSolady), ERC4626_ADAPTER_ID);
         vm.prank(address(size));
         token.setVault(user, address(vaultSolady), false);
         vm.prank(address(size));
@@ -228,14 +232,14 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         assertTrue(!token.isWhitelistedVault(address(vaultSolady)));
 
         vm.prank(owner);
-        token.setVaultAdapter(address(vaultSolady), "ERC4626Adapter");
+        token.setVaultAdapter(address(vaultSolady), ERC4626_ADAPTER_ID);
         assertTrue(token.isWhitelistedVault(address(vaultSolady)));
 
         assertEq(token.getWhitelistedVaultsCount(), 2);
         (address vault, address adapter, bytes32 id) = token.getWhitelistedVault(0);
         assertEq(vault, DEFAULT_VAULT);
         assertTrue(adapter != address(0));
-        assertEq(id, bytes32("AaveAdapter"));
+        assertEq(id, AAVE_ADAPTER_ID);
 
         assertEq(address(token.getWhitelistedVaultAdapter(DEFAULT_VAULT)), adapter);
     }
@@ -248,10 +252,10 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
 
         vm.prank(owner);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        token.setAdapter(bytes32("ERC4626Adapter"), IAdapter(address(0)));
+        token.setAdapter(bytes32(ERC4626_ADAPTER_ID), IAdapter(address(0)));
 
         vm.prank(owner);
-        token.setAdapter(bytes32("ERC4626Adapter"), adapter);
+        token.setAdapter(bytes32(ERC4626_ADAPTER_ID), adapter);
     }
 
     function test_NonTransferrableRebasingTokenVault_setAdapter_twice() public {
@@ -259,20 +263,20 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         ERC4626Adapter newAdapter = new ERC4626Adapter(token);
 
         vm.prank(owner);
-        token.setAdapter(bytes32("ERC4626Adapter"), IAdapter(address(oldAdapter)));
+        token.setAdapter(bytes32(ERC4626_ADAPTER_ID), IAdapter(address(oldAdapter)));
 
         vm.prank(owner);
-        token.setVaultAdapter(address(vaultSolady), "ERC4626Adapter");
+        token.setVaultAdapter(address(vaultSolady), ERC4626_ADAPTER_ID);
 
         vm.prank(owner);
-        token.setAdapter(bytes32("ERC4626Adapter"), IAdapter(address(newAdapter)));
+        token.setAdapter(bytes32(ERC4626_ADAPTER_ID), IAdapter(address(newAdapter)));
 
         vm.expectRevert(abi.encodeWithSelector(EnumerableMap.EnumerableMapNonexistentKey.selector, address(oldAdapter)));
         NonTransferrableRebasingTokenVaultGhost(address(token)).getAdapterToId(address(oldAdapter));
 
         assertEq(
             NonTransferrableRebasingTokenVaultGhost(address(token)).getAdapterToId(address(newAdapter)),
-            bytes32("ERC4626Adapter")
+            bytes32(ERC4626_ADAPTER_ID)
         );
     }
 
@@ -283,7 +287,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         AaveAdapter adapter = new AaveAdapter(token);
 
         vm.prank(owner);
-        token.setAdapter(bytes32("AaveAdapter"), adapter);
+        token.setAdapter(AAVE_ADAPTER_ID, adapter);
     }
 
     function test_NonTransferrableRebasingTokenVault_setVault_1() public {
@@ -292,7 +296,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         token.setVault(address(0), address(vaultSolady), false);
 
         vm.prank(owner);
-        token.setVaultAdapter(address(vaultSolady), "ERC4626Adapter");
+        token.setVaultAdapter(address(vaultSolady), ERC4626_ADAPTER_ID);
 
         vm.prank(address(size));
         token.setVault(alice, address(vaultSolady), false);
@@ -335,7 +339,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
 
     function test_NonTransferrableRebasingTokenVault_vault_deposit_withdraw_path() public {
         vm.prank(owner);
-        token.setVaultAdapter(address(vaultSolady), "ERC4626Adapter");
+        token.setVaultAdapter(address(vaultSolady), ERC4626_ADAPTER_ID);
 
         vm.prank(address(size));
         token.setVault(user, address(vaultSolady), false);
@@ -359,7 +363,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         assertEq(token.totalSupply(), 3000);
 
         vm.prank(owner);
-        token.setVaultAdapter(address(vaultSolady), "ERC4626Adapter");
+        token.setVaultAdapter(address(vaultSolady), ERC4626_ADAPTER_ID);
 
         vm.prank(address(size));
         token.setVault(user, address(vaultSolady), false);
@@ -399,7 +403,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
 
     function test_NonTransferrableRebasingTokenVault_transferFrom_aave_to_aave() public {
         vm.prank(owner);
-        token.setVaultAdapter(address(vaultSolady), "ERC4626Adapter");
+        token.setVaultAdapter(address(vaultSolady), ERC4626_ADAPTER_ID);
 
         deal(address(underlying), address(size), 500);
         vm.prank(address(size));
@@ -416,7 +420,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
 
     function test_NonTransferrableRebasingTokenVault_transferFrom_aave_to_vault() public {
         vm.prank(owner);
-        token.setVaultAdapter(address(vaultSolady), "ERC4626Adapter");
+        token.setVaultAdapter(address(vaultSolady), ERC4626_ADAPTER_ID);
 
         vm.prank(address(size));
         token.setVault(owner, address(vaultSolady), false);
@@ -436,7 +440,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
 
     function test_NonTransferrableRebasingTokenVault_transferFrom_vault_to_aave() public {
         vm.prank(owner);
-        token.setVaultAdapter(address(vaultSolady), "ERC4626Adapter");
+        token.setVaultAdapter(address(vaultSolady), ERC4626_ADAPTER_ID);
 
         vm.prank(address(size));
         token.setVault(user, address(vaultSolady), false);
@@ -456,7 +460,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
 
     function test_NonTransferrableRebasingTokenVault_transferFrom_vault_to_vault() public {
         vm.prank(owner);
-        token.setVaultAdapter(address(vaultSolady), "ERC4626Adapter");
+        token.setVaultAdapter(address(vaultSolady), ERC4626_ADAPTER_ID);
 
         vm.prank(address(size));
         token.setVault(user, address(vaultSolady), false);
@@ -482,7 +486,7 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
 
     function test_NonTransferrableRebasingTokenVault_totalSupply_2() public {
         vm.prank(owner);
-        token.setVaultAdapter(address(vaultSolady), "ERC4626Adapter");
+        token.setVaultAdapter(address(vaultSolady), ERC4626_ADAPTER_ID);
 
         vm.prank(address(size));
         token.setVault(bob, address(vaultSolady), false);
@@ -557,12 +561,12 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         assertEq(vaults[0], DEFAULT_VAULT);
         assertEq(adapters.length, 1);
         assertEq(adapterTypes.length, 1);
-        assertEq(adapterTypes[0], bytes32("AaveAdapter"));
+        assertEq(adapterTypes[0], AAVE_ADAPTER_ID);
     }
 
     function test_NonTransferrableRebasingTokenVault_balanceOf_totalSupply_directly_through_adapter() public {
         vm.prank(address(owner));
-        token.setVaultAdapter(address(vaultSolady), "ERC4626Adapter");
+        token.setVaultAdapter(address(vaultSolady), ERC4626_ADAPTER_ID);
 
         _deposit(alice, address(underlying), 40e6);
 

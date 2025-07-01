@@ -22,6 +22,7 @@ import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {Size} from "@src/market/Size.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
+import {ERC4626_ADAPTER_ID} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
 contract ForkVaultsTest is ForkTest, Networks {
     IERC4626 public eUSDC22 = IERC4626(0xe0a80d35bB6618CBA260120b279d357978c42BCE);
@@ -92,7 +93,7 @@ contract ForkVaultsTest is ForkTest, Networks {
         uint256 usdcBalanceBefore = usdc.balanceOf(address(eUSDC22));
 
         vm.prank(owner);
-        borrowTokenVault.setVaultAdapter(address(eUSDC22), "ERC4626Adapter");
+        borrowTokenVault.setVaultAdapter(address(eUSDC22), ERC4626_ADAPTER_ID);
 
         _setVault(alice, address(eUSDC22), false);
 
@@ -113,7 +114,7 @@ contract ForkVaultsTest is ForkTest, Networks {
         uint256 usdcBalanceBefore = usdc.balanceOf(morphoUSUALUSDCplus.MORPHO());
         console.log("usdcBalanceBefore", usdcBalanceBefore);
         vm.prank(owner);
-        borrowTokenVault.setVaultAdapter(address(morphoUSUALUSDCplus), "ERC4626Adapter");
+        borrowTokenVault.setVaultAdapter(address(morphoUSUALUSDCplus), ERC4626_ADAPTER_ID);
 
         _setVault(alice, address(morphoUSUALUSDCplus), false);
 
@@ -136,7 +137,7 @@ contract ForkVaultsTest is ForkTest, Networks {
 
         vm.prank(owner);
         vm.expectRevert();
-        borrowTokenVault.setVaultAdapter(address(liquidUSD), "ERC4626Adapter");
+        borrowTokenVault.setVaultAdapter(address(liquidUSD), ERC4626_ADAPTER_ID);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(liquidUSD)));
         _setVault(alice, address(liquidUSD), false);

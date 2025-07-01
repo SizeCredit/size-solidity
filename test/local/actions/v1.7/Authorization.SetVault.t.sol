@@ -9,12 +9,14 @@ import {Errors} from "@src/market/libraries/Errors.sol";
 import {SetVaultOnBehalfOfParams, SetVaultParams} from "@src/market/libraries/actions/SetVault.sol";
 
 import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
+
+import {ERC4626_ADAPTER_ID} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract AuthorizationSetVaultTest is BaseTest {
     function setUp() public override {
         super.setUp();
-        _setVaultAdapter(vaultSolady, "ERC4626Adapter");
+        _setVaultAdapter(vaultSolady, ERC4626_ADAPTER_ID);
     }
 
     function test_AuthorizationSetVault_setVaultOnBehalfOf() public {
