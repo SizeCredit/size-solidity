@@ -303,9 +303,9 @@ contract NonTransferrableRebasingTokenVault is
     function setVault(address user, address vault, bool forfeitOldShares) public virtual onlyMarket nonReentrant {
         if (user == address(0)) {
             revert Errors.NULL_ADDRESS();
-        } else if (!vaultToIdMap.contains(vault)) {
+        } else if (!vaultToIdMap.contains(vault) || vaultOf[user] == vault) {
             revert Errors.INVALID_VAULT(vault);
-        } else if (vaultOf[user] != vault) {
+        } else {
             if (forfeitOldShares) {
                 _setSharesOf(user, 0);
             } else if (sharesOf[user] > 0) {
@@ -322,8 +322,6 @@ contract NonTransferrableRebasingTokenVault is
                 }
             }
             _setVaultOf(user, vault);
-        } else {
-            revert Errors.INVALID_VAULT(vault);
         }
     }
 
