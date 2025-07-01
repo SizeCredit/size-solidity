@@ -178,6 +178,7 @@ contract NonTransferrableRebasingTokenVault is
 
     /// @notice Sets the adapter with id
     /// @dev The adapter contract must be trusted, since it can call sensitive functions guarded by the `onlyAdapter` modifier
+    ///      If an adapter is already set, it will be removed and replaced with the new adapter
     function setAdapter(bytes32 id, IAdapter adapter) external onlyOwner {
         _setAdapter(id, adapter);
     }
@@ -465,6 +466,9 @@ contract NonTransferrableRebasingTokenVault is
     function _setAdapter(bytes32 id, IAdapter adapter) private {
         if (address(adapter) == address(0)) {
             revert Errors.NULL_ADDRESS();
+        }
+        if (IdToAdapterMap.contains(id)) {
+            _removeAdapter(id);
         }
 
         IdToAdapterMap.set(id, address(adapter));

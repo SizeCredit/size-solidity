@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
 
 contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingTokenVault, PropertiesSpecifications {
+    using EnumerableMap for EnumerableMap.AddressToBytes32Map;
+
     struct Vars {
         uint256 shareOf;
         address vaultOf;
@@ -183,5 +186,9 @@ contract NonTransferrableRebasingTokenVaultGhost is NonTransferrableRebasingToke
                 countSetSharesOf
             );
         }
+    }
+
+    function getAdapterToId(address adapter) public view returns (bytes32 id) {
+        return adapterToIdMap.get(adapter);
     }
 }

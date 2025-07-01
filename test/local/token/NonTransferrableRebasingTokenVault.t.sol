@@ -30,6 +30,7 @@ import {AaveAdapter} from "@src/market/token/adapters/AaveAdapter.sol";
 import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
 
 import {IAdapter} from "@src/market/token/adapters/IAdapter.sol";
+import {NonTransferrableRebasingTokenVaultGhost} from "@test/mocks/NonTransferrableRebasingTokenVaultGhost.sol";
 
 contract NonTransferrableRebasingTokenVaultTest is BaseTest {
     NonTransferrableRebasingTokenVault public token;
@@ -251,6 +252,28 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
 
         vm.prank(owner);
         token.setAdapter(bytes32("ERC4626Adapter"), adapter);
+    }
+
+    function test_NonTransferrableRebasingTokenVault_setAdapter_twice() public {
+        ERC4626Adapter oldAdapter = new ERC4626Adapter(token);
+        ERC4626Adapter newAdapter = new ERC4626Adapter(token);
+
+        vm.prank(owner);
+        token.setAdapter(bytes32("ERC4626Adapter"), IAdapter(address(oldAdapter)));
+
+        vm.prank(owner);
+        token.setVaultAdapter(address(vaultSolady), "ERC4626Adapter");
+
+        vm.prank(owner);
+        token.setAdapter(bytes32("ERC4626Adapter"), IAdapter(address(newAdapter)));
+
+        vm.expectRevert(abi.encodeWithSelector(EnumerableMap.EnumerableMapNonexistentKey.selector, address(oldAdapter)));
+        NonTransferrableRebasingTokenVaultGhost(address(token)).getAdapterToId(address(oldAdapter));
+
+        assertEq(
+            NonTransferrableRebasingTokenVaultGhost(address(token)).getAdapterToId(address(newAdapter)),
+            bytes32("ERC4626Adapter")
+        );
     }
 
     function test_NonTransferrableRebasingTokenVault_update_AaveAdapter() public {
