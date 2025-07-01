@@ -267,7 +267,8 @@ contract NonTransferrableRebasingTokenVault is
     // slither-disable-next-line calls-loop
     function totalSupply() public view nonReentrantView returns (uint256) {
         uint256 assets = 0;
-        for (uint256 i = 0; i < vaultToIdMap.length(); i++) {
+        uint256 length = vaultToIdMap.length();
+        for (uint256 i = 0; i < length; i++) {
             // slither-disable-next-line unused-return
             (address vault,) = vaultToIdMap.at(i);
             IAdapter adapter = getWhitelistedVaultAdapter(vault);
@@ -436,10 +437,11 @@ contract NonTransferrableRebasingTokenVault is
         view
         returns (address[] memory vaults, address[] memory adapters, bytes32[] memory ids)
     {
-        vaults = new address[](vaultToIdMap.length());
-        adapters = new address[](vaultToIdMap.length());
-        ids = new bytes32[](vaultToIdMap.length());
-        for (uint256 i = 0; i < vaultToIdMap.length(); i++) {
+        uint256 length = vaultToIdMap.length();
+        vaults = new address[](length);
+        adapters = new address[](length);
+        ids = new bytes32[](length);
+        for (uint256 i = 0; i < length; i++) {
             (vaults[i], adapters[i], ids[i]) = getWhitelistedVault(i);
         }
     }
