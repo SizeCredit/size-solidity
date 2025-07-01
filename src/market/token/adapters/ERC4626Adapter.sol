@@ -30,14 +30,9 @@ contract ERC4626Adapter is Ownable, IAdapter {
     // slither-disable-end constable-states
     // slither-disable-end uninitialized-state
 
-    constructor(NonTransferrableRebasingTokenVault _tokenVault, IERC20Metadata _underlyingToken)
-        Ownable(address(_tokenVault))
-    {
-        if (address(_tokenVault) == address(0) || address(_underlyingToken) == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
+    constructor(NonTransferrableRebasingTokenVault _tokenVault) Ownable(address(_tokenVault)) {
         tokenVault = _tokenVault;
-        underlyingToken = _underlyingToken;
+        underlyingToken = _tokenVault.underlyingToken();
     }
 
     /// @inheritdoc IAdapter

@@ -241,12 +241,9 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
 
     function test_NonTransferrableRebasingTokenVault_update_ERC4626Adapter() public {
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
-        new ERC4626Adapter(NonTransferrableRebasingTokenVault(address(0)), underlying);
+        new ERC4626Adapter(NonTransferrableRebasingTokenVault(address(0)));
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        new ERC4626Adapter(token, IERC20Metadata(address(0)));
-
-        ERC4626Adapter adapter = new ERC4626Adapter(token, underlying);
+        ERC4626Adapter adapter = new ERC4626Adapter(token);
 
         vm.prank(owner);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
@@ -258,15 +255,9 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
 
     function test_NonTransferrableRebasingTokenVault_update_AaveAdapter() public {
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
-        new AaveAdapter(NonTransferrableRebasingTokenVault(address(0)), pool, underlying);
+        new AaveAdapter(NonTransferrableRebasingTokenVault(address(0)));
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        new AaveAdapter(token, IPool(address(0)), underlying);
-
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        new AaveAdapter(token, pool, IERC20Metadata(address(0)));
-
-        AaveAdapter adapter = new AaveAdapter(token, pool, underlying);
+        AaveAdapter adapter = new AaveAdapter(token);
 
         vm.prank(owner);
         token.setAdapter(bytes32("AaveAdapter"), adapter);

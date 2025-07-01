@@ -146,13 +146,13 @@ abstract contract Deploy {
         hevm.prank(owner);
         NonTransferrableRebasingTokenVault borrowTokenVault = sizeFactory.createBorrowTokenVault(variablePool, usdc);
 
-        AaveAdapter aaveAdapter = new AaveAdapter(borrowTokenVault, variablePool, usdc);
+        AaveAdapter aaveAdapter = new AaveAdapter(borrowTokenVault);
         hevm.prank(owner);
         borrowTokenVault.setAdapter(bytes32("AaveAdapter"), aaveAdapter);
         hevm.prank(owner);
         borrowTokenVault.setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
 
-        ERC4626Adapter erc4626Adapter = new ERC4626Adapter(borrowTokenVault, usdc);
+        ERC4626Adapter erc4626Adapter = new ERC4626Adapter(borrowTokenVault);
         hevm.prank(owner);
         borrowTokenVault.setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
 
@@ -245,13 +245,13 @@ abstract contract Deploy {
         NonTransferrableRebasingTokenVault borrowTokenVault =
             sizeFactory.createBorrowTokenVault(variablePool, borrowToken);
 
-        AaveAdapter aaveAdapter = new AaveAdapter(borrowTokenVault, variablePool, borrowToken);
+        AaveAdapter aaveAdapter = new AaveAdapter(borrowTokenVault);
         hevm.prank(owner);
         borrowTokenVault.setAdapter(bytes32("AaveAdapter"), aaveAdapter);
         hevm.prank(owner);
         borrowTokenVault.setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
 
-        ERC4626Adapter erc4626Adapter = new ERC4626Adapter(borrowTokenVault, borrowToken);
+        ERC4626Adapter erc4626Adapter = new ERC4626Adapter(borrowTokenVault);
         hevm.prank(owner);
         borrowTokenVault.setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
 

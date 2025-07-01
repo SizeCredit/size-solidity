@@ -549,7 +549,7 @@ contract VaultsTest is BaseTest {
         vm.expectRevert();
         _setVault(alice, DEFAULT_VAULT, false);
 
-        ERC4626Adapter newAdapter = new ERC4626Adapter(borrowTokenVault, usdc);
+        ERC4626Adapter newAdapter = new ERC4626Adapter(borrowTokenVault);
 
         vm.prank(address(this));
         borrowTokenVault.setAdapter(bytes32("ERC4626Adapter"), newAdapter);

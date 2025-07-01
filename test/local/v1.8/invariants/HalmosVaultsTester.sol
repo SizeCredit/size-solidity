@@ -61,11 +61,11 @@ contract HalmosVaultsTester is Test, PropertiesConstants, PropertiesSpecificatio
             usdc.decimals()
         );
 
-        AaveAdapter aaveAdapter = new AaveAdapter(token, variablePool, usdc);
+        AaveAdapter aaveAdapter = new AaveAdapter(token);
         token.setAdapter(bytes32("AaveAdapter"), aaveAdapter);
         token.setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
 
-        ERC4626Adapter erc4626Adapter = new ERC4626Adapter(token, usdc);
+        ERC4626Adapter erc4626Adapter = new ERC4626Adapter(token);
         token.setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
 
         vault = address(new ERC4626Solmate(ERC20Solmate(address(usdc)), "Vault", "VAULT"));
