@@ -26,7 +26,7 @@ contract NonTransferrableRebasingTokenVaultPseudoCopy is NonTransferrableRebasin
     }
 
     /// @custom:halmos --loop 256
-    function get_all_shares(address _vault) external view returns(uint256) {
+    function getAllShares(address _vault) external view returns(uint256) {
         uint256 sum = 0;
         for (uint256 i = 0; i < number_addresses_with_shares; i++) {
             address user = addresses_with_shares[i];

@@ -48,13 +48,8 @@ contract NonTransferrableRebasingTokenVault is
     IERC20Metadata,
     IERC20Errors,
     Ownable2StepUpgradeable,
-<<<<<<< HEAD
     ReentrancyGuardUpgradeableWithViewModifier,
     UUPSUpgradeable
-=======
-    UUPSUpgradeable,
-    Test
->>>>>>> f5b6a43 (implement halmos test balance intergrity)
 {
     using SafeERC20 for IERC20Metadata;
     using EnumerableMap for EnumerableMap.AddressToBytes32Map;
@@ -494,14 +489,8 @@ contract NonTransferrableRebasingTokenVault is
     /// @dev Setting the vault to `address(0)` will use the default variable pool
     function _setVaultAdapter(address vault, bytes32 id) private {
         IAdapter adapter = IAdapter(IdToAdapterMap.get(id));
-<<<<<<< HEAD
         adapter.validate(vault);
 
-=======
-        if (adapter.getAsset(vault) != address(underlyingToken)) {
-            revert Errors.INVALID_VAULT(address(vault));
-        }
->>>>>>> f5b6a43 (implement halmos test balance intergrity)
         // slither-disable-next-line unused-return
         vaultToIdMap.set(vault, id);
         //emit VaultAdapterSet(vault, id);

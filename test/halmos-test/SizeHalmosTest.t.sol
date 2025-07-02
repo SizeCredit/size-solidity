@@ -23,6 +23,8 @@ contract SizeHalmosTest is Test, HalmosHelpers {
     IPool private variablePool;
     SizeFactoryMock private sizeFactory;
     IERC4626 internal vaultSolady;
+    AaveAdapter private aaveAdapter;
+    ERC4626Adapter private erc4626Adapter;
 
     SymbolicActor[] vaults;
     SymbolicActor[] actors;
@@ -48,9 +50,11 @@ contract SizeHalmosTest is Test, HalmosHelpers {
 
         // Setup part
         vm.startPrank(deployer);
-        usdc = new USDC(address(actors[0]));
+        usdc = new USDC(deployer);
+        usdc.mint(address(actors[0]), 2 * USDC_INITIAL_BALANCE);
         variablePool = IPool(address(new PoolMock()));
-        sizeFactory = new SizeFactoryMock(address(actors[0]));
+        sizeFactory = new SizeFactoryMock(deployer);
+        sizeFactory.setMarket(address(actors[0]), true);
         token = new NonTransferrableRebasingTokenVaultPseudoCopy();
         token.initialize(
             ISizeFactory(address(sizeFactory)),
@@ -61,11 +65,11 @@ contract SizeHalmosTest is Test, HalmosHelpers {
             string.concat("sv", usdc.symbol()),
             usdc.decimals()
         );
-        AaveAdapter aaveAdapter = new AaveAdapter(token, variablePool, usdc);
+        aaveAdapter = new AaveAdapter(token, variablePool, usdc);
         token.setAdapter(bytes32("AaveAdapter"), aaveAdapter);
         token.setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
 
-        ERC4626Adapter erc4626Adapter = new ERC4626Adapter(token, usdc);
+        erc4626Adapter = new ERC4626Adapter(token, usdc);
         token.setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
         token.setVaultAdapter(address(vaults[0]), bytes32("ERC4626Adapter"));
 
@@ -75,8 +79,6 @@ contract SizeHalmosTest is Test, HalmosHelpers {
         vm.stopPrank();
 
         vm.startPrank(address(actors[0]));
-        sizeFactory.setMarket(address(actors[0]), true);
-        usdc.mint(address(actors[0]), 2 * USDC_INITIAL_BALANCE);
         usdc.approve(address(token), 2 * USDC_INITIAL_BALANCE);
         token.setVault(address(actors[1]), address(vaults[0]));
         token.setVault(address(actors[2]), address(vaultSolady));
@@ -93,7 +95,7 @@ contract SizeHalmosTest is Test, HalmosHelpers {
         halmosHelpersRegisterTargetAddress(address(token), "NonTransferrableRebasingTokenVaultPseudoCopy");
 
         // Don't consider possible reentrancy
-        halmosHelpersSetSymbolicCallbacksDepth(0, 0);
+        //halmosHelpersSetSymbolicCallbacksDepth(0, 0);
 
         // Consider limited set of functions
         //halmosHelpersSetOnlyAllowedSelectors(true);
@@ -103,26 +105,53 @@ contract SizeHalmosTest is Test, HalmosHelpers {
         vm.stopPrank();
     }
 
-    function check_balanceIntegrity() external {
+    function check_simplifiedBalanceIntegrity() external {
         settingUp();
-        console.log("balances are ");
-        console.log(usdc.balanceOf(address(vaults[0])));
-        console.log(usdc.balanceOf(address(vaultSolady)));
-        console.log(usdc.totalSupply());
-        vm.stopPrank();
 
-        //vm.startPrank(address(actors[0]));
         halmosHelpersSymbolicBatchStartPrank(actors);
         executeSymbolicallyAllTargets("check_balanceIntegrity");
-        //token.setVault(address(actors[1]), address(vaultSolady));
         vm.stopPrank();
 
-        /*if (token.vaultOf(address(actors[1])) == address(vaultSolady) && (token.vaultOf(address(actors[2])) == address(vaultSolady)))
-        {
-            console.log(usdc.totalSupply());
-            assert(token.sharesOf(address(actors[1])) + token.sharesOf(address(actors[2])) <= (usdc.totalSupply()));
-        }*/
-        // Regular vault should be able to pay its users
-        assert(token.get_all_shares(address(vaultSolady)) <= usdc.balanceOf(address(vaultSolady)));
+        assert(token.getAllShares(address(vaultSolady)) <= usdc.balanceOf(address(vaultSolady)));
+    }
+
+    /// @custom:halmos --loop 256
+    function check_fullBalanceIntegrity() external {
+        settingUp();
+        vm.startPrank(getConfigurer());
+
+        // Avoid calling the same function symbolically
+        // TODO: Decide if we should use this option
+        halmosHelpersSetNoDuplicateCalls(true);
+
+        // Consider callbacks recursion depth up to 2
+        halmosHelpersSetSymbolicCallbacksDepth(2, 2);
+        // Symbolic actors and vault will execute 2 symbolic txs
+        // inside the fallback
+        for (uint i = 0; i < actors.length; i++) {
+            actors[i].setSymbolicFallbackTxsNumber(2);
+            actors[i].setSymbolicReceiveTxsNumber(2);
+        }
+        vaults[0].setSymbolicFallbackTxsNumber(2);
+        vaults[0].setSymbolicReceiveTxsNumber(2);
+        // Register all targets to symbolic execution
+        halmosHelpersRegisterTargetAddress(address(usdc), "USDC");
+        halmosHelpersRegisterTargetAddress(address(variablePool), "IPool");
+        halmosHelpersRegisterTargetAddress(address(sizeFactory), "SizeFactoryMock");
+        halmosHelpersRegisterTargetAddress(address(aaveAdapter), "AaveAdapter");
+        halmosHelpersRegisterTargetAddress(address(erc4626Adapter), "ERC4626Adapter");
+        halmosHelpersRegisterTargetAddress(address(vaultSolady), "IERC4626");
+        halmosHelpersRegisterTargetAddress(address(vaults[0]), "SymbolicActor");
+        vm.stopPrank();
+
+        // Execute targets symbolically, depth is 2
+        halmosHelpersSymbolicBatchStartPrank(actors);
+        executeSymbolicallyAllTargets("check_balanceIntegrity_1");
+        vm.stopPrank();
+        halmosHelpersSymbolicBatchStartPrank(actors);
+        executeSymbolicallyAllTargets("check_balanceIntegrity_2");
+        vm.stopPrank();
+
+        assert(token.getAllShares(address(vaultSolady)) <= usdc.balanceOf(address(vaultSolady)));
     }
 }
