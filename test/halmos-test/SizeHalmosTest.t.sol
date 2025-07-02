@@ -80,8 +80,8 @@ contract SizeHalmosTest is Test, HalmosHelpers {
 
         vm.startPrank(address(actors[0]));
         usdc.approve(address(token), 2 * USDC_INITIAL_BALANCE);
-        token.setVault(address(actors[1]), address(vaults[0]));
-        token.setVault(address(actors[2]), address(vaultSolady));
+        token.setVault(address(actors[1]), address(vaults[0]), true);
+        token.setVault(address(actors[2]), address(vaultSolady), true);
         token.deposit(address(actors[1]), USDC_INITIAL_BALANCE);
         token.deposit(address(actors[2]), USDC_INITIAL_BALANCE);
         vm.stopPrank();
@@ -153,5 +153,27 @@ contract SizeHalmosTest is Test, HalmosHelpers {
         vm.stopPrank();
 
         assert(token.getAllShares(address(vaultSolady)) <= usdc.balanceOf(address(vaultSolady)));
+    }
+
+    function check_marketCanSetValidVault() external {
+        settingUp();
+        bool res;
+        bytes memory retdata;
+
+        halmosHelpersSymbolicBatchStartPrank(actors);
+        executeSymbolicallyAllTargets("check_balanceIntegrity");
+        vm.stopPrank();
+
+        /* market should be able to change vault for any valid user */
+        address user = _svm.createAddress("user");
+        vm.assume(user != address(0x0));
+        vm.assume(token.vaultOf(user) != address(vaultSolady));
+        bool forfeitOldShares = true;
+        bytes memory setVault_calldata = abi.encodeWithSelector(token.setVault.selector, user, address(vaultSolady), forfeitOldShares);
+
+        vm.prank(address(actors[0]));
+        (res, retdata ) = address(token).call(setVault_calldata);
+
+        assert(res == true);
     }
 }

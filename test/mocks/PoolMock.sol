@@ -14,7 +14,7 @@ import {VariableDebtToken} from "@aave/protocol/tokenization/VariableDebtToken.s
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {Math} from "@src/market/libraries/Math.sol";
 
 contract PoolMock is Ownable {
     using SafeERC20 for IERC20Metadata;
