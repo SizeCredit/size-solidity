@@ -13,8 +13,8 @@ Networks:
 
 | Date | Version | Auditor | Report |
 |------|---------|----------|---------|
-| 2025-06-23 | v1.8 | Omniscia | TBD |
-| 2025-06-23 | v1.8 | Hashlock | TBD |
+| 2025-06-23 | v1.8 | Omniscia | [Report](./audits/2025-06-23-Omniscia.pdf) |
+| 2025-06-23 | v1.8 | Hashlock | [Report](./audits/2025-06-23-Cantina.pdf) |
 | 2025-06-14 | v1.8-rc | Cantina | [Report](./audits/2025-06-14-Cantina.pdf) |
 | 2025-05-26 | v1.8-rc | Custodia Security | [Report](./audits/2025-05-26-Custodia-Security.pdf) |
 | 2025-02-26 | v1.7 | Cantina | [Report](./audits/2025-02-26-Cantina.pdf) |
