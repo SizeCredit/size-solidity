@@ -9,7 +9,7 @@ import {ReentrancyGuardUpgradeableWithViewModifier} from "@src/helpers/Reentranc
 import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 
 // Test contract that extends ReentrancyGuardUpgradeableWithViewModifier
-contract TestReentrancyContract is ReentrancyGuardUpgradeableWithViewModifier {
+contract ReentrancyContract is ReentrancyGuardUpgradeableWithViewModifier {
     uint256 public value;
     bool public reentrancyDetected;
 
@@ -48,46 +48,46 @@ contract TestReentrancyContract is ReentrancyGuardUpgradeableWithViewModifier {
 }
 
 contract ReentrancyGuardUpgradeableWithViewModifierTest is Test, AssertsHelper {
-    TestReentrancyContract public testContract;
+    ReentrancyContract public reentrancyContract;
 
     function setUp() public {
-        testContract = new TestReentrancyContract();
-        testContract.initialize();
+        reentrancyContract = new ReentrancyContract();
+        reentrancyContract.initialize();
     }
 
     function test_ReentrancyGuardUpgradeableWithViewModifier_normal_operation() public {
         // Normal function should work
-        testContract.normalFunction();
-        assertEq(testContract.value(), 1);
+        reentrancyContract.normalFunction();
+        assertEq(reentrancyContract.value(), 1);
 
         // Protected view function should work when not in reentrant context
-        uint256 result = testContract.protectedViewFunction();
+        uint256 result = reentrancyContract.protectedViewFunction();
         assertEq(result, 1);
     }
 
     function test_ReentrancyGuardUpgradeableWithViewModifier_detects_reentrancy() public {
         // This should trigger the reentrancy detection
         vm.expectRevert(ReentrancyGuardUpgradeable.ReentrancyGuardReentrantCall.selector);
-        testContract.protectedFunction();
+        reentrancyContract.protectedFunction();
     }
 
     function test_ReentrancyGuardUpgradeableWithViewModifier_view_revert_on_reentrancy() public {
         // Test that the nonReentrantView modifier correctly detects reentrancy
-        testContract.simulateReentrancy();
+        reentrancyContract.simulateReentrancy();
 
         // Should have detected reentrancy
-        assertTrue(testContract.reentrancyDetected());
-        assertEq(testContract.value(), 100); // The function should have executed before the view call
+        assertTrue(reentrancyContract.reentrancyDetected());
+        assertEq(reentrancyContract.value(), 100); // The function should have executed before the view call
     }
 
     function test_ReentrancyGuardUpgradeableWithViewModifier_view_works_independently() public {
         // View function should work fine when called independently
-        uint256 result = testContract.protectedViewFunction();
+        uint256 result = reentrancyContract.protectedViewFunction();
         assertEq(result, 0); // Initial value
 
-        testContract.normalFunction();
+        reentrancyContract.normalFunction();
 
-        result = testContract.protectedViewFunction();
+        result = reentrancyContract.protectedViewFunction();
         assertEq(result, 1); // Updated value
     }
 }

@@ -140,6 +140,7 @@ A non-exhaustive list of the risks of improper authorization includes:
 - Authorizing `compensate` enables the operator to compensate loans on their behalf from risky debt positions
 - Authorizing `setUserConfiguration` enables the operator to change opening CR and other important account configurations
 - Authorizing `copyLimitOrders` enables the operator to copy from addresses with parameters that would make market orders against them revert
+- Authorizing `setVault` enables the operator to forfeit all vault shares
 
 Because of the related risks, a recommended pattern is to authorize pre-vetted smart contracts in the beginning of a `multicall` operation, and revoke the authorization at the end of it. This way, the strategy contract will not hold any funds or credit on behalf of the user, and will be only responsible for specific actions during a limited time.
 
@@ -151,7 +152,7 @@ The token vault contract is a "vault of vaults" in a sense, a non-transferrable 
 
 To keep accounting in check, several mappings are : from user to vault, from user to vault shares, and from vault to adapter. Currently, only two adapters are supported through a ["strategy" design pattern](https://refactoring.guru/design-patterns/strategy): `AaveAdapter` and `ERC4626Adapter`. Adapters must implement the `IAdapter` interface (deposit, withdraw, balanceOf, etc.). In the future, other adapters may be introduced by the admin.
 
-In some cases, [withdrawing from the vault may leave "dust" shares](https://slowmist.medium.com/slowmist-aave-v2-security-audit-checklist-0d9ef442436b#5aed) with the user, which are then burned so that they do not roll over during a vault change. These dust shares are tracked in a specific-purpose mapping, and can be used by the admin if needed.
+In some cases, [withdrawing from the vault may leave "dust" shares](https://slowmist.medium.com/slowmist-aave-v2-security-audit-checklist-0d9ef442436b#5aed) with the user, which are then burned so that they do not roll over during a vault change.
 
 Since there can be an unlimited number of whitelisted vaults, the amount of underlying held by `NonTransferrableRebasingTokenVault` cannot be computed in constant time, so  `totalSupply` loops ver all vaults to calculate the underlying sum. Because of that, it SHOULD NOT be used onchain. In addition, due to the rounding of scaled/shares accounting, the invariant `SUM(balanceOf) == totalSupply()` may not hold true. However, we should still have `SUM(balanceOf) <= totalSupply()`, since `balanceOf` rounds down, and also to guarantee the solvency of the protocol.
 
