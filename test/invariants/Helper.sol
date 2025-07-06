@@ -16,6 +16,28 @@ abstract contract Helper is Deploy, PropertiesConstants, Bounds {
         return uint160(user) % 3 == 0 ? USER1 : uint160(user) % 3 == 1 ? USER2 : USER3;
     }
 
+    function _getRandomVault(address v) internal view returns (address) {
+        address[] memory vaults = new address[](16);
+        vaults[0] = address(0);
+        vaults[1] = address(vaultSolady);
+        vaults[2] = address(vaultOpenZeppelin);
+        vaults[3] = address(vaultSolmate);
+        vaults[4] = address(vaultMaliciousWithdrawNotAllowed);
+        vaults[5] = address(vaultMaliciousReentrancy);
+        vaults[6] = address(vaultMaliciousReentrancyGeneric);
+        vaults[7] = address(vaultFeeOnTransfer);
+        vaults[8] = address(vaultFeeOnEntryExit);
+        vaults[9] = address(vaultLimits);
+        vaults[10] = address(vaultNonERC4626);
+        vaults[11] = address(vaultERC7540FullyAsync);
+        vaults[12] = address(vaultERC7540ControlledAsyncDeposit);
+        vaults[13] = address(vaultERC7540ControlledAsyncRedeem);
+        vaults[14] = address(vaultInvalidUnderlying);
+        vaults[15] = address(v);
+
+        return vaults[uint256(uint160(v)) % vaults.length];
+    }
+
     function _getCreditPositionId(uint256 creditPositionId) internal view returns (uint256) {
         (, uint256 creditPositionsCount) = size.getPositionsCount();
         if (creditPositionsCount == 0) return RESERVED_ID;

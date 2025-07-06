@@ -42,3 +42,10 @@ selectors.txt
 
 # Typechain
 types/
+
+# Halmos
+call-flamegraph.svg
+call.stacks
+exec-flamegraph.svg
+exec.stacks
+palette.map

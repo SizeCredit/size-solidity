@@ -143,7 +143,7 @@ contract SelfLiquidateTest is BaseTest {
 
         assertEq(_after.bob.collateralTokenBalance, _before.bob.collateralTokenBalance - 150e18, 0);
         assertEq(_after.candy.collateralTokenBalance, _before.candy.collateralTokenBalance + 150e18);
-        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance);
+        assertEq(_after.feeRecipient.borrowTokenBalance, _before.feeRecipient.borrowTokenBalance);
         assertEq(_after.bob.debtBalance, _before.bob.debtBalance - 100e6);
     }
 
@@ -303,8 +303,8 @@ contract SelfLiquidateTest is BaseTest {
         uint256 borrowAmount = 100e6;
         exitAmount = bound(
             exitAmount,
-            size.riskConfig().minimumCreditBorrowAToken + size.feeConfig().fragmentationFee,
-            borrowAmount - size.riskConfig().minimumCreditBorrowAToken - size.feeConfig().fragmentationFee
+            size.riskConfig().minimumCreditBorrowToken + size.feeConfig().fragmentationFee,
+            borrowAmount - size.riskConfig().minimumCreditBorrowToken - size.feeConfig().fragmentationFee
         );
         uint256 swapFee = size.getSwapFee(exitAmount, 365 days);
         vm.assume(exitAmount > swapFee + size.feeConfig().fragmentationFee);
@@ -339,8 +339,8 @@ contract SelfLiquidateTest is BaseTest {
         uint256 borrowAmount = 100e6;
         exitAmount = bound(
             exitAmount,
-            size.riskConfig().minimumCreditBorrowAToken + size.feeConfig().fragmentationFee,
-            borrowAmount - size.riskConfig().minimumCreditBorrowAToken - size.feeConfig().fragmentationFee
+            size.riskConfig().minimumCreditBorrowToken + size.feeConfig().fragmentationFee,
+            borrowAmount - size.riskConfig().minimumCreditBorrowToken - size.feeConfig().fragmentationFee
         );
         uint256 swapFee = size.getSwapFee(exitAmount, 365 days);
         vm.assume(exitAmount > swapFee + size.feeConfig().fragmentationFee);
@@ -375,8 +375,8 @@ contract SelfLiquidateTest is BaseTest {
         uint256 borrowAmount = 100e6;
         exitAmount = bound(
             exitAmount,
-            size.riskConfig().minimumCreditBorrowAToken + size.feeConfig().fragmentationFee,
-            borrowAmount - size.riskConfig().minimumCreditBorrowAToken - size.feeConfig().fragmentationFee
+            size.riskConfig().minimumCreditBorrowToken + size.feeConfig().fragmentationFee,
+            borrowAmount - size.riskConfig().minimumCreditBorrowToken - size.feeConfig().fragmentationFee
         );
         uint256 swapFee = size.getSwapFee(exitAmount, 365 days);
         vm.assume(exitAmount > swapFee + size.feeConfig().fragmentationFee);
@@ -408,8 +408,8 @@ contract SelfLiquidateTest is BaseTest {
         uint256 borrowAmount = 100e6;
         exitAmount = bound(
             exitAmount,
-            size.riskConfig().minimumCreditBorrowAToken + size.feeConfig().fragmentationFee,
-            borrowAmount - size.riskConfig().minimumCreditBorrowAToken - size.feeConfig().fragmentationFee
+            size.riskConfig().minimumCreditBorrowToken + size.feeConfig().fragmentationFee,
+            borrowAmount - size.riskConfig().minimumCreditBorrowToken - size.feeConfig().fragmentationFee
         );
         uint256 swapFee = size.getSwapFee(exitAmount, 365 days);
         vm.assume(exitAmount > swapFee + size.feeConfig().fragmentationFee);
@@ -442,8 +442,8 @@ contract SelfLiquidateTest is BaseTest {
         uint256 borrowAmount = 100e6;
         exitAmount = bound(
             exitAmount,
-            size.riskConfig().minimumCreditBorrowAToken + size.feeConfig().fragmentationFee,
-            borrowAmount - size.riskConfig().minimumCreditBorrowAToken - size.feeConfig().fragmentationFee
+            size.riskConfig().minimumCreditBorrowToken + size.feeConfig().fragmentationFee,
+            borrowAmount - size.riskConfig().minimumCreditBorrowToken - size.feeConfig().fragmentationFee
         );
         uint256 swapFee = size.getSwapFee(exitAmount, 365 days);
         vm.assume(exitAmount > swapFee + size.feeConfig().fragmentationFee);

@@ -42,13 +42,18 @@ import {UpdateConfigParams} from "@src/market/libraries/actions/UpdateConfig.sol
 import {ExpectedErrors} from "@test/invariants/ExpectedErrors.sol";
 import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol";
 
-import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
-import {CopyLimitOrdersParams} from "@src/market/libraries/actions/CopyLimitOrders.sol";
-import {PartialRepayParams} from "@src/market/libraries/actions/PartialRepay.sol";
+import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 
+import {PartialRepayParams} from "@src/market/libraries/actions/PartialRepay.sol";
+import {SetCopyLimitOrderConfigsParams} from "@src/market/libraries/actions/SetCopyLimitOrderConfigs.sol";
+import {SetVaultParams} from "@src/market/libraries/actions/SetVault.sol";
+
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
 abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
+    using EnumerableSet for EnumerableSet.AddressSet;
+
     function deposit(address token, uint256 amount) public getSender checkExpectedErrors(DEPOSIT_ERRORS) {
         token = uint160(token) % 2 == 0 ? address(weth) : address(usdc);
         amount = between(amount, 0, token == address(weth) ? MAX_AMOUNT_WETH : MAX_AMOUNT_USDC);
@@ -69,7 +74,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                 eq(_after.sizeCollateralAmount, _before.sizeCollateralAmount + amount, DEPOSIT_02);
             } else {
                 if (variablePool.getReserveNormalizedIncome(address(usdc)) == WadRayMath.RAY) {
-                    eq(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance + amount, DEPOSIT_01);
+                    eq(_after.sender.borrowTokenBalance, _before.sender.borrowTokenBalance + amount, DEPOSIT_01);
                 }
                 eq(_after.senderBorrowAmount, _before.senderBorrowAmount - amount, DEPOSIT_01);
                 eq(_after.sizeBorrowAmount, _before.sizeBorrowAmount + amount, DEPOSIT_02);
@@ -100,16 +105,16 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                 eq(_after.senderCollateralAmount, _before.senderCollateralAmount + withdrawnAmount, WITHDRAW_01);
                 eq(_after.sizeCollateralAmount, _before.sizeCollateralAmount - withdrawnAmount, WITHDRAW_02);
             } else {
-                withdrawnAmount = Math.min(amount, _before.sender.borrowATokenBalance);
+                withdrawnAmount = Math.min(amount, _before.sender.borrowTokenBalance);
                 if (variablePool.getReserveNormalizedIncome(address(usdc)) == WadRayMath.RAY) {
                     eq(
-                        _after.sender.borrowATokenBalance,
-                        _before.sender.borrowATokenBalance - withdrawnAmount,
+                        _after.sender.borrowTokenBalance,
+                        _before.sender.borrowTokenBalance - withdrawnAmount,
                         WITHDRAW_01
                     );
                 }
                 eq(_after.senderBorrowAmount, _before.senderBorrowAmount + withdrawnAmount, WITHDRAW_01);
-                eq(_after.sizeBorrowAmount, _before.sizeBorrowAmount - withdrawnAmount, WITHDRAW_01);
+                eq(_after.sizeBorrowAmount, _before.sizeBorrowAmount - withdrawnAmount, WITHDRAW_02);
             }
         }
     }
@@ -139,7 +144,9 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                     tenor: tenor,
                     deadline: block.timestamp,
                     maxAPR: type(uint256).max,
-                    exactAmountIn: exactAmountIn
+                    exactAmountIn: exactAmountIn,
+                    collectionId: RESERVED_ID,
+                    rateProvider: address(0)
                 })
             )
         );
@@ -148,10 +155,10 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         if (success) {
             if (lender != sender) {
                 if (amount >= MIN_AMOUNT_USDC) {
-                    gt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
+                    gt(_after.sender.borrowTokenBalance, _before.sender.borrowTokenBalance, BORROW_01);
                 } else {
                     // fragmentationFee can eat the whole cash and leave only 1 as cashAmountOut,
-                    //   which would be rounded down in NonTransferrableScaledTokenV1_5.transferFrom
+                    //   which would be rounded down in NonTransferrableRebasingTokenVault.transferFrom
                 }
             }
 
@@ -209,7 +216,9 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                     amount: amount,
                     deadline: block.timestamp,
                     minAPR: 0,
-                    exactAmountIn: exactAmountIn
+                    exactAmountIn: exactAmountIn,
+                    collectionId: RESERVED_ID,
+                    rateProvider: address(0)
                 })
             )
         );
@@ -257,7 +266,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         );
         __after(debtPositionId);
         if (success) {
-            lte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, REPAY_01);
+            lte(_after.sender.borrowTokenBalance, _before.sender.borrowTokenBalance, REPAY_01);
             gte(_after.variablePoolBorrowAmount, _before.variablePoolBorrowAmount, REPAY_01);
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, REPAY_02);
             eq(uint256(_after.loanStatus), uint256(LoanStatus.REPAID), REPAY_03);
@@ -275,7 +284,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
             address(size).call(abi.encodeCall(size.claim, ClaimParams({creditPositionId: creditPositionId})));
         __after(creditPositionId);
         if (success) {
-            gte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, CLAIM_01);
+            gte(_after.sender.borrowTokenBalance, _before.sender.borrowTokenBalance, CLAIM_01);
             t(size.isCreditPositionId(creditPositionId), CLAIM_02);
         }
     }
@@ -314,7 +323,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                     LIQUIDATE_01
                 );
             }
-            lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, LIQUIDATE_02);
+            lt(_after.sender.borrowTokenBalance, _before.sender.borrowTokenBalance, LIQUIDATE_02);
             t(_before.isBorrowerUnderwater || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_04);
             eq(uint256(_after.loanStatus), uint256(LoanStatus.REPAID), LIQUIDATE_05);
@@ -368,7 +377,9 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                     minAPR: 0,
                     deadline: block.timestamp,
                     borrower: borrower,
-                    minimumCollateralProfit: minimumCollateralProfit
+                    minimumCollateralProfit: minimumCollateralProfit,
+                    collectionId: RESERVED_ID,
+                    rateProvider: address(0)
                 })
             )
         );
@@ -424,7 +435,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         }
     }
 
-    function setUserConfiguration(uint256 openingLimitBorrowCR, bool allCreditPositionsForSaleDisabled)
+    function setUserConfiguration(uint256 _openingLimitBorrowCR, bool _allCreditPositionsForSaleDisabled)
         public
         getSender
         checkExpectedErrors(SET_USER_CONFIGURATION_ERRORS)
@@ -436,8 +447,8 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
             abi.encodeCall(
                 size.setUserConfiguration,
                 SetUserConfigurationParams({
-                    openingLimitBorrowCR: openingLimitBorrowCR,
-                    allCreditPositionsForSaleDisabled: allCreditPositionsForSaleDisabled,
+                    openingLimitBorrowCR: _openingLimitBorrowCR,
+                    allCreditPositionsForSaleDisabled: _allCreditPositionsForSaleDisabled,
                     creditPositionIdsForSale: false,
                     creditPositionIds: new uint256[](0)
                 })
@@ -446,12 +457,29 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         __after();
     }
 
-    function copyLimitOrders(address copyAddress, int256 loanOffsetAPR, int256 borrowOffsetAPR)
+    function setVault(address _vault, bool _forfeitOldShares) public getSender checkExpectedErrors(SET_VAULT_ERRORS) {
+        __before();
+
+        _vault = _getRandomVault(_vault);
+
+        hevm.prank(sender);
+        (success, returnData) = address(size).call(
+            abi.encodeCall(size.setVault, SetVaultParams({vault: _vault, forfeitOldShares: _forfeitOldShares}))
+        );
+        __after();
+
+        if (success) {
+            if (_forfeitOldShares) {
+                eq(_after.sender.borrowTokenBalance, 0, SET_VAULT_01);
+            }
+        }
+    }
+
+    function setCopyLimitOrderConfigs(int256 loanOffsetAPR, int256 borrowOffsetAPR)
         public
         getSender
-        checkExpectedErrors(COPY_LIMIT_ORDERS_ERRORS)
+        checkExpectedErrors(SET_COPY_LIMIT_ORDER_CONFIGS_ERRORS)
     {
-        copyAddress = _getRandomUser(copyAddress);
         loanOffsetAPR = between(loanOffsetAPR, -int256(MAX_PERCENT), int256(MAX_PERCENT));
         borrowOffsetAPR = between(borrowOffsetAPR, -int256(MAX_PERCENT), int256(MAX_PERCENT));
 
@@ -460,17 +488,16 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         hevm.prank(sender);
         (success, returnData) = address(size).call(
             abi.encodeCall(
-                size.copyLimitOrders,
-                CopyLimitOrdersParams({
-                    copyAddress: copyAddress,
-                    copyLoanOffer: CopyLimitOrder({
+                size.setCopyLimitOrderConfigs,
+                SetCopyLimitOrderConfigsParams({
+                    copyLoanOfferConfig: CopyLimitOrderConfig({
                         minTenor: 0,
                         maxTenor: type(uint256).max,
                         minAPR: 0,
                         maxAPR: type(uint256).max,
                         offsetAPR: loanOffsetAPR
                     }),
-                    copyBorrowOffer: CopyLimitOrder({
+                    copyBorrowOfferConfig: CopyLimitOrderConfig({
                         minTenor: 0,
                         maxTenor: type(uint256).max,
                         minAPR: 0,
@@ -509,12 +536,12 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         __after(creditPositionWithDebtToRepayId);
         if (success) {
             eq(
-                _after.sender.borrowATokenBalance - _before.sender.borrowATokenBalance,
-                _after.lender.borrowATokenBalance - _before.lender.borrowATokenBalance,
+                _after.sender.borrowTokenBalance - _before.sender.borrowTokenBalance,
+                _after.lender.borrowTokenBalance - _before.lender.borrowTokenBalance,
                 PARTIAL_REPAY_01
             );
             if (_after.sender.account != _before.lender.account) {
-                lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, PARTIAL_REPAY_02);
+                lt(_after.sender.borrowTokenBalance, _before.sender.borrowTokenBalance, PARTIAL_REPAY_02);
             }
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, PARTIAL_REPAY_03);
             eq(uint256(_after.loanStatus), uint256(_before.loanStatus), PARTIAL_REPAY_04);
@@ -540,11 +567,10 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
     }
 
     function updateConfig(uint256 i, uint256 value) public clear {
-        string[12] memory keys = [
+        string[11] memory keys = [
             "crOpening",
             "crLiquidation",
-            "minimumCreditBorrowAToken",
-            "borrowATokenCap",
+            "minimumCreditBorrowToken",
             "minTenor",
             "maxTenor",
             "swapFeeAPR",
@@ -554,10 +580,9 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
             "collateralProtocolPercent",
             "variablePoolBorrowRateStaleRateInterval"
         ];
-        uint256[12] memory maxValues = [
+        uint256[11] memory maxValues = [
             MAX_PERCENT,
             MAX_PERCENT,
-            MAX_AMOUNT_USDC,
             MAX_AMOUNT_USDC,
             MAX_DURATION,
             MAX_DURATION,

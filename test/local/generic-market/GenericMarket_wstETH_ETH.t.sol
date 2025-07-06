@@ -15,14 +15,13 @@ contract GenericMarket_wstETH_ETH_Test is BaseTestGenericMarket {
 
     function test_GenericMarket_wstETH_ETH_decimals() public view {
         assertEq(size.data().collateralToken.decimals(), 18);
-        assertEq(size.data().borrowAToken.decimals(), 18);
+        assertEq(size.data().borrowTokenVault.decimals(), 18);
         assertEq(size.data().debtToken.decimals(), 18);
     }
 
     function test_GenericMarket_wstETH_ETH_config() public view {
         assertEqApprox(size.feeConfig().fragmentationFee, 0.00197e18, 0.0001e18);
-        assertEqApprox(size.riskConfig().minimumCreditBorrowAToken, 0.00377e18, 0.0001e18);
-        assertEqApprox(size.riskConfig().borrowATokenCap, 377e18, 1e18);
+        assertEqApprox(size.riskConfig().minimumCreditBorrowToken, 0.00377e18, 0.0001e18);
     }
 
     function test_GenericMarket_wstETH_ETH_debtTokenAmountToCollateralTokenAmount() public view {
@@ -35,14 +34,14 @@ contract GenericMarket_wstETH_ETH_Test is BaseTestGenericMarket {
         vm.deal(alice, 1 ether);
 
         assertEq(address(alice).balance, 1 ether);
-        assertEq(_state().alice.borrowATokenBalance, 0);
+        assertEq(_state().alice.borrowTokenBalance, 0);
         assertEq(_state().alice.collateralTokenBalance, 0);
 
         vm.prank(alice);
         size.deposit{value: 1 ether}(DepositParams({token: address(weth), amount: 1 ether, to: alice}));
 
         assertEq(address(alice).balance, 0);
-        assertEq(_state().alice.borrowATokenBalance, 1 ether);
+        assertEq(_state().alice.borrowTokenBalance, 1 ether);
         assertEq(_state().alice.collateralTokenBalance, 0);
     }
 

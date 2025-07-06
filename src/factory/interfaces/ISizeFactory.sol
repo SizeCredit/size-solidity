@@ -10,31 +10,32 @@ import {
     InitializeRiskConfigParams
 } from "@src/market/libraries/actions/Initialize.sol";
 
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
-import {NonTransferrableScaledTokenV1_5} from "@src/market/token/NonTransferrableScaledTokenV1_5.sol";
 import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 
 import {ISizeFactoryOffchainGetters} from "@src/factory/interfaces/ISizeFactoryOffchainGetters.sol";
 import {ISizeFactoryV1_7} from "@src/factory/interfaces/ISizeFactoryV1_7.sol";
+import {ISizeFactoryV1_8} from "@src/factory/interfaces/ISizeFactoryV1_8.sol";
 
 bytes32 constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
 bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 bytes32 constant BORROW_RATE_UPDATER_ROLE = keccak256("BORROW_RATE_UPDATER_ROLE");
+bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
 
 /// @title ISizeFactory
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice The interface for the size factory
-interface ISizeFactory is ISizeFactoryOffchainGetters, ISizeFactoryV1_7 {
+interface ISizeFactory is ISizeFactoryOffchainGetters, ISizeFactoryV1_7, ISizeFactoryV1_8 {
     /// @notice Set the size implementation
     /// @param _sizeImplementation The new size implementation
     function setSizeImplementation(address _sizeImplementation) external;
 
-    /// @notice Set the non-transferrable scaled token v1.5 implementation
-    /// @param _nonTransferrableScaledTokenV1_5Implementation The new non-transferrable scaled token v1.5 implementation
-    function setNonTransferrableScaledTokenV1_5Implementation(address _nonTransferrableScaledTokenV1_5Implementation)
+    /// @notice Set the non-transferrable token vault implementation
+    /// @param _nonTransferrableTokenVaultImplementation The new non-transferrable token vault implementation
+    function setNonTransferrableRebasingTokenVaultImplementation(address _nonTransferrableTokenVaultImplementation)
         external;
 
     /// @notice Creates a new market
@@ -46,13 +47,15 @@ interface ISizeFactory is ISizeFactoryOffchainGetters, ISizeFactoryV1_7 {
         InitializeDataParams calldata dataParams
     ) external returns (ISize);
 
+    /// @notice Creates a new borrow token vault
+    /// @dev The contract owner is set as the owner of the borrow token vault
+    ///      The borrow token vault needs to have adapters set after initialization
+    function createBorrowTokenVault(IPool variablePool, IERC20Metadata underlyingBorrowToken)
+        external
+        returns (NonTransferrableRebasingTokenVault);
+
     /// @notice Creates a new price feed
     function createPriceFeed(PriceFeedParams calldata priceFeedParams) external returns (PriceFeed);
-
-    /// @notice Creates a new borrow aToken
-    function createBorrowATokenV1_5(IPool variablePool, IERC20Metadata underlyingBorrowToken)
-        external
-        returns (NonTransferrableScaledTokenV1_5);
 
     /// @notice Check if an address is a registered market
     /// @param candidate The candidate to check

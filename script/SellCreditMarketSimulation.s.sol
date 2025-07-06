@@ -19,7 +19,7 @@ contract SellCreditMarketSimulationScript is Script, Logger {
         address lender = address(vm.envAddress("LENDER"));
         address borrower = address(vm.envAddress("BORROWER"));
         uint256 amount = 100e6;
-        uint256 apr = size.getLoanOfferAPR(lender, tenor);
+        uint256 apr = size.getUserDefinedLoanOfferAPR(lender, tenor);
 
         SellCreditMarketParams memory params = SellCreditMarketParams({
             lender: lender,
@@ -28,7 +28,9 @@ contract SellCreditMarketSimulationScript is Script, Logger {
             amount: amount,
             deadline: block.timestamp,
             maxAPR: apr,
-            exactAmountIn: false
+            exactAmountIn: false,
+            collectionId: RESERVED_ID,
+            rateProvider: address(0)
         });
 
         vm.recordLogs();

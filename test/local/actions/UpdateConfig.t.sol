@@ -14,20 +14,20 @@ contract UpdateConfigTest is BaseTest {
     function test_UpdateConfig_updateConfig_reverts_if_not_owner() public {
         vm.startPrank(alice);
 
-        assertTrue(size.riskConfig().minimumCreditBorrowAToken != 1e6);
+        assertTrue(size.riskConfig().minimumCreditBorrowToken != 1e6);
 
         vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, 0x00));
-        size.updateConfig(UpdateConfigParams({key: "minimumCreditBorrowAToken", value: 1e6}));
+        size.updateConfig(UpdateConfigParams({key: "minimumCreditBorrowToken", value: 1e6}));
 
-        assertTrue(size.riskConfig().minimumCreditBorrowAToken != 1e6);
+        assertTrue(size.riskConfig().minimumCreditBorrowToken != 1e6);
     }
 
     function test_UpdateConfig_updateConfig_updates_riskConfig() public {
-        assertTrue(size.riskConfig().minimumCreditBorrowAToken != 1e6);
+        assertTrue(size.riskConfig().minimumCreditBorrowToken != 1e6);
 
-        size.updateConfig(UpdateConfigParams({key: "minimumCreditBorrowAToken", value: 1e6}));
+        size.updateConfig(UpdateConfigParams({key: "minimumCreditBorrowToken", value: 1e6}));
 
-        assertTrue(size.riskConfig().minimumCreditBorrowAToken == 1e6);
+        assertTrue(size.riskConfig().minimumCreditBorrowToken == 1e6);
     }
 
     function test_UpdateConfig_updateConfig_cannot_maliciously_liquidate_all_positions() public {

@@ -16,7 +16,8 @@ library Events {
     );
     event UpdateConfig(address indexed sender, string indexed key, uint256 value);
     event VariablePoolBorrowRateUpdated(address indexed sender, uint128 oldBorrowRate, uint128 newBorrowRate);
-    event SellCreditMarket(
+    // introduced in v1.8
+    event SellCreditMarket( // introduced in v1.8
         address indexed sender,
         address indexed borrower,
         address indexed lender,
@@ -26,7 +27,9 @@ library Events {
         uint256 tenor,
         uint256 deadline,
         uint256 maxAPR,
-        bool exactAmountIn
+        bool exactAmountIn,
+        uint256 collectionId,
+        address rateProvider
     ); // borrower == onBehalfOf
     event SellCreditLimit(
         address indexed sender,
@@ -36,7 +39,8 @@ library Events {
         int256[] curveRelativeTimeAprs,
         uint256[] curveRelativeTimeMarketRateMultipliers
     );
-    event BuyCreditMarket(
+    // introduced in v1.8
+    event BuyCreditMarket( // introduced in v1.8
         address indexed sender,
         address indexed lender,
         address indexed borrower,
@@ -46,7 +50,9 @@ library Events {
         uint256 tenor,
         uint256 deadline,
         uint256 minAPR,
-        bool exactAmountIn
+        bool exactAmountIn,
+        uint256 collectionId,
+        address rateProvider
     ); // lender == onBehalfOf
     event BuyCreditLimit(
         address indexed sender,
@@ -78,7 +84,9 @@ library Events {
         address indexed borrower,
         uint256 minimumCollateralProfit,
         uint256 deadline,
-        uint256 minAPR
+        uint256 minAPR,
+        uint256 collectionId,
+        address rateProvider
     );
     event Compensate(
         address indexed sender,
@@ -95,10 +103,9 @@ library Events {
         bool creditPositionIdsForSale,
         uint256[] creditPositionIds
     );
-    event CopyLimitOrders(
+    event SetCopyLimitOrderConfigs(
         address indexed sender,
         address indexed onBehalfOf,
-        address indexed copyAddress,
         uint256 minTenorLoanOffer,
         uint256 maxTenorLoanOffer,
         uint256 minAPRLoanOffer,
@@ -109,7 +116,10 @@ library Events {
         uint256 minAPRBorrowOffer,
         uint256 maxAPRBorrowOffer,
         int256 offsetAPRBorrowOffer
-    ); // v1.6.1
+    ); // introduced v1.6.1, updated in v1.8
+
+    // introduced in v1.8
+    event SetVault(address indexed sender, address indexed onBehalfOf, address indexed vault, bool forfeitOldShares);
 
     // creates
 

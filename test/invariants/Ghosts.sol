@@ -92,9 +92,10 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
         vars.senderCollateralAmount = weth.balanceOf(sender);
         vars.senderBorrowAmount = usdc.balanceOf(sender);
         vars.sizeCollateralAmount = weth.balanceOf(address(size));
-        vars.sizeBorrowAmount = usdc.balanceOf(address(aToken));
+        vars.sizeBorrowAmount = usdc.balanceOf(address(aToken)) + usdc.balanceOf(address(vaultSolady))
+            + usdc.balanceOf(address(vaultOpenZeppelin));
         (vars.debtPositionsCount, vars.creditPositionsCount) = size.getPositionsCount();
-        vars.variablePoolBorrowAmount = size.getUserView(address(variablePool)).borrowATokenBalance;
+        vars.variablePoolBorrowAmount = size.getUserView(address(variablePool)).borrowTokenBalance;
         vars.totalDebtAmount = size.data().debtToken.totalSupply();
     }
 

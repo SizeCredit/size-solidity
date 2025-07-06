@@ -4,11 +4,14 @@ pragma solidity 0.8.23;
 import {Test} from "forge-std/Test.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
 import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {UNISWAP_V3_FACTORY_BYTECODE} from "@test/mocks/UniswapV3FactoryBytecode.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {Size} from "@src/market/Size.sol";
 import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
 
@@ -38,11 +41,12 @@ import {SelfLiquidateParams} from "@src/market/libraries/actions/SelfLiquidate.s
 
 import {BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {SetUserConfigurationParams} from "@src/market/libraries/actions/SetUserConfiguration.sol";
+import {SetVaultParams} from "@src/market/libraries/actions/SetVault.sol";
 
 import {KEEPER_ROLE} from "@src/factory/SizeFactory.sol";
 import {UserView} from "@src/market/SizeView.sol";
-import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
-import {CopyLimitOrdersParams} from "@src/market/libraries/actions/CopyLimitOrders.sol";
+import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
+import {SetCopyLimitOrderConfigsParams} from "@src/market/libraries/actions/SetCopyLimitOrderConfigs.sol";
 
 import {UpdateConfigParams} from "@src/market/libraries/actions/UpdateConfig.sol";
 
@@ -94,10 +98,25 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         vm.label(address(variablePool), "VariablePool");
 
         vm.label(address(size.data().collateralToken), "szWETH");
-        vm.label(address(size.data().borrowAToken), "szaUSDC");
+        vm.label(address(size.data().borrowTokenVault), "szvUSDC");
         vm.label(address(size.data().debtToken), "szDebtUSDC");
 
         vm.label(address(sizeFactory), "SizeFactory");
+
+        vm.label(address(vaultSolady), "ERC4626Solady");
+        vm.label(address(vaultOpenZeppelin), "ERC4626OpenZeppelin");
+        vm.label(address(vaultSolmate), "ERC4626Solmate");
+        vm.label(address(vaultMaliciousWithdrawNotAllowed), "MaliciousERC4626WithdrawNotAllowed");
+        vm.label(address(vaultMaliciousReentrancy), "MaliciousERC4626Reentrancy");
+        vm.label(address(vaultMaliciousReentrancyGeneric), "MaliciousERC4626ReentrancyGeneric");
+        vm.label(address(vaultFeeOnTransfer), "FeeOnTransferERC4626");
+        vm.label(address(vaultFeeOnEntryExit), "FeeOnEntryExitERC4626");
+        vm.label(address(vaultLimits), "LimitsERC4626");
+        vm.label(address(vaultNonERC4626), "NonERC4626");
+        vm.label(address(vaultERC7540FullyAsync), "FullyAsyncVault");
+        vm.label(address(vaultERC7540ControlledAsyncDeposit), "ControlledAsyncDeposit");
+        vm.label(address(vaultERC7540ControlledAsyncRedeem), "ControlledAsyncRedeem");
+        vm.label(address(vaultInvalidUnderlying), "VaultInvalidUnderlying");
 
         vm.label(address(0), "address(0)");
         vm.label(address(this), "Test");
@@ -227,7 +246,9 @@ contract BaseTest is Test, Deploy, AssertsHelper {
                 tenor: tenor,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
         (uint256 debtPositionsCount,) = size.getPositionsCount();
@@ -248,13 +269,6 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         return _sellCreditMarket(
             borrower, lender, creditPositionId, size.getCreditPosition(creditPositionId).credit, type(uint256).max, true
         );
-    }
-
-    function _sellCreditMarket(address borrower, address lender, uint256 amount, uint256 tenor, bool exactAmountIn)
-        internal
-        returns (uint256)
-    {
-        return _sellCreditMarket(borrower, lender, RESERVED_ID, amount, tenor, exactAmountIn);
     }
 
     function _sellCreditLimit(address borrower, uint256 maxDueDate, YieldCurve memory curveRelativeTime) internal {
@@ -339,7 +353,9 @@ contract BaseTest is Test, Deploy, AssertsHelper {
                 amount: amount,
                 exactAmountIn: exactAmountIn,
                 deadline: block.timestamp,
-                minAPR: 0
+                minAPR: 0,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -413,7 +429,9 @@ contract BaseTest is Test, Deploy, AssertsHelper {
                 borrower: borrower,
                 minimumCollateralProfit: minimumCollateralProfit,
                 deadline: block.timestamp,
-                minAPR: 0
+                minAPR: 0,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
     }
@@ -458,18 +476,21 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         );
     }
 
-    function _copyLimitOrders(
+    function _setVault(address user, address vault, bool forfeitOldShares) internal {
+        vm.prank(user);
+        size.setVault(SetVaultParams({vault: vault, forfeitOldShares: forfeitOldShares}));
+    }
+
+    function _setCopyLimitOrderConfigs(
         address user,
-        address copyAddress,
-        CopyLimitOrder memory copyLoanOffer,
-        CopyLimitOrder memory copyBorrowOffer
+        CopyLimitOrderConfig memory copyLoanOfferConfig,
+        CopyLimitOrderConfig memory copyBorrowOfferConfig
     ) internal {
         vm.prank(user);
-        size.copyLimitOrders(
-            CopyLimitOrdersParams({
-                copyAddress: copyAddress,
-                copyLoanOffer: copyLoanOffer,
-                copyBorrowOffer: copyBorrowOffer
+        size.setCopyLimitOrderConfigs(
+            SetCopyLimitOrderConfigsParams({
+                copyLoanOfferConfig: copyLoanOfferConfig,
+                copyBorrowOfferConfig: copyBorrowOfferConfig
             })
         );
     }
@@ -482,6 +503,17 @@ contract BaseTest is Test, Deploy, AssertsHelper {
     function _setLiquidityIndex(address token, uint256 index) internal {
         vm.prank(address(this));
         PoolMock(address(variablePool)).setLiquidityIndex(token, index);
+    }
+
+    function _setVaultAdapter(IERC4626 v, bytes32 id) internal {
+        return _setVaultAdapter(address(v), id);
+    }
+
+    function _setVaultAdapter(address v, bytes32 id) internal {
+        NonTransferrableRebasingTokenVault borrowTokenVault =
+            NonTransferrableRebasingTokenVault(address(size.data().borrowTokenVault));
+        vm.prank(address(this));
+        borrowTokenVault.setVaultAdapter(v, id);
     }
 
     function _setLiquidityIndex(uint256 index) internal {
@@ -501,5 +533,52 @@ contract BaseTest is Test, Deploy, AssertsHelper {
 
     function _isUserUnderwater(address user) internal view returns (bool) {
         return size.collateralRatio(user) < size.riskConfig().crLiquidation;
+    }
+
+    function _subscribeToCollection(address user, uint256 collectionId) internal {
+        uint256[] memory collectionIds = new uint256[](1);
+        collectionIds[0] = collectionId;
+        vm.prank(user);
+        sizeFactory.subscribeToCollections(collectionIds);
+    }
+
+    function _unsubscribeFromCollection(address user, uint256 collectionId) internal {
+        uint256[] memory collectionIds = new uint256[](1);
+        collectionIds[0] = collectionId;
+        vm.prank(user);
+        sizeFactory.unsubscribeFromCollections(collectionIds);
+    }
+
+    function _createCollection(address user) internal returns (uint256 collectionId) {
+        vm.prank(user);
+        collectionId = collectionsManager.createCollection();
+    }
+
+    function _addMarketToCollection(address user, uint256 collectionId, ISize market) internal {
+        ISize[] memory markets = new ISize[](1);
+        markets[0] = market;
+        vm.prank(user);
+        collectionsManager.addMarketsToCollection(collectionId, markets);
+    }
+
+    function _addRateProviderToCollectionMarket(address user, uint256 collectionId, ISize market, address rateProvider)
+        internal
+    {
+        address[] memory rateProviders = new address[](1);
+        rateProviders[0] = rateProvider;
+        vm.prank(user);
+        collectionsManager.addRateProvidersToCollectionMarket(collectionId, market, rateProviders);
+    }
+
+    function _removeRateProviderFromCollectionMarket(
+        address user,
+        uint256 collectionId,
+        ISize market,
+        address rateProvider
+    ) internal {
+        address[] memory rateProviders = new address[](1);
+        rateProviders[0] = rateProvider;
+        vm.prank(user);
+        collectionsManager.removeRateProvidersFromCollectionMarket(collectionId, market, rateProviders);
     }
 }

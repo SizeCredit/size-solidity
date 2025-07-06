@@ -121,7 +121,7 @@ contract ProposeSafeTxDeployPTMarketsScript is BaseScript, Networks {
             underlyingCollateralToken: address(0), // underlyingCollateralToken replaced below
             underlyingBorrowToken: address(dataView.underlyingBorrowToken),
             variablePool: address(dataView.variablePool),
-            borrowATokenV1_5: address(dataView.borrowAToken),
+            borrowTokenVault: address(dataView.borrowTokenVault),
             sizeFactory: address(sizeFactory)
         });
         bytes[] memory datas = new bytes[](2);

@@ -48,7 +48,9 @@ contract SellCreditMarketValidationTest is BaseTest {
                 tenor: tenor,
                 deadline: deadline,
                 maxAPR: type(uint256).max,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -62,7 +64,9 @@ contract SellCreditMarketValidationTest is BaseTest {
                 tenor: tenor,
                 deadline: deadline,
                 maxAPR: type(uint256).max,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -75,7 +79,9 @@ contract SellCreditMarketValidationTest is BaseTest {
                 tenor: tenor,
                 deadline: deadline,
                 maxAPR: type(uint256).max,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -92,7 +98,9 @@ contract SellCreditMarketValidationTest is BaseTest {
                 tenor: 0,
                 deadline: deadline,
                 maxAPR: type(uint256).max,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -109,7 +117,9 @@ contract SellCreditMarketValidationTest is BaseTest {
                 tenor: 11 days,
                 deadline: deadline,
                 maxAPR: type(uint256).max,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -117,7 +127,7 @@ contract SellCreditMarketValidationTest is BaseTest {
             abi.encodeWithSelector(
                 Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector,
                 1.03e6,
-                size.riskConfig().minimumCreditBorrowAToken
+                size.riskConfig().minimumCreditBorrowToken
             )
         );
         size.sellCreditMarket(
@@ -128,7 +138,9 @@ contract SellCreditMarketValidationTest is BaseTest {
                 tenor: 365 days,
                 deadline: deadline,
                 maxAPR: type(uint256).max,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -145,7 +157,9 @@ contract SellCreditMarketValidationTest is BaseTest {
                 tenor: tenor,
                 deadline: deadline,
                 maxAPR: type(uint256).max,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
 
@@ -159,7 +173,9 @@ contract SellCreditMarketValidationTest is BaseTest {
                 tenor: type(uint256).max,
                 deadline: deadline,
                 maxAPR: 0.01e18,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
         vm.stopPrank();
@@ -174,7 +190,9 @@ contract SellCreditMarketValidationTest is BaseTest {
                 tenor: type(uint256).max,
                 deadline: deadline - 1,
                 maxAPR: type(uint256).max,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
         vm.stopPrank();
@@ -195,7 +213,9 @@ contract SellCreditMarketValidationTest is BaseTest {
                 tenor: 365 days,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: true
+                exactAmountIn: true,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
         vm.stopPrank();
@@ -218,7 +238,9 @@ contract SellCreditMarketValidationTest is BaseTest {
                 tenor: 365 days,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: exactAmountIn,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
             })
         );
         vm.stopPrank();

@@ -6,7 +6,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 
 import {User} from "@src/market/SizeStorage.sol";
 
-import {NonTransferrableScaledTokenV1_5} from "@src/market/token/NonTransferrableScaledTokenV1_5.sol";
+import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {NonTransferrableToken} from "@src/market/token/NonTransferrableToken.sol";
 
 struct UserView {
@@ -16,8 +16,8 @@ struct UserView {
     address account;
     // The user's collateral token balance
     uint256 collateralTokenBalance;
-    // The user's borrow aToken balance
-    uint256 borrowATokenBalance;
+    // The user's borrow token balance
+    uint256 borrowTokenBalance;
     // The user's debt token balance
     uint256 debtBalance;
 }
@@ -33,8 +33,8 @@ struct DataView {
     IERC20Metadata underlyingBorrowToken;
     // The collateral token
     NonTransferrableToken collateralToken;
-    // The borrow aToken
-    NonTransferrableScaledTokenV1_5 borrowAToken;
+    // The default borrow token vault
+    NonTransferrableRebasingTokenVault borrowTokenVault;
     // The debt token
     NonTransferrableToken debtToken;
     // The variable pool

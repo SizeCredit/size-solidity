@@ -35,11 +35,13 @@ abstract contract PropertiesSpecifications {
     string internal constant PARTIAL_REPAY_03 = "PARTIAL_REPAY_03: PartialRepay decreases the borrower's debt";
     string internal constant PARTIAL_REPAY_04 = "PARTIAL_REPAY_04: PartialRepay does not change the loan status";
 
-    string internal constant LOAN_01 = "LOAN_01: loan.credit >= minimumCreditBorrowAToken";
+    string internal constant SET_VAULT_01 =
+        "SET_VAULT_01: setVault with forfeitOldShares resets the sender's borrowTokenBalance";
+
+    string internal constant LOAN_01 = "LOAN_01: loan.credit >= minimumCreditBorrowToken";
     string internal constant LOAN_02 = "LOAN_02: minTenor <= loan.tenor <= maxTenor";
     string internal constant LOAN_03 = "LOAN_03: COUNT(credit positions) >= COUNT(debt positions)";
-    string internal constant LOAN_04 = "LOAN_04: loan.liquidityIndexAtRepayment > 0 => loan.loanStatus == REPAID";
-    string internal constant LOAN_05 = "LOAN_05: A CreditPosition's debtPositionId is never updated"; // TODO
+    string internal constant LOAN_04 = "LOAN_04: A CreditPosition's debtPositionId is never updated"; // TODO
 
     string internal constant TOKENS_01 =
         "TOKENS_01: The sum of collateral deposit tokens is equal to the underlying collateral";
@@ -59,6 +61,11 @@ abstract contract PropertiesSpecifications {
     string internal constant SOLVENCY_02 = "SOLVENCY_02: SUM(credit) <= SUM(debt)";
     string internal constant SOLVENCY_03 = "SOLVENCY_03: SUM(positions debt) == user total debt, for each user";
     string internal constant SOLVENCY_04 = "SOLVENCY_04: SUM(positions debt) == SUM(debt)";
+
+    string internal constant VAULTS_01 = "VAULTS_01: SUM(balanceOf) <= totalSupply()";
+    string internal constant VAULTS_02 = "VAULTS_02: Changing a user vault does not leave dust shares";
+    string internal constant VAULTS_03 = "VAULTS_03: underlying.balanceOf(borrowTokenVault) == 0";
+    string internal constant VAULTS_04 = "VAULTS_04: deposit/withdraw/transferFrom does not change the vault";
 
     string internal constant FEES_01 =
         "FEES_01: Fragmentation fees are applied whenever there is a credit fractionalization";

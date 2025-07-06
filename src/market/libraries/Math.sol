@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
+import {FixedPointMathLib} from "@solady/src/utils/FixedPointMathLib.sol";
 
 // 100% in 18 decimals
 uint256 constant PERCENT = 1e18;
