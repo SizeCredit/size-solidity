@@ -287,11 +287,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Setup git config
-        run: |
-          git config --local user.email "dev@size.cash"
-          git config --local user.name "Size"
-
       - name: Coverage
         run: |
           forge coverage --no-match-coverage "(script|test|deprecated)" --report lcov
