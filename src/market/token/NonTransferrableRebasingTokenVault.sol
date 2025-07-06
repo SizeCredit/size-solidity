@@ -63,7 +63,7 @@ contract NonTransferrableRebasingTokenVault is
     // slither-disable-start constable-states
     // v1.5
     ISizeFactory public sizeFactory;
-    IPool public aavePool;
+    IPool public variablePool;
     IERC20Metadata public underlyingToken;
     string public name;
     string public symbol;
@@ -125,7 +125,7 @@ contract NonTransferrableRebasingTokenVault is
     /// @dev Changing the IAdapter requires a reset in AToken approvals
     function initialize(
         ISizeFactory sizeFactory_,
-        IPool aavePool_,
+        IPool variablePool_,
         IERC20Metadata underlyingToken_,
         address owner_,
         string memory name_,
@@ -138,7 +138,7 @@ contract NonTransferrableRebasingTokenVault is
         __UUPSUpgradeable_init();
 
         if (
-            address(sizeFactory_) == address(0) || address(aavePool_) == address(0)
+            address(sizeFactory_) == address(0) || address(variablePool_) == address(0)
                 || address(underlyingToken_) == address(0)
         ) {
             revert Errors.NULL_ADDRESS();
@@ -146,7 +146,7 @@ contract NonTransferrableRebasingTokenVault is
 
         sizeFactory = sizeFactory_;
 
-        aavePool = aavePool_;
+        variablePool = variablePool_;
         underlyingToken = underlyingToken_;
 
         name = name_;
@@ -402,7 +402,7 @@ contract NonTransferrableRebasingTokenVault is
     ///      This function is utilized instead of `requestApprove` in order to avoid an extra `AToken.transferFrom` call, which can cause rounding errors due to WadRay math.
     function requestAaveWithdraw(uint256 amount, address to) public onlyAdapterId(AAVE_ADAPTER_ID) {
         // slither-disable-next-line unused-return
-        aavePool.withdraw(address(underlyingToken), amount, to);
+        variablePool.withdraw(address(underlyingToken), amount, to);
     }
 
     /*//////////////////////////////////////////////////////////////
