@@ -311,8 +311,7 @@ contract HalmosSizeTest is Test, HalmosHelpers {
         address user = _svm.createAddress("user");
         vm.assume(user != address(0x0));
         vm.assume(token.vaultOf(user) != address(vaultSolady));
-        bool forfeitOldShares = true;
-        bytes memory setVault_calldata = abi.encodeWithSelector(token.setVault.selector, user, address(vaultSolady), forfeitOldShares);
+        bytes memory setVault_calldata = abi.encodeWithSelector(token.setVault.selector, user, address(vaultSolady));
 
         vm.prank(address(size));
         (res, retdata ) = address(token).call(setVault_calldata);
