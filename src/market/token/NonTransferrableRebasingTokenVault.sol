@@ -29,8 +29,6 @@ import {IAdapter} from "@src/market/token/adapters/IAdapter.sol";
 
 address constant DEFAULT_VAULT = address(0);
 
-import "halmos-helpers-lib/HalmosHelpers.sol";
-
 /// @title NonTransferrableRebasingTokenVault
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
@@ -137,6 +135,7 @@ contract NonTransferrableRebasingTokenVault is
         __Ownable2Step_init();
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
+
         if (
             address(sizeFactory_) == address(0) || address(aavePool_) == address(0)
                 || address(underlyingToken_) == address(0)
@@ -493,7 +492,7 @@ contract NonTransferrableRebasingTokenVault is
 
         // slither-disable-next-line unused-return
         vaultToIdMap.set(vault, id);
-        //emit VaultAdapterSet(vault, id);
+        emit VaultAdapterSet(vault, id);
     }
 
     /// @notice Removes a vault from the whitelist

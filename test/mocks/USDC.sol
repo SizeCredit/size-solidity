@@ -3,9 +3,8 @@ pragma solidity ^0.8.13;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "halmos-helpers-lib/HalmosHelpers.sol";
 
-contract USDC is ERC20, Ownable, Test {
+contract USDC is ERC20, Ownable {
     constructor(address owner_) ERC20("USD Coin", "USDC") Ownable(owner_) {}
 
     function decimals() public view virtual override returns (uint8) {
@@ -17,8 +16,6 @@ contract USDC is ERC20, Ownable, Test {
     }
 
     function burn(address from, uint256 amount) external onlyOwner {
-        console.log("before burn");
         _burn(from, amount);
-        console.log("after burn");
     }
 }

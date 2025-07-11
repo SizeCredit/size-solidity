@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 import "halmos-helpers-lib/HalmosHelpers.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
-contract NonTransferrableRebasingTokenVaultPseudoCopy is NonTransferrableRebasingTokenVault {
+contract NonTransferrableRebasingTokenVaultMock is NonTransferrableRebasingTokenVault {
     constructor() {
         bytes32 slot = _initializableStorageSlot();
         // re-enables initialize()
