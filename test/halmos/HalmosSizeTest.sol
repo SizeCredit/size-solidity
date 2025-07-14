@@ -305,4 +305,25 @@ contract HalmosSizeTest is Test, HalmosHelpers {
         /* A regular vault should be able to return all assets */
         assert(token.getAllShares(address(vaultSolady)) <= usdc.balanceOf(address(vaultSolady)));
     }
+
+    function check_marketCanSetValidVault() external {
+        bool res;
+        bytes memory retdata;
+
+        halmosHelpersSymbolicBatchStartPrank(actors);
+        executeSymbolicallyAllTargets("check_balanceIntegrity");
+        vm.stopPrank();
+
+        /* market should be able to change vault for any valid user */
+        address user = _svm.createAddress("user");
+        vm.assume(user != address(0x0));
+        vm.assume(token.vaultOf(user) != address(vaultSolady));
+        bool forfeitOldShares = true;
+        bytes memory setVault_calldata = abi.encodeWithSelector(token.setVault.selector, user, address(vaultSolady), forfeitOldShares);
+
+        vm.prank(address(size));
+        (res, retdata ) = address(token).call(setVault_calldata);
+
+        assert(res == true);
+    }
 }
