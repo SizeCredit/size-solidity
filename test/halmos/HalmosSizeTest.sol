@@ -4,18 +4,23 @@ pragma solidity 0.8.23;
 
 import "halmos-helpers-lib/HalmosHelpers.sol";
 
-import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
-import {Size} from "@src/market/Size.sol";
-import {ISize} from "@src/market/interfaces/ISize.sol";
-import "@test/mocks/PoolMock.sol";
-import {SizeFactory} from "@src/factory/SizeFactory.sol";
-import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+
+import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
-import "@test/mocks/USDC.sol";
-import "@test/mocks/NonTransferrableRebasingTokenVaultMock.sol";
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {MockERC4626 as ERC4626Solady} from "@solady/test/utils/mocks/MockERC4626.sol";
+import {SizeFactory} from "@src/factory/SizeFactory.sol";
+import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
+import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
+import {Size} from "@src/market/Size.sol";
+
+import {DataView} from "@src/market/SizeViewData.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
+
+import {DepositParams} from "@src/market/libraries/actions/Deposit.sol";
 import {
     Initialize,
     InitializeDataParams,
@@ -24,23 +29,23 @@ import {
     InitializeRiskConfigParams
 } from "@src/market/libraries/actions/Initialize.sol";
 import {ERC4626Adapter} from "@src/market/token/adapters/ERC4626Adapter.sol";
-import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
-import {MockERC4626 as ERC4626Solady} from "@solady/test/utils/mocks/MockERC4626.sol";
-import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
-import {DataView} from "@src/market/SizeViewData.sol";
-import {WETH} from "@test/mocks/WETH.sol";
-import {DepositParams} from "@src/market/libraries/actions/Deposit.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+import "@test/mocks/NonTransferrableRebasingTokenVaultMock.sol";
+import "@test/mocks/PoolMock.sol";
+import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
+import "@test/mocks/USDC.sol";
+
+import {WETH} from "@test/mocks/WETH.sol";
 
 import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 
-import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {AaveAdapter} from "@src/market/token/adapters/AaveAdapter.sol";
+
 import "@src/market/token/NonTransferrableRebasingTokenVault.sol";
+import {AaveAdapter} from "@src/market/token/adapters/AaveAdapter.sol";
+import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
 contract HalmosSizeTest is Test, HalmosHelpers {
-
     uint256 private constant USDC_INITIAL_BALANCE = 1_000_000e6;
     address deployer = address(0xcafe0000);
     address feeRecipient = address(0xcafe0001);
@@ -108,9 +113,11 @@ contract HalmosSizeTest is Test, HalmosHelpers {
         usdc.mint(address(alice), USDC_INITIAL_BALANCE);
         usdc.mint(address(bob), USDC_INITIAL_BALANCE);
         variablePool = IPool(address(new PoolMock()));
-        
+
         token = new NonTransferrableRebasingTokenVaultMock();
-        sizeFactory = SizeFactory(address(new ERC1967Proxy(address(new SizeFactory()), abi.encodeCall(SizeFactory.initialize, (deployer)))));
+        sizeFactory = SizeFactory(
+            address(new ERC1967Proxy(address(new SizeFactory()), abi.encodeCall(SizeFactory.initialize, (deployer))))
+        );
         token.initialize(
             ISizeFactory(address(sizeFactory)),
             variablePool,
@@ -152,9 +159,9 @@ contract HalmosSizeTest is Test, HalmosHelpers {
         size = Size(payable(proxy));
         PriceFeedMock(address(priceFeed)).setPrice(1337e18);
 
-        erc4626Adapter = new ERC4626Adapter(token, usdc);
+        erc4626Adapter = new ERC4626Adapter(token);
         token.setAdapter(bytes32("ERC4626Adapter"), erc4626Adapter);
-        aaveAdapter = new AaveAdapter(token, variablePool, usdc);
+        aaveAdapter = new AaveAdapter(token);
         token.setAdapter(bytes32("AaveAdapter"), aaveAdapter);
         token.setVaultAdapter(DEFAULT_VAULT, bytes32("AaveAdapter"));
         token.setVaultAdapter(symbolic_vault, bytes32("ERC4626Adapter"));
@@ -212,7 +219,7 @@ contract HalmosSizeTest is Test, HalmosHelpers {
 
         vaultSoladyBalanceNotBrokenInvarint();
     }
-    
+
     /* Should find 3.1.1 and 3.3.2. Long test */
     function check_BalanceIntegrityWithReentrancyNoDuplicateCallsDisabled() external {
         vm.startPrank(getConfigurer());
@@ -236,7 +243,7 @@ contract HalmosSizeTest is Test, HalmosHelpers {
         //halmosHelpersSetOnlyAllowedSelectors(true);
         //halmosHelpersAllowFunctionSelector(size.deposit.selector);
         //halmosHelpersAllowFunctionSelector(size.setUserConfigurationOnBehalfOf.selector);
-        
+
         /* Process callbacks of depth 1 */
         halmosHelpersSetSymbolicCallbacksDepth(1, 1);
         halmosHelpersSetNoDuplicateCalls(true);
@@ -258,11 +265,11 @@ contract HalmosSizeTest is Test, HalmosHelpers {
     function check_BalanceIntegrityFull() external {
         vm.startPrank(getConfigurer());
         halmosHelpersSetSymbolicCallbacksDepth(2, 2);
-        for (uint i = 0; i < actors.length; i++) {
+        for (uint256 i = 0; i < actors.length; i++) {
             actors[i].setSymbolicFallbackTxsNumber(2);
             actors[i].setSymbolicReceiveTxsNumber(2);
         }
-        for (uint i = 0; i < vaults.length; i++) {
+        for (uint256 i = 0; i < vaults.length; i++) {
             actors[i].setSymbolicFallbackTxsNumber(2);
             actors[i].setSymbolicReceiveTxsNumber(2);
         }
