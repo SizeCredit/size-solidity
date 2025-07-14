@@ -33,15 +33,10 @@ contract AaveAdapter is Ownable, IAaveAdapter {
     // slither-disable-end constable-states
     // slither-disable-end uninitialized-state
 
-    constructor(NonTransferrableRebasingTokenVault _tokenVault, IPool _aavePool, IERC20Metadata _underlyingToken)
-        Ownable(address(_tokenVault))
-    {
-        if (
-            address(_tokenVault) == address(0) || address(_aavePool) == address(0)
-                || address(_underlyingToken) == address(0)
-        ) {
-            revert Errors.NULL_ADDRESS();
-        }
+    constructor(NonTransferrableRebasingTokenVault _tokenVault) Ownable(address(_tokenVault)) {
+        IPool _aavePool = _tokenVault.variablePool();
+        IERC20Metadata _underlyingToken = _tokenVault.underlyingToken();
+
         tokenVault = _tokenVault;
         aavePool = _aavePool;
         underlyingToken = _underlyingToken;

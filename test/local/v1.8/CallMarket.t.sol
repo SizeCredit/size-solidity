@@ -15,6 +15,7 @@ import {ISizeV1_8} from "@src/market/interfaces/v1.8/ISizeV1_8.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {ERC4626_ADAPTER_ID} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
 import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 
@@ -293,7 +294,7 @@ contract CallMarketTest is BaseTest {
         uint256[] memory collectionIds = new uint256[](1);
         collectionIds[0] = collectionId;
 
-        _setVaultAdapter(vaultOpenZeppelin, "ERC4626Adapter");
+        _setVaultAdapter(vaultOpenZeppelin, ERC4626_ADAPTER_ID);
 
         uint256 depositAmount = 100e6;
 

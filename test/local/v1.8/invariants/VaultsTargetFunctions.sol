@@ -10,7 +10,10 @@ import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.
 
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {ERC4626 as ERC4626OpenZeppelin} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
-import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
+import {
+    ERC4626_ADAPTER_ID,
+    NonTransferrableRebasingTokenVault
+} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
 import {Deploy} from "@script/Deploy.sol";
 import {SetupLocal} from "@test/invariants/SetupLocal.sol";
@@ -41,7 +44,7 @@ abstract contract VaultsTargetFunctions is Asserts, Deploy, SetupLocal {
 
         maliciousVault = MaliciousERC4626ReentrancyGeneric(address(vaultMaliciousReentrancyGeneric));
 
-        borrowTokenVault.setVaultAdapter(address(maliciousVault), bytes32("ERC4626Adapter"));
+        borrowTokenVault.setVaultAdapter(address(maliciousVault), bytes32(ERC4626_ADAPTER_ID));
         maliciousVault.setOnBehalfOf(USER2);
 
         Action[] memory actions = new Action[](3);
