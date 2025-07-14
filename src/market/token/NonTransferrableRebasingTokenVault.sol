@@ -385,7 +385,7 @@ contract NonTransferrableRebasingTokenVault is
     /// @notice Sets the shares of a user
     /// @dev Only callable by the adapter
     ///      Adapter helper functions operate via reentrancy, so they do not have the nonReentrant modifier
-    function setSharesOf(address user, uint256 shares) public onlyAdapter {
+    function setSharesOf(address user, uint256 shares) virtual public onlyAdapter {
         _setSharesOf(user, shares);
     }
 
