@@ -25,11 +25,6 @@ interface ISizeView is ISizeViewV1_8 {
     /// @return The collateral ratio of the user
     function collateralRatio(address user) external view returns (uint256);
 
-    /// @notice Check if a debt position is liquidatable
-    /// @param debtPositionId The ID of the debt position
-    /// @return True if the debt position is liquidatable, false otherwise
-    function isDebtPositionLiquidatable(uint256 debtPositionId) external view returns (bool);
-
     /// @notice Convert debt token amount to collateral token amount
     /// @param amount The amount of debt tokens
     /// @return The equivalent amount of collateral tokens
@@ -65,10 +60,6 @@ interface ISizeView is ISizeViewV1_8 {
     /// @param creditPositionId The ID of the credit position
     /// @return The CreditPosition struct containing the details of the credit position
     function getCreditPosition(uint256 creditPositionId) external view returns (CreditPosition memory);
-
-    /// @notice Get the count of debt and credit positions
-    /// @return The count of debt positions and credit positions
-    function getPositionsCount() external view returns (uint256, uint256);
 
     /// @notice Gets the swap data for buying credit as a market order
     /// @param params The input parameters for buying credit as a market order

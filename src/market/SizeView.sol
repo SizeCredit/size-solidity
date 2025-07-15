@@ -59,11 +59,6 @@ abstract contract SizeView is SizeStorage, ReentrancyGuardUpgradeableWithViewMod
     }
 
     /// @inheritdoc ISizeView
-    function isDebtPositionLiquidatable(uint256 debtPositionId) external view returns (bool) {
-        return state.isDebtPositionLiquidatable(debtPositionId);
-    }
-
-    /// @inheritdoc ISizeView
     function debtTokenAmountToCollateralTokenAmount(uint256 amount) external view returns (uint256) {
         return state.debtTokenAmountToCollateralTokenAmount(amount);
     }
@@ -128,14 +123,6 @@ abstract contract SizeView is SizeStorage, ReentrancyGuardUpgradeableWithViewMod
         return state.getCreditPosition(creditPositionId);
     }
 
-    /// @inheritdoc ISizeView
-    function getPositionsCount() external view returns (uint256, uint256) {
-        return (
-            state.data.nextDebtPositionId - DEBT_POSITION_ID_START,
-            state.data.nextCreditPositionId - CREDIT_POSITION_ID_START
-        );
-    }
-
     /// @inheritdoc ISizeViewV1_8
     function getUserDefinedLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256) {
         return state.getUserDefinedLoanOfferAPR(lender, tenor);
@@ -162,6 +149,16 @@ abstract contract SizeView is SizeStorage, ReentrancyGuardUpgradeableWithViewMod
         returns (uint256)
     {
         return state.getBorrowOfferAPR(user, collectionId, rateProvider, tenor);
+    }
+
+    /// @inheritdoc ISizeViewV1_8
+    function isUserDefinedLoanOfferNull(address user) external view returns (bool) {
+        return state.data.users[user].loanOffer.isNull();
+    }
+
+    /// @inheritdoc ISizeViewV1_8
+    function isUserDefinedBorrowOfferNull(address user) external view returns (bool) {
+        return state.data.users[user].borrowOffer.isNull();
     }
 
     /// @inheritdoc ISizeView

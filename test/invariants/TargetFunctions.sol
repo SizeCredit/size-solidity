@@ -597,8 +597,5 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         string memory key = keys[i];
         value = between(value, 0, maxValues[i]);
         size.updateConfig(UpdateConfigParams({key: key, value: value}));
-
-        uint128 borrowRate = uint128(between(value, 0, MAX_PERCENT));
-        size.setVariablePoolBorrowRate(borrowRate);
     }
 }

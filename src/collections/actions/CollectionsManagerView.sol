@@ -8,7 +8,7 @@ import {ICollectionsManagerView} from "@src/collections/interfaces/ICollectionsM
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
 import {ISize} from "@src/market/interfaces/ISize.sol";
-import {CopyLimitOrderConfig, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
+import {CopyLimitOrderConfig, LimitOrder, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
 
 /// @title CollectionsManagerView
 /// @custom:security-contact security@size.credit
@@ -18,6 +18,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableSet for EnumerableSet.AddressSet;
     using OfferLibrary for CopyLimitOrderConfig;
+    using OfferLibrary for LimitOrder;
 
     /*//////////////////////////////////////////////////////////////
                             COLLECTION VIEW
@@ -84,6 +85,10 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
                             APR VIEW
     //////////////////////////////////////////////////////////////*/
 
+    function _isUserDefinedLimitOrderNull(address user, ISize market, bool isLoanOffer) private view returns (bool) {
+        return isLoanOffer ? market.isUserDefinedLoanOfferNull(user) : market.isUserDefinedBorrowOfferNull(user);
+    }
+
     /// @inheritdoc ICollectionsManagerView
     function getLoanOfferAPR(address user, uint256 collectionId, ISize market, address rateProvider, uint256 tenor)
         external
@@ -113,7 +118,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         // if collectionId is RESERVED_ID, return the user-defined yield curve
         //   and ignore the user-defined CopyLimitOrderConfig params
         if (collectionId == RESERVED_ID) {
-            return getUserDefinedLimitOrderAPR(user, market, tenor, isLoanOffer);
+            return _getUserDefinedLimitOrderAPR(user, market, tenor, isLoanOffer);
         }
         // else if the user is not copying the collection market rate provider, revert
         else if (!isCopyingCollectionMarketRateProvider(user, collectionId, market, rateProvider)) {
@@ -123,11 +128,11 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         else {
             // validate min/max tenor
             CopyLimitOrderConfig memory copyLimitOrder =
-                getCopyLimitOrderConfig(user, collectionId, market, isLoanOffer);
+                _getCopyLimitOrderConfig(user, collectionId, market, isLoanOffer);
             if (tenor < copyLimitOrder.minTenor || tenor > copyLimitOrder.maxTenor) {
                 revert InvalidTenor(tenor, copyLimitOrder.minTenor, copyLimitOrder.maxTenor);
             } else {
-                uint256 baseAPR = getUserDefinedLimitOrderAPR(rateProvider, market, tenor, isLoanOffer);
+                uint256 baseAPR = _getUserDefinedLimitOrderAPR(rateProvider, market, tenor, isLoanOffer);
                 // apply offset APR
                 apr = SafeCast.toUint256(SafeCast.toInt256(baseAPR) + copyLimitOrder.offsetAPR);
                 // validate min/max APR
@@ -140,7 +145,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         }
     }
 
-    function getUserDefinedLimitOrderAPR(address user, ISize market, uint256 tenor, bool isLoanOffer)
+    function _getUserDefinedLimitOrderAPR(address user, ISize market, uint256 tenor, bool isLoanOffer)
         private
         view
         returns (uint256 apr)
@@ -158,7 +163,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         view
         returns (bool)
     {
-        return isAPRLowerThanOfferAPRs(user, loanAPR, market, tenor, true);
+        return _isAPRLowerThanOfferAPRs(user, loanAPR, market, tenor, true);
     }
 
     /// @inheritdoc ICollectionsManagerView
@@ -167,10 +172,10 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         view
         returns (bool)
     {
-        return isAPRLowerThanOfferAPRs(user, borrowAPR, market, tenor, false);
+        return _isAPRLowerThanOfferAPRs(user, borrowAPR, market, tenor, false);
     }
 
-    function isAPRLowerThanOfferAPRs(address user, uint256 apr, ISize market, uint256 tenor, bool aprIsLoanAPR)
+    function _isAPRLowerThanOfferAPRs(address user, uint256 apr, ISize market, uint256 tenor, bool aprIsLoanAPR)
         private
         view
         returns (bool)
@@ -187,6 +192,9 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
             EnumerableSet.AddressSet storage rateProviders = collections[collectionId][market].rateProviders;
             for (uint256 j = 0; j < rateProviders.length(); j++) {
                 address rateProvider = rateProviders.at(j);
+                if (_isUserDefinedLimitOrderNull(rateProvider, market, !aprIsLoanAPR)) {
+                    continue;
+                }
                 try this.getLimitOrderAPR(user, collectionId, market, rateProvider, tenor, !aprIsLoanAPR) returns (
                     uint256 otherAPR
                 ) {
@@ -201,18 +209,22 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         // slither-disable-end calls-loop
 
         // user-defined check
-        try this.getLimitOrderAPR(user, RESERVED_ID, market, address(0), tenor, !aprIsLoanAPR) returns (
-            uint256 otherAPR
-        ) {
-            if ((aprIsLoanAPR && otherAPR >= apr) || (!aprIsLoanAPR && apr >= otherAPR)) {
-                return false;
+        if (_isUserDefinedLimitOrderNull(user, market, !aprIsLoanAPR)) {
+            return true;
+        } else {
+            try this.getLimitOrderAPR(user, RESERVED_ID, market, address(0), tenor, !aprIsLoanAPR) returns (
+                uint256 otherAPR
+            ) {
+                if ((aprIsLoanAPR && otherAPR >= apr) || (!aprIsLoanAPR && apr >= otherAPR)) {
+                    return false;
+                }
+            } catch (bytes memory) {
+                // N/A
             }
-        } catch (bytes memory) {
-            // N/A
-        }
-        // slither-disable-end var-read-using-this
+            // slither-disable-end var-read-using-this
 
-        return true;
+            return true;
+        }
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -220,18 +232,18 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
     //////////////////////////////////////////////////////////////*/
 
     /// @dev Reverts if the collection id is invalid or the market is not in the collection
-    function getCopyLimitOrderConfig(address user, uint256 collectionId, ISize market, bool isLoanOffer)
+    function _getCopyLimitOrderConfig(address user, uint256 collectionId, ISize market, bool isLoanOffer)
         private
         view
         returns (CopyLimitOrderConfig memory copyLimitOrder)
     {
-        copyLimitOrder = getUserDefinedCopyLimitOrderConfig(user, market, isLoanOffer);
+        copyLimitOrder = _getUserDefinedCopyLimitOrderConfig(user, market, isLoanOffer);
         if (copyLimitOrder.isNull()) {
-            copyLimitOrder = getCollectionMarketCopyLimitOrderConfig(collectionId, market, isLoanOffer);
+            copyLimitOrder = _getCollectionMarketCopyLimitOrderConfig(collectionId, market, isLoanOffer);
         }
     }
 
-    function getUserDefinedCopyLimitOrderConfig(address user, ISize market, bool isLoanOffer)
+    function _getUserDefinedCopyLimitOrderConfig(address user, ISize market, bool isLoanOffer)
         private
         view
         returns (CopyLimitOrderConfig memory copyLimitOrder)
@@ -241,7 +253,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
             : market.getUserDefinedCopyBorrowOfferConfig(user);
     }
 
-    function getCollectionMarketCopyLimitOrderConfig(uint256 collectionId, ISize market, bool isLoanOffer)
+    function _getCollectionMarketCopyLimitOrderConfig(uint256 collectionId, ISize market, bool isLoanOffer)
         private
         view
         returns (CopyLimitOrderConfig memory copyLimitOrder)
@@ -263,7 +275,7 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         view
         returns (CopyLimitOrderConfig memory copyLimitOrder)
     {
-        return getCollectionMarketCopyLimitOrderConfig(collectionId, market, true);
+        return _getCollectionMarketCopyLimitOrderConfig(collectionId, market, true);
     }
 
     /// @inheritdoc ICollectionsManagerView
@@ -272,6 +284,6 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         view
         returns (CopyLimitOrderConfig memory copyLimitOrder)
     {
-        return getCollectionMarketCopyLimitOrderConfig(collectionId, market, false);
+        return _getCollectionMarketCopyLimitOrderConfig(collectionId, market, false);
     }
 }
