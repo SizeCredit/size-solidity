@@ -175,6 +175,8 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
         return _isAPRLowerThanOfferAPRs(user, borrowAPR, market, tenor, false);
     }
 
+    // slither-disable-start var-read-using-this
+    // slither-disable-start calls-loop
     function _isAPRLowerThanOfferAPRs(address user, uint256 apr, ISize market, uint256 tenor, bool aprIsLoanAPR)
         private
         view
@@ -182,8 +184,6 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
     {
         // collections check
         EnumerableSet.UintSet storage collectionIds = userToCollectionIds[user];
-        // slither-disable-start calls-loop
-        // slither-disable-start var-read-using-this
         for (uint256 i = 0; i < collectionIds.length(); i++) {
             uint256 collectionId = collectionIds.at(i);
             if (!collections[collectionId][market].initialized) {
@@ -206,7 +206,6 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
                 }
             }
         }
-        // slither-disable-end calls-loop
 
         // user-defined check
         if (_isUserDefinedLimitOrderNull(user, market, !aprIsLoanAPR)) {
@@ -221,11 +220,12 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
             } catch (bytes memory) {
                 // N/A
             }
-            // slither-disable-end var-read-using-this
 
             return true;
         }
     }
+    // slither-disable-end calls-loop
+    // slither-disable-end var-read-using-this
 
     /*//////////////////////////////////////////////////////////////
                             COPY LIMIT ORDER VIEW
