@@ -194,7 +194,7 @@ jobs:
       - name: Run Fuzzer (${{ matrix.mode }})
         run: |
           if [[ "${{ matrix.mode }}" == "assertion" || "${{ matrix.mode }}" == "property" ]]; then
-            ./echidna . --contract CryticTester --config echidna.yaml --test-mode ${{ matrix.mode }} --corpus-dir corpus --test-limit 10000
+            ./echidna test/invariants/crytic/CryticTester.sol --contract CryticTester --config echidna.yaml --test-mode ${{ matrix.mode }} --corpus-dir corpus --test-limit 10000
           elif [[ "${{ matrix.mode }}" == "medusa" ]]; then
             sed -i 's/\"testLimit\":.*/\"testLimit\": 50000,/g' medusa.json
             sed -i 's/\"corpusDirectory\":.*/\"corpusDirectory\": \"medusa-corpus\",/g' medusa.json
