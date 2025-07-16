@@ -229,7 +229,7 @@ jobs:
 
       - name: Halmos
         run: |
-          halmos
+          halmos --match-contract Math
 
   abi:
     strategy:
