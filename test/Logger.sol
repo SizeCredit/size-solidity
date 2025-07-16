@@ -70,7 +70,8 @@ abstract contract Logger {
     }
 
     function _log(Size size) internal view {
-        (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
+        uint256 debtPositionsCount = size.data().nextDebtPositionId - DEBT_POSITION_ID_START;
+        uint256 creditPositionsCount = size.data().nextCreditPositionId - CREDIT_POSITION_ID_START;
         uint256 totalDebt;
         uint256 totalCredit;
         for (uint256 i = 0; i < debtPositionsCount; ++i) {

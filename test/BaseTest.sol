@@ -147,11 +147,6 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         PriceFeedMock(address(priceFeed)).setPrice(price);
     }
 
-    function _setVariablePoolBorrowRate(uint128 rate) internal {
-        vm.prank(address(this));
-        size.setVariablePoolBorrowRate(rate);
-    }
-
     function _updateConfig(string memory key, uint256 value) internal {
         vm.prank(address(this));
         size.updateConfig(UpdateConfigParams({key: key, value: value}));

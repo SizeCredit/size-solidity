@@ -7,6 +7,10 @@
 		"callSequenceLength": 100,
 		"corpusDirectory": "medusa",
 		"coverageEnabled": true,
+		"coverageFormats": [
+			"html",
+			"lcov"
+		],
 		"targetContracts": [
 			"CryticTester"
 		],
@@ -69,10 +73,10 @@
 	"compilation": {
 		"platform": "crytic-compile",
 		"platformConfig": {
-			"target": ".",
+			"target": "test/invariants/crytic/CryticTester.sol",
 			"solcVersion": "",
 			"exportDirectory": "",
-			"args": ["--compile-libraries=(OfferLibrary,0x10),(Errors,0x11),(Events,0x12),(LoanLibrary,0x13),(RiskLibrary,0x14),(Multicall,0x15),(LiquidateWithReplacement,0x16),(UpdateConfig,0x17),(Claim,0x18),(Deposit,0x19),(PartialRepay,0x1a),(Compensate,0x1b),(SellCreditLimit,0x1c),(BuyCreditMarket,0x1d),(SetVault,0x1e),(Withdraw,0x1f),(Liquidate,0x20),(Repay,0x21),(SellCreditMarket,0x22),(SelfLiquidate,0x23),(BuyCreditLimit,0x24),(SetCopyLimitOrderConfigs,0x25),(Initialize,0x26),(SetUserConfiguration,0x27),(Math,0x28),(YieldCurveLibrary,0x29),(AccountingLibrary,0x2a),(MarketFactoryLibrary,0x2b),(NonTransferrableRebasingTokenVaultLibrary,0x2c),(PriceFeedFactoryLibrary,0x2d),(Authorization,0x2e),(YieldCurveHelper,0x2f)","--foundry-compile-all"]
+			"args": ["--compile-libraries=(OfferLibrary,0x10),(Errors,0x11),(Events,0x12),(LoanLibrary,0x13),(RiskLibrary,0x14),(Multicall,0x15),(LiquidateWithReplacement,0x16),(UpdateConfig,0x17),(Claim,0x18),(Deposit,0x19),(PartialRepay,0x1a),(Compensate,0x1b),(SellCreditLimit,0x1c),(BuyCreditMarket,0x1d),(SetVault,0x1e),(Withdraw,0x1f),(Liquidate,0x20),(Repay,0x21),(SellCreditMarket,0x22),(SelfLiquidate,0x23),(BuyCreditLimit,0x24),(SetCopyLimitOrderConfigs,0x25),(Initialize,0x26),(SetUserConfiguration,0x27),(Math,0x28),(YieldCurveLibrary,0x29),(AccountingLibrary,0x2a),(MarketFactoryLibrary,0x2b),(NonTransferrableRebasingTokenVaultLibrary,0x2c),(PriceFeedFactoryLibrary,0x2d),(Authorization,0x2e),(YieldCurveHelper,0x2f)"]
 		}
 	},
 	"logging": {

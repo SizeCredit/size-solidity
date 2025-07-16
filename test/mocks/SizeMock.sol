@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {Size} from "@src/market/Size.sol";
 import {State} from "@src/market/SizeStorage.sol";
+import {RiskLibrary} from "@src/market/libraries/RiskLibrary.sol";
 
 import {AccountingLibrary} from "@src/market/libraries/AccountingLibrary.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
@@ -22,6 +23,7 @@ contract SizeMock is Size {
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
     using AccountingLibrary for State;
+    using RiskLibrary for State;
 
     // https://github.com/foundry-rs/foundry/issues/4615
     bool public IS_TEST = true;
@@ -126,5 +128,16 @@ contract SizeMock is Size {
 
     function getLoanStatus(uint256 positionId) external view returns (LoanStatus) {
         return state.getLoanStatus(positionId);
+    }
+
+    function isDebtPositionLiquidatable(uint256 debtPositionId) external view returns (bool) {
+        return state.isDebtPositionLiquidatable(debtPositionId);
+    }
+
+    function getPositionsCount() external view returns (uint256, uint256) {
+        return (
+            state.data.nextDebtPositionId - DEBT_POSITION_ID_START,
+            state.data.nextCreditPositionId - CREDIT_POSITION_ID_START
+        );
     }
 }
