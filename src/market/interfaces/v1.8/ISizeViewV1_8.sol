@@ -51,4 +51,14 @@ interface ISizeViewV1_8 {
     /// @param user The address of the user
     /// @return The user copy borrow offer
     function getUserDefinedCopyBorrowOfferConfig(address user) external view returns (CopyLimitOrderConfig memory);
+
+    /// @notice Check if a user-defined loan offer is null
+    /// @param user The address of the user
+    /// @return True if the user-defined loan offer is null, false otherwise
+    function isUserDefinedLoanOfferNull(address user) external view returns (bool);
+
+    /// @notice Check if a user-defined borrow offer is null
+    /// @param user The address of the user
+    /// @return True if the user-defined borrow offer is null, false otherwise
+    function isUserDefinedBorrowOfferNull(address user) external view returns (bool);
 }

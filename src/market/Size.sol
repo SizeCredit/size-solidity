@@ -199,19 +199,6 @@ contract Size is
     }
 
     /// @inheritdoc ISizeAdmin
-    function setVariablePoolBorrowRate(uint128 borrowRate)
-        external
-        override(ISizeAdmin)
-        nonReentrant
-        onlyRoleOrSizeFactoryHasRole(BORROW_RATE_UPDATER_ROLE)
-    {
-        uint128 oldBorrowRate = state.oracle.variablePoolBorrowRate;
-        state.oracle.variablePoolBorrowRate = borrowRate;
-        state.oracle.variablePoolBorrowRateUpdatedAt = uint64(block.timestamp);
-        emit Events.VariablePoolBorrowRateUpdated(msg.sender, oldBorrowRate, borrowRate);
-    }
-
-    /// @inheritdoc ISizeAdmin
     function pause() public override(ISizeAdmin) onlyRoleOrSizeFactoryHasRole(PAUSER_ROLE) {
         _pause();
     }
