@@ -4,15 +4,16 @@ pragma solidity 0.8.23;
 import {Errors} from "@src/market/libraries/Errors.sol";
 
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
-import {BaseTest} from "@test/BaseTest.sol";
-import {Vars} from "@test/BaseTest.sol";
 
 import {
     CREDIT_POSITION_ID_START, CreditPosition, DebtPosition, LoanStatus
 } from "@src/market/libraries/LoanLibrary.sol";
 import {PERCENT, YEAR} from "@src/market/libraries/Math.sol";
 import {LimitOrder, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
+import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
 import {SellCreditMarket, SellCreditMarketParams} from "@src/market/libraries/actions/SellCreditMarket.sol";
+import {BaseTest} from "@test/BaseTest.sol";
+import {Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Math} from "@src/market/libraries/Math.sol";
@@ -673,5 +674,49 @@ contract SellCreditMarketTest is BaseTest {
         } catch (bytes memory err) {
             assertIn(bytes4(err), expectedErrors);
         }
+    }
+
+    function test_SellCreditMarket_sellCreditMarket_inverted_curves() public {
+        _deposit(alice, usdc, 200e6);
+        _deposit(bob, weth, 100e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
+        _sellCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.05e18));
+
+        uint256 amount = 100e6;
+        uint256 tenor = 365 days;
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVERTED_CURVES.selector, alice, tenor));
+        vm.prank(bob);
+        size.sellCreditMarket(
+            SellCreditMarketParams({
+                lender: alice,
+                creditPositionId: RESERVED_ID,
+                amount: amount,
+                tenor: tenor,
+                maxAPR: type(uint256).max,
+                deadline: block.timestamp + 365 days,
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
+            })
+        );
+
+        YieldCurve memory nullCurve;
+        _sellCreditLimit(alice, 0, nullCurve);
+
+        vm.prank(bob);
+        size.sellCreditMarket(
+            SellCreditMarketParams({
+                lender: alice,
+                creditPositionId: RESERVED_ID,
+                amount: amount,
+                tenor: tenor,
+                maxAPR: type(uint256).max,
+                deadline: block.timestamp + 365 days,
+                exactAmountIn: false,
+                collectionId: RESERVED_ID,
+                rateProvider: address(0)
+            })
+        );
     }
 }

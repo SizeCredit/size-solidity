@@ -403,6 +403,9 @@ contract CollectionsTest is BaseTest {
     }
 
     function test_Collections_subscribeToCollection_can_leave_inverted_curves_with_offsetAPR() public {
+        _deposit(alice, usdc, 1000e6);
+        _deposit(candy, weth, 100e18);
+
         _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.03e18));
         _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
 
@@ -429,6 +432,21 @@ contract CollectionsTest is BaseTest {
                 > size.getBorrowOfferAPR(alice, collectionId, bob, 30 days)
         );
 
+        vm.prank(candy);
+        size.sellCreditMarket(
+            SellCreditMarketParams({
+                lender: alice,
+                creditPositionId: RESERVED_ID,
+                amount: 50e6,
+                tenor: 30 days,
+                maxAPR: type(uint256).max,
+                deadline: block.timestamp + 365 days,
+                exactAmountIn: false,
+                collectionId: collectionId,
+                rateProvider: bob
+            })
+        );
+
         _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.04e18));
 
         assertEq(size.getBorrowOfferAPR(alice, collectionId, bob, 30 days), 0.04e18);
@@ -439,6 +457,22 @@ contract CollectionsTest is BaseTest {
                 size.getLoanOfferAPR(alice, collectionId, bob, 30 days)
                     > size.getBorrowOfferAPR(alice, collectionId, bob, 30 days)
             )
+        );
+
+        vm.prank(candy);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVERTED_CURVES.selector, alice, 30 days));
+        size.sellCreditMarket(
+            SellCreditMarketParams({
+                lender: alice,
+                creditPositionId: RESERVED_ID,
+                amount: 50e6,
+                tenor: 30 days,
+                maxAPR: type(uint256).max,
+                deadline: block.timestamp + 365 days,
+                exactAmountIn: false,
+                collectionId: collectionId,
+                rateProvider: bob
+            })
         );
     }
 
