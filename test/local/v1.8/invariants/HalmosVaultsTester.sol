@@ -34,8 +34,7 @@ import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesC
 
 import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
 
-/// @dev This test should be executed with depth >= 4, but it results in TIMEOUT
-/// @custom:halmos --early-exit --invariant-depth 2
+/// @custom:halmos --early-exit --invariant-depth 4
 contract HalmosVaultsTester is Test, PropertiesConstants, PropertiesSpecifications {
     uint256 private constant USDC_INITIAL_BALANCE = 1_000_000e6;
 
@@ -107,11 +106,11 @@ contract HalmosVaultsTester is Test, PropertiesConstants, PropertiesSpecificatio
 
     // halmos is timing out on this invariant, so we're skipping it
     function invariant_VAULTS_01() public view {
-        // uint256 sumBalanceOf = 0;
-        // for (uint256 i = 0; i < users.length; i++) {
-        //     sumBalanceOf += token.balanceOf(users[i]);
-        // }
-        // assertLe(sumBalanceOf, token.totalSupply(), VAULTS_01);
+        uint256 sumBalanceOf = 0;
+        for (uint256 i = 0; i < users.length; i++) {
+            sumBalanceOf += token.balanceOf(users[i]);
+        }
+        assertLe(sumBalanceOf, token.totalSupply(), VAULTS_01);
     }
 
     function invariant_VAULTS_02_04() public pure {
