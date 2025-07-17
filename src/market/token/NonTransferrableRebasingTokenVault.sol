@@ -162,7 +162,7 @@ contract NonTransferrableRebasingTokenVault is
     function reinitialize(string memory name_, string memory symbol_, IAaveAdapter aaveAdapter, IAdapter erc4626Adapter)
         external
         onlyOwner
-        reinitializer(1_08_00)
+        reinitializer(1_08_01)
     {
         name = name_;
         symbol = symbol_;

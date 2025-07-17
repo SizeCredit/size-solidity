@@ -102,7 +102,7 @@ contract SizeFactory is
         address _curator,
         address _rateProvider,
         ISize[] memory _collectionMarkets
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) reinitializer(1_08_00) {
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) reinitializer(1_08_01) {
         if (address(_collectionsManager) == address(0)) {
             revert Errors.NULL_ADDRESS();
         }

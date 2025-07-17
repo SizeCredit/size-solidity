@@ -151,7 +151,7 @@ contract Size is
     }
 
     /// @inheritdoc ISizeV1_8
-    function reinitialize() external onlyRole(DEFAULT_ADMIN_ROLE) reinitializer(1_08_00) {
+    function reinitialize() external onlyRole(DEFAULT_ADMIN_ROLE) reinitializer(1_08_01) {
         __ReentrancyGuard_init();
     }
 

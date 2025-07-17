@@ -73,7 +73,12 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         _;
     }
 
-    function getCollectionMarkets(ISizeFactory _sizeFactory) public view returns (ISize[] memory _collectionMarkets) {
+    function getCollectionMarkets(ISizeFactory _sizeFactory)
+        public
+        view
+        virtual
+        returns (ISize[] memory _collectionMarkets)
+    {
         _collectionMarkets = new ISize[](4);
         ISize[] memory markets = getUnpausedMarkets(_sizeFactory);
         uint256 collectionMarketsLength = 0;
@@ -163,7 +168,7 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         );
     }
 
-    function run() external parseEnv {
+    function run() external virtual parseEnv {
         vm.startBroadcast();
 
         (address[] memory targets, bytes[] memory datas) =
