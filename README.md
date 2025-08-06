@@ -289,7 +289,7 @@ If it does not work, try removing `--verify`
 
 ### Deployment checklist
 
-0. Due dilligence on borrow/collateral tokens: non-rebasing, IERC20Metadata
+0. Due dilligence on borrow/collateral tokens: non-rebasing, IERC20Metadata, price oracle, liquidation path
 1. Deploy
 2. Grant `KEEPER_ROLE` to liquidation contract
 3. Grant `BORROW_RATE_UPDATER_ROLE` to bot

@@ -261,8 +261,8 @@ jobs:
           path: |
             out/Size.sol/Size.json
             out/SizeFactory.sol/SizeFactory.json
+            out/CollectionsManager.sol/CollectionsManager.json
             out/IPriceFeed.sol/IPriceFeed.json
-            out/IPool.sol/IPool.json
             out/IERC20Metadata.sol/IERC20Metadata.json
             out/Errors.sol/Errors.json
             out/Events.sol/Events.json
