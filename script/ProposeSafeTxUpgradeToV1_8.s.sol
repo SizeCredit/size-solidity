@@ -168,7 +168,7 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         );
     }
 
-    function run() external virtual parseEnv {
+    function run() external virtual parseEnv ignoreGas {
         vm.startBroadcast();
 
         (address[] memory targets, bytes[] memory datas) =
