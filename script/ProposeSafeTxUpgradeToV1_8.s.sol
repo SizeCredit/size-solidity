@@ -60,9 +60,9 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
         safeAddress = vm.envAddress("OWNER");
         safe.initialize(safeAddress);
 
-        users = vm.envAddress("USERS", ",");
-        curator = vm.envAddress("CURATOR");
-        rateProvider = vm.envAddress("RATE_PROVIDER");
+        users = vm.envOr("USERS", ",", new address[](0));
+        curator = vm.envOr("CURATOR", address(0));
+        rateProvider = vm.envOr("RATE_PROVIDER", address(0));
         collectionMarkets = getCollectionMarkets(sizeFactory);
 
         console.log("users", users.length);
@@ -178,7 +178,7 @@ contract ProposeSafeTxUpgradeToV1_8Script is BaseScript, Networks {
 
         safe.proposeTransactions(targets, datas, signer, derivationPath);
 
-        Tenderly.VirtualTestnet memory vnet = tenderly.createVirtualTestnet("upgrade-to-v1_8", block.chainid);
+        Tenderly.VirtualTestnet memory vnet = tenderly.createVirtualTestnet("upgrade-to-v1_8-now", block.chainid);
         tenderly.setStorageAt(vnet, safe.instance().safe, Safe.SAFE_THRESHOLD_STORAGE_SLOT, bytes32(uint256(1)));
         tenderly.sendTransaction(
             vnet.id, signer, safe.instance().safe, safe.getExecTransactionsData(targets, datas, signer, derivationPath)
