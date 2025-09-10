@@ -3,13 +3,14 @@ pragma solidity 0.8.23;
 
 import {console2 as console} from "forge-std/Script.sol";
 
-import {BaseScript} from "@script/BaseScript.sol";
-import {NetworkConfiguration, Networks, Contract} from "@script/Networks.sol";
-import {SizeFactory} from "@src/factory/SizeFactory.sol";
-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import {ISize} from "@src/market/interfaces/ISize.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {BaseScript} from "@script/BaseScript.sol";
+import {Contract, NetworkConfiguration, Networks} from "@script/Networks.sol";
+
 import {ICollectionsManager} from "@src/collections/interfaces/ICollectionsManager.sol";
+import {SizeFactory} from "@src/factory/SizeFactory.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
 
 contract CreateCollectionScript is BaseScript, Networks {
     address curator;
@@ -20,7 +21,7 @@ contract CreateCollectionScript is BaseScript, Networks {
         rateProvider = vm.envAddress("RATE_PROVIDER");
     }
 
-    function run() public  broadcast {
+    function run() public broadcast {
         SizeFactory sizeFactory = SizeFactory(contracts[block.chainid][Contract.SIZE_FACTORY]);
         ICollectionsManager collectionsManager = sizeFactory.collectionsManager();
         uint256 collectionId = collectionsManager.createCollection();
