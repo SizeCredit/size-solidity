@@ -16,7 +16,7 @@
   out = "out"
   libs = ["lib"]
   fs_permissions = [{access = "read-write", path = "./deployments"}]
-  no_match_contract = 'CryticTester|FoundryHandler|FoundryTester'
+  no_match_contract = 'CryticTester|FoundryHandler|FoundryForkTester|FoundryTester'
   ffi = true
   no_match_test = 'test_|testFuzz_|invariant_'
   fuzz_runs = 32
