@@ -225,7 +225,7 @@ jobs:
       - name: Install Halmos
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv tool install --python 3.12 "git+https://github.com/igorganich/halmos.git@igorganich/nested_libs_fix"
+          uv tool install --python 3.12 halmos
 
       - name: Halmos
         run: |
