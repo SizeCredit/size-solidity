@@ -175,6 +175,10 @@ abstract contract BaseScript is Script {
         return string(res);
     }
 
+    function price(IPriceFeed priceFeed) internal view returns (string memory) {
+        return format(priceFeed.getPrice(), priceFeed.decimals(), 2);
+    }
+
     /// @dev returns XXX_XXX_XXX.dd, for example if value is 112307802362740077885500 and decimals is 18, it returns 112_307.80
     function format(uint256 value, uint256 decimals, uint256 precision) internal pure returns (string memory) {
         // Calculate the divisor to get the integer part

@@ -63,10 +63,7 @@ abstract contract MainnetAddresses {
     UniswapV3PriceFeedParams UNISWAP_V3_cbETH_WETH =
         UniswapV3PriceFeedParams(0x840DEEef2f115Cf50DA625F7368C24af6fE74410, 30 minutes, 12 seconds);
 
-    address public constant MORPHO_WBTC_USDC_ORACLE = 0xDddd770BADd886dF3864029e4B377B5F6a2B6b83;
-    address public constant MORPHO_cbBTC_USDC_ORACLE = 0xA6D6950c9F177F1De7f7757FB33539e3Ec60182a;
-
-    address public constant MORPHO_wstETH_USDC_ORACLE = 0x48F7E36EB6B826B2dF4B2E630B62Cd25e89E40e2;
-
+    address public constant MORPHO_wstETH_USDC_ORACLE = 0x48F7E36EB6B826B2dF4B2E630B62Cd25e89E40e2; // (wstETH / stETH) * (stETH/ETH) / (USDC/ETH)
     address public constant MORPHO_wstUSR_USR_ORACLE = 0xDa850a72080024e17c1590fbf6ea7a826dB90760;
+    address public constant MORPHO_sUSDS_USDS_ORACLE = 0x6f2B373A397464090645c726eE6685123afEE36f;
 }
