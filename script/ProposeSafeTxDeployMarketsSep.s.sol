@@ -39,14 +39,22 @@ contract ProposeSafeTxDeployMarketsSepScript is BaseScript, Networks, MainnetAdd
     using Tenderly for *;
     using Safe for *;
 
-    uint256 public constant STABLE_MARKET_CR_OPENING = 1.12e18;
-    uint256 public constant STABLE_MARKET_CR_LIQUIDATION = 1.09e18;
+    uint256 public constant PT_STABLE_MARKET_CR_OPENING = 1.12e18;
+    uint256 public constant PT_STABLE_MARKET_CR_LIQUIDATION = 1.09e18;
     uint256 public constant VOLATILE_MARKET_CR_OPENING = 1.3e18;
     uint256 public constant VOLATILE_MARKET_CR_LIQUIDATION = 1.2e18;
+    uint256 public constant YB_STABLE_MARKET_CR_OPENING = 1.15e18;
+    uint256 public constant YB_STABLE_MARKET_CR_LIQUIDATION = 1.1e18;
+
+    enum MarketType {
+        PT_STABLE,
+        VOLATILE,
+        YB_STABLE
+    }
 
     struct UnderlyingCollateralTokenAndIsStable {
         IERC20Metadata underlyingCollateralToken;
-        bool isStable;
+        MarketType marketType;
         IPriceFeed priceFeed;
     }
 
@@ -76,26 +84,36 @@ contract ProposeSafeTxDeployMarketsSepScript is BaseScript, Networks, MainnetAdd
     function run() external parseEnv deleteVirtualTestnets {
         vm.startBroadcast();
 
-        UnderlyingCollateralTokenAndIsStable[9] memory underlyingCollateralTokensAndIsStable = [
-            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(PT_sUSDE_27NOV2025), true, IPriceFeed(address(0))),
-            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(PT_cUSDO_20NOV2025), true, IPriceFeed(address(0))),
-            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(PT_wstUSR_29JAN2026), true, IPriceFeed(address(0))),
-            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(WBTC), false, IPriceFeed(address(0))),
-            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(cbBTC), false, IPriceFeed(address(0))),
-            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(WETH), false, IPriceFeed(address(0))),
-            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(wstETH), false, IPriceFeed(address(0))),
-            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(weETH), false, IPriceFeed(address(0))),
-            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(cbETH), false, IPriceFeed(address(0)))
+        UnderlyingCollateralTokenAndIsStable[10] memory underlyingCollateralTokensAndIsStable = [
+            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(WBTC), MarketType.VOLATILE, IPriceFeed(address(0))),
+            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(cbBTC), MarketType.VOLATILE, IPriceFeed(address(0))),
+            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(WETH), MarketType.VOLATILE, IPriceFeed(address(0))),
+            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(wstETH), MarketType.VOLATILE, IPriceFeed(address(0))),
+            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(weETH), MarketType.VOLATILE, IPriceFeed(address(0))),
+            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(cbETH), MarketType.VOLATILE, IPriceFeed(address(0))),
+            UnderlyingCollateralTokenAndIsStable(
+                IERC20Metadata(PT_sUSDE_27NOV2025), MarketType.PT_STABLE, IPriceFeed(address(0))
+            ),
+            UnderlyingCollateralTokenAndIsStable(
+                IERC20Metadata(PT_wstUSR_29JAN2026), MarketType.PT_STABLE, IPriceFeed(address(0))
+            ),
+            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(wstUSR), MarketType.YB_STABLE, IPriceFeed(address(0))),
+            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(sUSDS), MarketType.YB_STABLE, IPriceFeed(address(0)))
         ];
 
         for (uint256 i = 0; i < underlyingCollateralTokensAndIsStable.length; i++) {
             IERC20Metadata underlyingCollateralToken =
                 underlyingCollateralTokensAndIsStable[i].underlyingCollateralToken;
-            bool isStable = underlyingCollateralTokensAndIsStable[i].isStable;
+            MarketType marketType = underlyingCollateralTokensAndIsStable[i].marketType;
             IPriceFeed priceFeed = underlyingCollateralTokensAndIsStable[i].priceFeed;
             console.log("underlyingCollateralToken", address(underlyingCollateralToken));
             console.log("underlyingCollateralToken symbol", underlyingCollateralToken.symbol());
-            console.log("isStable", isStable);
+            console.log(
+                "marketType",
+                marketType == MarketType.PT_STABLE
+                    ? "PT_STABLE"
+                    : marketType == MarketType.VOLATILE ? "VOLATILE" : "YB_STABLE"
+            );
             console.log("priceFeed", address(priceFeed));
             console.log("priceFeed price", priceFeed.getPrice());
             (
@@ -103,13 +121,13 @@ contract ProposeSafeTxDeployMarketsSepScript is BaseScript, Networks, MainnetAdd
                 InitializeRiskConfigParams memory riskConfigParams,
                 InitializeOracleParams memory oracleParams,
                 InitializeDataParams memory dataParams
-            ) = getMarketParams(underlyingCollateralToken, isStable, priceFeed);
+            ) = getMarketParams(underlyingCollateralToken, marketType, priceFeed);
         }
 
         vm.stopBroadcast();
     }
 
-    function getMarketParams(IERC20Metadata underlyingCollateralToken, bool isStable, IPriceFeed priceFeed)
+    function getMarketParams(IERC20Metadata underlyingCollateralToken, MarketType marketType, IPriceFeed priceFeed)
         public
         view
         returns (
@@ -123,8 +141,12 @@ contract ProposeSafeTxDeployMarketsSepScript is BaseScript, Networks, MainnetAdd
         feeConfigParams = market.feeConfig();
 
         riskConfigParams = market.riskConfig(); // crOpening, crLiquidation replaced below
-        riskConfigParams.crOpening = isStable ? STABLE_MARKET_CR_OPENING : VOLATILE_MARKET_CR_OPENING;
-        riskConfigParams.crLiquidation = isStable ? STABLE_MARKET_CR_LIQUIDATION : VOLATILE_MARKET_CR_LIQUIDATION;
+        riskConfigParams.crOpening = marketType == MarketType.PT_STABLE
+            ? PT_STABLE_MARKET_CR_OPENING
+            : marketType == MarketType.VOLATILE ? VOLATILE_MARKET_CR_OPENING : YB_STABLE_MARKET_CR_OPENING;
+        riskConfigParams.crLiquidation = marketType == MarketType.PT_STABLE
+            ? PT_STABLE_MARKET_CR_LIQUIDATION
+            : marketType == MarketType.VOLATILE ? VOLATILE_MARKET_CR_LIQUIDATION : YB_STABLE_MARKET_CR_LIQUIDATION;
 
         oracleParams = market.oracle(); // priceFeed replaced below
         oracleParams.priceFeed = address(priceFeed);

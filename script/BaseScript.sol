@@ -174,4 +174,50 @@ abstract contract BaseScript is Script {
         bytes memory res = vm.ffi(inputs);
         return string(res);
     }
+
+    /// @dev returns XXX_XXX_XXX.dd, for example if value is 112307802362740077885500 and decimals is 18, it returns 112_307.80
+    function format(uint256 value, uint256 decimals, uint256 precision) internal pure returns (string memory) {
+        // Calculate the divisor to get the integer part
+        uint256 divisor = 10 ** decimals;
+        uint256 integerPart = value / divisor;
+        uint256 fractionalPart = value % divisor;
+
+        // Convert integer part to string with thousand separators
+        string memory integerStr = _addThousandSeparators(integerPart);
+
+        // Convert fractional part to 2 decimal places
+        uint256 scaledFractional = (fractionalPart * (10 ** precision)) / divisor;
+
+        // Format fractional part to always show precision digits
+        string memory fractionalStr;
+        if (scaledFractional < 10) {
+            fractionalStr = string(abi.encodePacked("0", vm.toString(scaledFractional)));
+        } else {
+            fractionalStr = vm.toString(scaledFractional);
+        }
+
+        return string(abi.encodePacked(integerStr, ".", fractionalStr));
+    }
+
+    function _addThousandSeparators(uint256 value) internal pure returns (string memory) {
+        if (value == 0) {
+            return "0";
+        }
+
+        string memory result = "";
+        uint256 count = 0;
+
+        while (value > 0) {
+            if (count > 0 && count % 3 == 0) {
+                result = string(abi.encodePacked("_", result));
+            }
+
+            uint256 digit = value % 10;
+            result = string(abi.encodePacked(vm.toString(digit), result));
+            value /= 10;
+            count++;
+        }
+
+        return result;
+    }
 }

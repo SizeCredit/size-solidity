@@ -5,6 +5,8 @@ abstract contract MainnetAddresses {
     address public constant PT_sUSDE_27NOV2025 = 0xe6A934089BBEe34F832060CE98848359883749B3;
     address public constant PT_cUSDO_20NOV2025 = 0xB10DA2F9147f9cf2B8826877Cd0c95c18A0f42dc;
     address public constant PT_wstUSR_29JAN2026 = 0xfCeEB7586bab730fA400A5BF3FcF298d0DB4c7e7;
+    address public constant PT_sUSDF_29JAN2026 = 0x48E502FBB6Ff2CC687d049150E2C8AdDC765A43a;
+    address public constant PT_sUSDa_18DEC2025 = 0x1714773B9c6f6A3185EE77cc8C1f2092ea70e7CA;
     address public constant WBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
     address public constant cbBTC = 0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf;
     address public constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
@@ -12,6 +14,9 @@ abstract contract MainnetAddresses {
     address public constant weETH = 0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee;
     address public constant cbETH = 0xBe9895146f7AF43049ca1c1AE358B0541Ea49704;
     address public constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    address public constant USR = 0x66a1E37c9b0eAddca17d3662D6c05F4DECf3e110;
+    address public constant wstUSR = 0x1202F5C7b4B9E47a1A484E8B270be34dbbC75055;
+    address public constant sUSDS = 0xa3931d71877C0E7a3148CB7Eb4463524FEc27fbD;
 
     struct ChainlinkPriceFeedParams {
         address aggregator;
@@ -40,6 +45,10 @@ abstract contract MainnetAddresses {
         ChainlinkPriceFeedParams(0xF017fcB346A1885194689bA23Eff2fE6fA5C483b, 86400);
     ChainlinkPriceFeedParams CHAINLINK_USDC_USD =
         ChainlinkPriceFeedParams(0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6, 82800);
+    ChainlinkPriceFeedParams CHAINLINK_USR_USD =
+        ChainlinkPriceFeedParams(0x34ad75691e25A8E9b681AAA85dbeB7ef6561B42c, 86400);
+    ChainlinkPriceFeedParams CHAINLINK_USDS_USD =
+        ChainlinkPriceFeedParams(0xfF30586cD0F29eD462364C7e81375FC0C71219b1, 82800);
 
     UniswapV3PriceFeedParams UNISWAP_V3_WBTC_USDC =
         UniswapV3PriceFeedParams(0x99ac8cA7087fA4A2A1FB6357269965A2014ABc35, 30 minutes, 12 seconds);
@@ -58,4 +67,6 @@ abstract contract MainnetAddresses {
     address public constant MORPHO_cbBTC_USDC_ORACLE = 0xA6D6950c9F177F1De7f7757FB33539e3Ec60182a;
 
     address public constant MORPHO_wstETH_USDC_ORACLE = 0x48F7E36EB6B826B2dF4B2E630B62Cd25e89E40e2;
+
+    address public constant MORPHO_wstUSR_USR_ORACLE = 0xDa850a72080024e17c1590fbf6ea7a826dB90760;
 }

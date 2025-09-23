@@ -10,7 +10,9 @@ import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 /// @title PriceFeedChainlinkMul
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
-/// @notice If `baseAggregator` and `quoteAggregator` are equal, the result is the price of the aggregator without any intermediate asset
+/// @notice A contract that provides the price of a `base` asset in terms of a `quote` asset, scaled to 18 decimals,
+///         using Chainlink. If `baseAggregator` and `quoteAggregator` are equal, the result is the price of the aggregator
+///         without any intermediate asset
 /// @dev The price is calculated as `base * quote`
 ///      Example configuration
 ///         _base: WBTC/BTC feed
@@ -29,7 +31,6 @@ contract PriceFeedChainlinkMul is IPriceFeed {
     /* solhint-enable */
 
     constructor(
-        uint256 _decimals,
         AggregatorV3Interface _baseAggregator,
         AggregatorV3Interface _quoteAggregator,
         uint256 _baseStalePriceInterval,
@@ -43,7 +44,6 @@ contract PriceFeedChainlinkMul is IPriceFeed {
             revert Errors.NULL_STALE_PRICE();
         }
 
-        decimals = _decimals;
         baseAggregator = _baseAggregator;
         quoteAggregator = _quoteAggregator;
         baseStalePriceInterval = _baseStalePriceInterval;
@@ -54,7 +54,7 @@ contract PriceFeedChainlinkMul is IPriceFeed {
                 revert Errors.INVALID_STALE_PRICE_INTERVAL(_baseStalePriceInterval, _quoteStalePriceInterval);
             }
         }
-        decimalsDelta = SafeCast.toInt256(_decimals) - SafeCast.toInt256(_quoteAggregator.decimals())
+        decimalsDelta = SafeCast.toInt256(decimals) - SafeCast.toInt256(_quoteAggregator.decimals())
             - SafeCast.toInt256(_baseAggregator.decimals());
     }
 
@@ -69,7 +69,7 @@ contract PriceFeedChainlinkMul is IPriceFeed {
                 return Math.mulDivDown(
                     _getPrice(baseAggregator, baseStalePriceInterval),
                     _getPrice(quoteAggregator, quoteStalePriceInterval),
-                    10 ** uint256(-decimalsDelta)
+                    10 ** SafeCast.toUint256(-decimalsDelta)
                 );
             }
         }

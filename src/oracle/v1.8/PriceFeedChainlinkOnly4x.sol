@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
+import {Errors} from "@src/market/libraries/Errors.sol";
 import {Math} from "@src/market/libraries/Math.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {PriceFeedChainlinkMul} from "@src/oracle/v1.8/PriceFeedChainlinkMul.sol";
@@ -31,11 +32,24 @@ contract PriceFeedChainlinkOnly4x is IPriceFeed {
         uint256 quoteStalePriceInterval,
         uint256 intermediate2StalePriceInterval
     ) {
+        if (
+            address(baseAggregator) == address(0) || address(intermediate1Aggregator) == address(0)
+                || address(quoteAggregator) == address(0) || address(intermediate2Aggregator) == address(0)
+        ) {
+            revert Errors.NULL_ADDRESS();
+        }
+        if (
+            baseStalePriceInterval == 0 || intermediate1StalePriceInterval == 0 || quoteStalePriceInterval == 0
+                || intermediate2StalePriceInterval == 0
+        ) {
+            revert Errors.NULL_STALE_PRICE();
+        }
+
         baseToIntermediate1 = new PriceFeedChainlinkMul(
-            decimals, baseAggregator, intermediate1Aggregator, baseStalePriceInterval, intermediate1StalePriceInterval
+            baseAggregator, intermediate1Aggregator, baseStalePriceInterval, intermediate1StalePriceInterval
         );
         quoteToIntermediate2 = new PriceFeedChainlinkMul(
-            decimals, quoteAggregator, intermediate2Aggregator, quoteStalePriceInterval, intermediate2StalePriceInterval
+            quoteAggregator, intermediate2Aggregator, quoteStalePriceInterval, intermediate2StalePriceInterval
         );
     }
 
