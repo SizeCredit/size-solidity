@@ -9,11 +9,19 @@ import {NetworkConfiguration, Networks} from "@script/Networks.sol";
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
+import {PendleChainlinkOracle} from "@pendle/contracts/oracles/PtYtLpOracle/chainlink/PendleChainlinkOracle.sol";
+import {PendleSparkLinearDiscountOracle} from "@pendle/contracts/oracles/internal/PendleSparkLinearDiscountOracle.sol";
+
 import {MainnetAddresses} from "@script/MainnetAddresses.s.sol";
 import {IOracle} from "@src/oracle/adapters/morpho/IOracle.sol";
 import {MorphoPriceFeedV2} from "@src/oracle/adapters/morpho/MorphoPriceFeedV2.sol";
+import {PriceFeedPendleSparkLinearDiscountChainlink} from
+    "@src/oracle/v1.7.1/PriceFeedPendleSparkLinearDiscountChainlink.sol";
+import {PriceFeedPendleTWAPChainlink} from "@src/oracle/v1.7.2/PriceFeedPendleTWAPChainlink.sol";
 
+import {ChainlinkPriceFeed} from "@src/oracle/adapters/ChainlinkPriceFeed.sol";
 import {PriceFeedChainlinkOnly4x} from "@src/oracle/v1.8/PriceFeedChainlinkOnly4x.sol";
+
 import {PriceFeedIPriceFeed2x} from "@src/oracle/v1.8/PriceFeedIPriceFeed2x.sol";
 
 contract DeployPriceFeedSepScript is BaseScript, Networks, Deploy, MainnetAddresses {
@@ -27,10 +35,10 @@ contract DeployPriceFeedSepScript is BaseScript, Networks, Deploy, MainnetAddres
             AggregatorV3Interface(CHAINLINK_BTC_USD.aggregator),
             AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
             AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
-            CHAINLINK_WBTC_BTC.stalePriceInterval,
-            CHAINLINK_BTC_USD.stalePriceInterval,
-            CHAINLINK_USDC_USD.stalePriceInterval,
-            CHAINLINK_USDC_USD.stalePriceInterval
+            1.1e18 * CHAINLINK_WBTC_BTC.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_BTC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18
         );
         console.log("PriceFeedChainlinkOnly4x (WBTC/USDC)", address(wbtcToUsdc), price(wbtcToUsdc));
 
@@ -39,10 +47,10 @@ contract DeployPriceFeedSepScript is BaseScript, Networks, Deploy, MainnetAddres
             AggregatorV3Interface(CHAINLINK_cbBTC_USD.aggregator),
             AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
             AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
-            CHAINLINK_cbBTC_USD.stalePriceInterval,
-            CHAINLINK_cbBTC_USD.stalePriceInterval,
-            CHAINLINK_USDC_USD.stalePriceInterval,
-            CHAINLINK_USDC_USD.stalePriceInterval
+            1.1e18 * CHAINLINK_cbBTC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_cbBTC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18
         );
         console.log("PriceFeedChainlinkOnly4x (cbBTC/USDC)", address(cbbtcToUsdc), price(cbbtcToUsdc));
 
@@ -51,10 +59,10 @@ contract DeployPriceFeedSepScript is BaseScript, Networks, Deploy, MainnetAddres
             AggregatorV3Interface(CHAINLINK_ETH_USD.aggregator),
             AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
             AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
-            CHAINLINK_ETH_USD.stalePriceInterval,
-            CHAINLINK_ETH_USD.stalePriceInterval,
-            CHAINLINK_USDC_USD.stalePriceInterval,
-            CHAINLINK_USDC_USD.stalePriceInterval
+            1.1e18 * CHAINLINK_ETH_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_ETH_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18
         );
         console.log("PriceFeedChainlinkOnly4x (WETH/USDC)", address(wethToUsdc), price(wethToUsdc));
 
@@ -66,10 +74,10 @@ contract DeployPriceFeedSepScript is BaseScript, Networks, Deploy, MainnetAddres
             AggregatorV3Interface(CHAINLINK_ETH_USD.aggregator),
             AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
             AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
-            CHAINLINK_weETH_ETH.stalePriceInterval,
-            CHAINLINK_ETH_USD.stalePriceInterval,
-            CHAINLINK_USDC_USD.stalePriceInterval,
-            CHAINLINK_USDC_USD.stalePriceInterval
+            1.1e18 * CHAINLINK_weETH_ETH.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_ETH_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18
         );
         console.log("PriceFeedChainlinkOnly4x (weETH/USDC)", address(weethToUsdc), price(weethToUsdc));
 
@@ -78,10 +86,10 @@ contract DeployPriceFeedSepScript is BaseScript, Networks, Deploy, MainnetAddres
             AggregatorV3Interface(CHAINLINK_ETH_USD.aggregator),
             AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
             AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
-            CHAINLINK_cbETH_ETH.stalePriceInterval,
-            CHAINLINK_ETH_USD.stalePriceInterval,
-            CHAINLINK_USDC_USD.stalePriceInterval,
-            CHAINLINK_USDC_USD.stalePriceInterval
+            1.1e18 * CHAINLINK_cbETH_ETH.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_ETH_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18
         );
         console.log("PriceFeedChainlinkOnly4x (cbETH/USDC)", address(cbethToUsdc), price(cbethToUsdc));
 
@@ -93,10 +101,10 @@ contract DeployPriceFeedSepScript is BaseScript, Networks, Deploy, MainnetAddres
             AggregatorV3Interface(CHAINLINK_USR_USD.aggregator),
             AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
             AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
-            CHAINLINK_USR_USD.stalePriceInterval,
-            CHAINLINK_USR_USD.stalePriceInterval,
-            CHAINLINK_USDC_USD.stalePriceInterval,
-            CHAINLINK_USDC_USD.stalePriceInterval
+            1.1e18 * CHAINLINK_USR_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USR_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18
         );
         console.log("PriceFeedChainlinkOnly4x (USR/USDC)", address(usrToUsdc), price(usrToUsdc));
 
@@ -110,16 +118,55 @@ contract DeployPriceFeedSepScript is BaseScript, Networks, Deploy, MainnetAddres
             AggregatorV3Interface(CHAINLINK_USDS_USD.aggregator),
             AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
             AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
-            CHAINLINK_USDS_USD.stalePriceInterval,
-            CHAINLINK_USDS_USD.stalePriceInterval,
-            CHAINLINK_USDC_USD.stalePriceInterval,
-            CHAINLINK_USDC_USD.stalePriceInterval
+            1.1e18 * CHAINLINK_USDS_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDS_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18
         );
 
         console.log("PriceFeedChainlinkOnly4x (USDS/USDC)", address(usdsToUsdc), price(usdsToUsdc));
 
         PriceFeedIPriceFeed2x susdsToUsdc = new PriceFeedIPriceFeed2x(susdsToUsds, usdsToUsdc);
         console.log("PriceFeedIPriceFeed2x (sUSDS/USDC)", address(susdsToUsdc), price(susdsToUsdc));
+
+        PriceFeedPendleSparkLinearDiscountChainlink ptSusde27Nov2025ToUsdc = new PriceFeedPendleSparkLinearDiscountChainlink(
+            PendleSparkLinearDiscountOracle(PENDLE_SPARK_LINEAR_DISCOUNT_ORACLE_PT_sUSDE_27NOV2025_USDe),
+            AggregatorV3Interface(CHAINLINK_USDe_USD.aggregator),
+            AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
+            1.1e18 * CHAINLINK_USDe_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18
+        );
+        console.log(
+            "PriceFeedPendleSparkLinearDiscountChainlink (PT-sUSDE-27NOV2025/USDC)",
+            address(ptSusde27Nov2025ToUsdc),
+            price(ptSusde27Nov2025ToUsdc)
+        );
+
+        PriceFeedPendleTWAPChainlink ptWstusr29Jan2026ToUsdc = new PriceFeedPendleTWAPChainlink(
+            PendleChainlinkOracle(PENDLE_TWAP_CHAINLINK_ORACLE_PT_wstUSR_29JAN2026_USR),
+            AggregatorV3Interface(CHAINLINK_USR_USD.aggregator),
+            AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
+            1.1e18 * CHAINLINK_USR_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18
+        );
+        console.log(
+            "PriceFeedPendleTWAPChainlink (PT-wstUSR-29JAN2026/USDC)",
+            address(ptWstusr29Jan2026ToUsdc),
+            price(ptWstusr29Jan2026ToUsdc)
+        );
+
+        ChainlinkPriceFeed ptCusdo20Nov2025HybridToUsdo = new ChainlinkPriceFeed(
+            18,
+            AggregatorV3Interface(EO_PT_cUSDO_20NOV2025_Hybrid_USDO.aggregator),
+            AggregatorV3Interface(EO_PT_cUSDO_20NOV2025_Hybrid_USDO.aggregator),
+            EO_PT_cUSDO_20NOV2025_Hybrid_USDO.stalePriceInterval,
+            EO_PT_cUSDO_20NOV2025_Hybrid_USDO.stalePriceInterval
+        );
+        console.log(
+            "ChainlinkPriceFeed (PT-cUSDO-20NOV2025/USDO)",
+            address(ptCusdo20Nov2025HybridToUsdo),
+            price(ptCusdo20Nov2025HybridToUsdo)
+        );
 
         console.log("[PriceFeedSep] done");
     }

@@ -17,6 +17,7 @@ abstract contract MainnetAddresses {
     address public constant USR = 0x66a1E37c9b0eAddca17d3662D6c05F4DECf3e110;
     address public constant wstUSR = 0x1202F5C7b4B9E47a1A484E8B270be34dbbC75055;
     address public constant sUSDS = 0xa3931d71877C0E7a3148CB7Eb4463524FEc27fbD;
+    address public constant cUSDO = 0xaD55aebc9b8c03FC43cd9f62260391c13c23e7c0;
 
     struct ChainlinkPriceFeedParams {
         address aggregator;
@@ -49,6 +50,8 @@ abstract contract MainnetAddresses {
         ChainlinkPriceFeedParams(0x34ad75691e25A8E9b681AAA85dbeB7ef6561B42c, 86400);
     ChainlinkPriceFeedParams CHAINLINK_USDS_USD =
         ChainlinkPriceFeedParams(0xfF30586cD0F29eD462364C7e81375FC0C71219b1, 82800);
+    ChainlinkPriceFeedParams CHAINLINK_USDe_USD =
+        ChainlinkPriceFeedParams(0xa569d910839Ae8865Da8F8e70FfFb0cBA869F961, 82800);
 
     UniswapV3PriceFeedParams UNISWAP_V3_WBTC_USDC =
         UniswapV3PriceFeedParams(0x99ac8cA7087fA4A2A1FB6357269965A2014ABc35, 30 minutes, 12 seconds);
@@ -66,4 +69,12 @@ abstract contract MainnetAddresses {
     address public constant MORPHO_wstETH_USDC_ORACLE = 0x48F7E36EB6B826B2dF4B2E630B62Cd25e89E40e2; // (wstETH / stETH) * (stETH/ETH) / (USDC/ETH)
     address public constant MORPHO_wstUSR_USR_ORACLE = 0xDa850a72080024e17c1590fbf6ea7a826dB90760;
     address public constant MORPHO_sUSDS_USDS_ORACLE = 0x6f2B373A397464090645c726eE6685123afEE36f;
+
+    address public constant PENDLE_SPARK_LINEAR_DISCOUNT_ORACLE_PT_sUSDE_27NOV2025_USDe =
+        0x2d21F93e5E330B7d38bbFCC59877cd9182118198;
+    address public constant PENDLE_TWAP_CHAINLINK_ORACLE_PT_wstUSR_29JAN2026_USR =
+        0x3b0AB74Cb725b553D32500AEa7FAF62976682BB4;
+
+    ChainlinkPriceFeedParams EO_PT_cUSDO_20NOV2025_Hybrid_USDO =
+        ChainlinkPriceFeedParams(0xCE84fD399620B7D20e18AB6009Fc8A0cdaad880f, type(uint256).max);
 }
