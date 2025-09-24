@@ -84,7 +84,7 @@ contract ProposeSafeTxDeployMarketsSepScript is BaseScript, Networks, MainnetAdd
     function run() external parseEnv deleteVirtualTestnets {
         vm.startBroadcast();
 
-        UnderlyingCollateralTokenAndIsStable[11] memory underlyingCollateralTokensAndIsStable = [
+        UnderlyingCollateralTokenAndIsStable[10] memory underlyingCollateralTokensAndIsStable = [
             UnderlyingCollateralTokenAndIsStable(IERC20Metadata(WBTC), MarketType.VOLATILE, IPriceFeed(address(0))),
             UnderlyingCollateralTokenAndIsStable(IERC20Metadata(cbBTC), MarketType.VOLATILE, IPriceFeed(address(0))),
             UnderlyingCollateralTokenAndIsStable(IERC20Metadata(WETH), MarketType.VOLATILE, IPriceFeed(address(0))),
@@ -96,9 +96,6 @@ contract ProposeSafeTxDeployMarketsSepScript is BaseScript, Networks, MainnetAdd
             ),
             UnderlyingCollateralTokenAndIsStable(
                 IERC20Metadata(PT_wstUSR_29JAN2026), MarketType.PT_STABLE, IPriceFeed(address(0))
-            ),
-            UnderlyingCollateralTokenAndIsStable(
-                IERC20Metadata(PT_cUSDO_20NOV2025), MarketType.PT_STABLE, IPriceFeed(address(0))
             ),
             UnderlyingCollateralTokenAndIsStable(IERC20Metadata(wstUSR), MarketType.YB_STABLE, IPriceFeed(address(0))),
             UnderlyingCollateralTokenAndIsStable(IERC20Metadata(sUSDS), MarketType.YB_STABLE, IPriceFeed(address(0)))
