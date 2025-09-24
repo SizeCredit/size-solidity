@@ -241,9 +241,9 @@ contract ProposeSafeTxDeployMarketsSepScript is BaseScript, Networks, MainnetAdd
                 InitializeDataParams memory dataParams
             ) = getMarketParams(underlyingCollateralToken, marketType, priceFeed);
 
-
             targets[i] = address(sizeFactory);
-            datas[i] = abi.encodeCall(ISizeFactory.createMarket, (feeConfigParams, riskConfigParams, oracleParams, dataParams));
+            datas[i] =
+                abi.encodeCall(ISizeFactory.createMarket, (feeConfigParams, riskConfigParams, oracleParams, dataParams));
         }
 
         vm.stopBroadcast();
@@ -252,7 +252,9 @@ contract ProposeSafeTxDeployMarketsSepScript is BaseScript, Networks, MainnetAdd
 
         Tenderly.VirtualTestnet memory vnet = tenderly.createVirtualTestnet("deploy-markets-sep", block.chainid);
         tenderly.setStorageAt(vnet, safe.instance().safe, bytes32(uint256(4)), bytes32(uint256(1)));
-        tenderly.sendTransaction(vnet.id, signer, safe.instance().safe, safe.getExecTransactionsData(targets, datas, signer, derivationPath));
+        tenderly.sendTransaction(
+            vnet.id, signer, safe.instance().safe, safe.getExecTransactionsData(targets, datas, signer, derivationPath)
+        );
     }
 
     function getMarketParams(IERC20Metadata underlyingCollateralToken, MarketType marketType, IPriceFeed priceFeed)
