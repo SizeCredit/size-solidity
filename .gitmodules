@@ -28,9 +28,6 @@
 [submodule "lib/pendle-core-v2-public"]
 	path = lib/pendle-core-v2-public
 	url = https://github.com/pendle-finance/pendle-core-v2-public
-[submodule "lib/tenderly-utils"]
-	path = lib/tenderly-utils
-	url = https://github.com/Recon-Fuzz/tenderly-utils
 [submodule "lib/ERC-7540-Reference"]
 	path = lib/ERC-7540-Reference
 	url = https://github.com/ERC4626-Alliance/ERC-7540-Reference
@@ -52,3 +49,6 @@
 [submodule "lib/halmos-helpers-lib"]
 	path = lib/halmos-helpers-lib
 	url = https://github.com/igorganich/halmos-helpers-lib.git
+[submodule "lib/tenderly-utils"]
+	path = lib/tenderly-utils
+	url = https://github.com/Recon-Fuzz/tenderly-utils

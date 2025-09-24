@@ -198,7 +198,7 @@ contract ProposeSafeTxDeployMarketsSepScript is BaseScript, Networks, MainnetAdd
         return IPriceFeed(address(ptWstusr29Jan2026ToUsdc));
     }
 
-    function run() external parseEnv deleteVirtualTestnets {
+    function run() external parseEnv deleteVirtualTestnets ignoreGas {
         vm.startBroadcast();
 
         UnderlyingCollateralTokenAndIsStable[8] memory underlyingCollateralTokensAndIsStable = [
@@ -224,16 +224,6 @@ contract ProposeSafeTxDeployMarketsSepScript is BaseScript, Networks, MainnetAdd
                 underlyingCollateralTokensAndIsStable[i].underlyingCollateralToken;
             MarketType marketType = underlyingCollateralTokensAndIsStable[i].marketType;
             IPriceFeed priceFeed = underlyingCollateralTokensAndIsStable[i].priceFeed;
-            console.log("underlyingCollateralToken", address(underlyingCollateralToken));
-            console.log("underlyingCollateralToken symbol", underlyingCollateralToken.symbol());
-            console.log(
-                "marketType",
-                marketType == MarketType.PT_STABLE
-                    ? "PT_STABLE"
-                    : marketType == MarketType.VOLATILE ? "VOLATILE" : "YB_STABLE"
-            );
-            console.log("priceFeed", address(priceFeed));
-            console.log("priceFeed price", priceFeed.getPrice());
             (
                 InitializeFeeConfigParams memory feeConfigParams,
                 InitializeRiskConfigParams memory riskConfigParams,

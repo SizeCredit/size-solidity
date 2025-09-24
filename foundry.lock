@@ -1,0 +1,59 @@
+{
+  "lib/ERC-7540-Reference": {
+    "rev": "1ea70ccf3accbcd6724816ded8ed88f10ba4fce8"
+  },
+  "lib/aave-v3-core": {
+    "rev": "6070e82d962d9b12835c88e68210d0e63f08d035"
+  },
+  "lib/chainlink": {
+    "rev": "4d978942ba36f08ae0b07657fbb6907078a99b1c"
+  },
+  "lib/chimera": {
+    "rev": "d5cf52bc5bbf75f988f8aada23fd12d0bcf7798a"
+  },
+  "lib/forge-std": {
+    "rev": "1eea5bae12ae557d589f9f0f0edae2faa47cb262"
+  },
+  "lib/halmos-cheatcodes": {
+    "rev": "a02072cd5eb8560d00c3f4a73b27831ec6e3137e"
+  },
+  "lib/halmos-helpers-lib": {
+    "rev": "e437915f5a38663aa5bdb6a1f1a9b7f32323e977"
+  },
+  "lib/openzeppelin-contracts": {
+    "rev": "e4f70216d759d8e6a64144a9e1f7bbeed78e7079"
+  },
+  "lib/openzeppelin-contracts-upgradeable": {
+    "rev": "60b305a8f3ff0c7688f02ac470417b6bbf1c4d27"
+  },
+  "lib/pendle-core-v2-public": {
+    "rev": "761033bcc36ecfdb3c523458d7f66aeabb01c3ab"
+  },
+  "lib/properties": {
+    "rev": "4a328b8d2637a48ac9f7cb74549cc93eb073d2ff"
+  },
+  "lib/safe-utils": {
+    "rev": "efbc187751c99eb20d5019509fb1c5c353d0cb0c"
+  },
+  "lib/solady": {
+    "rev": "b3d4ad97035a8b9b7b661763c6aed51fcfe5a87a"
+  },
+  "lib/solidity-http": {
+    "rev": "0e15051882932d4cd9f46730f1bafef8c360d1b3"
+  },
+  "lib/solmate": {
+    "rev": "c93f7716c9909175d45f6ef80a34a650e2d24e56"
+  },
+  "lib/tenderly-utils": {
+    "tag": {
+      "name": "v0.0.7",
+      "rev": "21e41c2a11e3b2bc389c0f35f4c3477ae9549275"
+    }
+  },
+  "lib/v3-core": {
+    "rev": "6562c52e8f75f0c10f9deaf44861847585fc8129"
+  },
+  "lib/v3-periphery": {
+    "rev": "b325bb0905d922ae61fcc7df85ee802e8df5e96c"
+  }
+}
