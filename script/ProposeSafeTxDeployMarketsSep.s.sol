@@ -18,8 +18,12 @@ import {
 } from "@src/market/libraries/actions/Initialize.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+
 import {IMorphoChainlinkOracleV2} from "@src/oracle/adapters/morpho/IMorphoChainlinkOracleV2.sol";
+import {IOracle} from "@src/oracle/adapters/morpho/IOracle.sol";
+import {MorphoPriceFeedV2} from "@src/oracle/adapters/morpho/MorphoPriceFeedV2.sol";
 import {PriceFeedMorphoChainlinkOracleV2} from "@src/oracle/v1.7.1/PriceFeedMorphoChainlinkOracleV2.sol";
+import {PriceFeedChainlinkOnly4x} from "@src/oracle/v1.8/PriceFeedChainlinkOnly4x.sol";
 import {Tenderly} from "@tenderly-utils/Tenderly.sol";
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
@@ -81,25 +85,139 @@ contract ProposeSafeTxDeployMarketsSepScript is BaseScript, Networks, MainnetAdd
         _;
     }
 
+    function priceFeedWbtcToUsdc() public returns (IPriceFeed) {
+        PriceFeedChainlinkOnly4x wbtcToUsdc = new PriceFeedChainlinkOnly4x(
+            AggregatorV3Interface(CHAINLINK_WBTC_BTC.aggregator),
+            AggregatorV3Interface(CHAINLINK_BTC_USD.aggregator),
+            AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
+            AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
+            1.1e18 * CHAINLINK_WBTC_BTC.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_BTC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18
+        );
+        console.log("PriceFeedChainlinkOnly4x (WBTC/USDC)", address(wbtcToUsdc), price(wbtcToUsdc));
+        return IPriceFeed(address(wbtcToUsdc));
+    }
+
+    function priceFeedCbbtcToUsdc() public returns (IPriceFeed) {
+        PriceFeedChainlinkOnly4x cbbtcToUsdc = new PriceFeedChainlinkOnly4x(
+            AggregatorV3Interface(CHAINLINK_cbBTC_USD.aggregator),
+            AggregatorV3Interface(CHAINLINK_cbBTC_USD.aggregator),
+            AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
+            AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
+            1.1e18 * CHAINLINK_cbBTC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_cbBTC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18
+        );
+        console.log("PriceFeedChainlinkOnly4x (cbBTC/USDC)", address(cbbtcToUsdc), price(cbbtcToUsdc));
+        return IPriceFeed(address(cbbtcToUsdc));
+    }
+
+    function priceFeedWethToUsdc() public returns (IPriceFeed) {
+        PriceFeedChainlinkOnly4x wethToUsdc = new PriceFeedChainlinkOnly4x(
+            AggregatorV3Interface(CHAINLINK_ETH_USD.aggregator),
+            AggregatorV3Interface(CHAINLINK_ETH_USD.aggregator),
+            AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
+            AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
+            1.1e18 * CHAINLINK_ETH_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_ETH_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18
+        );
+        console.log("PriceFeedChainlinkOnly4x (WETH/USDC)", address(wethToUsdc), price(wethToUsdc));
+        return IPriceFeed(address(wethToUsdc));
+    }
+
+    function priceFeedWstethToUsdc() public returns (IPriceFeed) {
+        MorphoPriceFeedV2 wstethToUsdc = new MorphoPriceFeedV2(18, IOracle(MORPHO_wstETH_USDC_ORACLE), 18, 6);
+        console.log("MorphoPriceFeedV2 (wstETH/USDC)", address(wstethToUsdc), price(wstethToUsdc));
+        return IPriceFeed(address(wstethToUsdc));
+    }
+
+    function priceFeedWeethToUsdc() public returns (IPriceFeed) {
+        PriceFeedChainlinkOnly4x weethToUsdc = new PriceFeedChainlinkOnly4x(
+            AggregatorV3Interface(CHAINLINK_weETH_ETH.aggregator),
+            AggregatorV3Interface(CHAINLINK_ETH_USD.aggregator),
+            AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
+            AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
+            1.1e18 * CHAINLINK_weETH_ETH.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_ETH_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18
+        );
+        console.log("PriceFeedChainlinkOnly4x (weETH/USDC)", address(weethToUsdc), price(weethToUsdc));
+        return IPriceFeed(address(weethToUsdc));
+    }
+
+    function priceFeedCbethToUsdc() public returns (IPriceFeed) {
+        PriceFeedChainlinkOnly4x cbethToUsdc = new PriceFeedChainlinkOnly4x(
+            AggregatorV3Interface(CHAINLINK_cbETH_ETH.aggregator),
+            AggregatorV3Interface(CHAINLINK_ETH_USD.aggregator),
+            AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
+            AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
+            1.1e18 * CHAINLINK_cbETH_ETH.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_ETH_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18
+        );
+        console.log("PriceFeedChainlinkOnly4x (cbETH/USDC)", address(cbethToUsdc), price(cbethToUsdc));
+        return IPriceFeed(address(cbethToUsdc));
+    }
+
+    function priceFeedPtSusde27Nov2025ToUsdc() public returns (IPriceFeed) {
+        PriceFeedPendleSparkLinearDiscountChainlink ptSusde27Nov2025ToUsdc = new PriceFeedPendleSparkLinearDiscountChainlink(
+            PendleSparkLinearDiscountOracle(PENDLE_SPARK_LINEAR_DISCOUNT_ORACLE_PT_sUSDE_27NOV2025_USDe),
+            AggregatorV3Interface(CHAINLINK_USDe_USD.aggregator),
+            AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
+            1.1e18 * CHAINLINK_USDe_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18
+        );
+        console.log(
+            "PriceFeedPendleSparkLinearDiscountChainlink (PT-sUSDE-27NOV2025/USDC)",
+            address(ptSusde27Nov2025ToUsdc),
+            price(ptSusde27Nov2025ToUsdc)
+        );
+        return IPriceFeed(address(ptSusde27Nov2025ToUsdc));
+    }
+
+    function priceFeedPtWstusr29Jan2026ToUsdc() public returns (IPriceFeed) {
+        PriceFeedPendleTWAPChainlink ptWstusr29Jan2026ToUsdc = new PriceFeedPendleTWAPChainlink(
+            PendleChainlinkOracle(PENDLE_TWAP_CHAINLINK_ORACLE_PT_wstUSR_29JAN2026_USR),
+            AggregatorV3Interface(CHAINLINK_USR_USD.aggregator),
+            AggregatorV3Interface(CHAINLINK_USDC_USD.aggregator),
+            1.1e18 * CHAINLINK_USR_USD.stalePriceInterval / 1e18,
+            1.1e18 * CHAINLINK_USDC_USD.stalePriceInterval / 1e18
+        );
+        console.log(
+            "PriceFeedPendleTWAPChainlink (PT-wstUSR-29JAN2026/USDC)",
+            address(ptWstusr29Jan2026ToUsdc),
+            price(ptWstusr29Jan2026ToUsdc)
+        );
+        return IPriceFeed(address(ptWstusr29Jan2026ToUsdc));
+    }
+
     function run() external parseEnv deleteVirtualTestnets {
         vm.startBroadcast();
 
-        UnderlyingCollateralTokenAndIsStable[10] memory underlyingCollateralTokensAndIsStable = [
-            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(WBTC), MarketType.VOLATILE, IPriceFeed(address(0))),
-            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(cbBTC), MarketType.VOLATILE, IPriceFeed(address(0))),
-            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(WETH), MarketType.VOLATILE, IPriceFeed(address(0))),
-            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(wstETH), MarketType.VOLATILE, IPriceFeed(address(0))),
-            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(weETH), MarketType.VOLATILE, IPriceFeed(address(0))),
-            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(cbETH), MarketType.VOLATILE, IPriceFeed(address(0))),
+        UnderlyingCollateralTokenAndIsStable[8] memory underlyingCollateralTokensAndIsStable = [
+            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(WBTC), MarketType.VOLATILE, priceFeedWbtcToUsdc()),
+            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(cbBTC), MarketType.VOLATILE, priceFeedCbbtcToUsdc()),
+            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(WETH), MarketType.VOLATILE, priceFeedWethToUsdc()),
+            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(wstETH), MarketType.VOLATILE, priceFeedWstethToUsdc()),
+            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(weETH), MarketType.VOLATILE, priceFeedWeethToUsdc()),
+            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(cbETH), MarketType.VOLATILE, priceFeedCbethToUsdc()),
             UnderlyingCollateralTokenAndIsStable(
-                IERC20Metadata(PT_sUSDE_27NOV2025), MarketType.PT_STABLE, IPriceFeed(address(0))
+                IERC20Metadata(PT_sUSDE_27NOV2025), MarketType.PT_STABLE, priceFeedPtSusde27Nov2025ToUsdc()
             ),
             UnderlyingCollateralTokenAndIsStable(
-                IERC20Metadata(PT_wstUSR_29JAN2026), MarketType.PT_STABLE, IPriceFeed(address(0))
-            ),
-            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(wstUSR), MarketType.YB_STABLE, IPriceFeed(address(0))),
-            UnderlyingCollateralTokenAndIsStable(IERC20Metadata(sUSDS), MarketType.YB_STABLE, IPriceFeed(address(0)))
+                IERC20Metadata(PT_wstUSR_29JAN2026), MarketType.PT_STABLE, priceFeedPtWstusr29Jan2026ToUsdc()
+            )
         ];
+
+        address[] memory targets = new address[](underlyingCollateralTokensAndIsStable.length);
+        bytes[] memory datas = new bytes[](underlyingCollateralTokensAndIsStable.length);
 
         for (uint256 i = 0; i < underlyingCollateralTokensAndIsStable.length; i++) {
             IERC20Metadata underlyingCollateralToken =
@@ -122,9 +240,19 @@ contract ProposeSafeTxDeployMarketsSepScript is BaseScript, Networks, MainnetAdd
                 InitializeOracleParams memory oracleParams,
                 InitializeDataParams memory dataParams
             ) = getMarketParams(underlyingCollateralToken, marketType, priceFeed);
+
+
+            targets[i] = address(sizeFactory);
+            datas[i] = abi.encodeCall(ISizeFactory.createMarket, (feeConfigParams, riskConfigParams, oracleParams, dataParams));
         }
 
         vm.stopBroadcast();
+
+        safe.proposeTransactions(targets, datas, signer, derivationPath);
+
+        Tenderly.VirtualTestnet memory vnet = tenderly.createVirtualTestnet("deploy-markets-sep", block.chainid);
+        tenderly.setStorageAt(vnet, safe.instance().safe, bytes32(uint256(4)), bytes32(uint256(1)));
+        tenderly.sendTransaction(vnet.id, signer, safe.instance().safe, safe.getExecTransactionsData(targets, datas, signer, derivationPath));
     }
 
     function getMarketParams(IERC20Metadata underlyingCollateralToken, MarketType marketType, IPriceFeed priceFeed)
