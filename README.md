@@ -235,15 +235,14 @@ for i in {0..5}; do halmos --loop $i; done
 - The protocol only supports tokens compliant with the IERC20Metadata interface
 - The protocol only supports pre-vetted tokens
 - The protocol owner, KEEPER_ROLE, PAUSER_ROLE, and BORROW_RATE_UPDATER_ROLE are trusted
-- The protocol uses Uniswap TWAP as a fallback oracle in case Chainlink is stale.
+- The protocol uses Uniswap TWAP as a fallback oracle for certain markets in case Chainlink is stale.
 - In case Chainlink reports a wrong price, the protocol state cannot be guaranteed. This may cause incorrect liquidations, among other issues
 - In case the protocol is paused, the price of the collateral may change during the unpause event. This may cause unforseen liquidations, among other issues
-- It is not possible to pause individual functions. Nevertheless, BORROW_RATE_UPDATER_ROLE and admin functions are enabled even if the protocol is paused
+- It is not possible to pause individual functions. Nevertheless, the functions of trusted roles are enabled even if the protocol is paused
 - Users blacklisted by underlying tokens (e.g. USDC) may be unable to withdraw
-- If the Variable Pool (Aave v3) fails to `supply` or `withdraw` for any reason, such as supply caps, Size's `deposit` and `withdraw` may be prevented
+- If the user vault (by default Aave v3) fails to deposit or withdraw for any reason, such as supply caps or low liquidity, Size's `deposit` and `withdraw` may be prevented.
 - Centralization risk related to integrations (USDC, Aave v3, Chainlink) are out of scope
-- The Variable Pool Borrow Rate feed is trusted and users of rate hook adopt oracle risk of buying/selling credit at unsatisfactory prices
-- The insurance fund (out of scope for this project) may not be able to make all lenders whole, maybe unfair, and may be manipulated
+- The Variable Pool Borrow Rate feed is trusted and users of rate hook adopt oracle risk of buying/selling credit at unsatisfactory prices. In practice, this feature has never been turned on in production.
 - LiquidateWithReplacement might not be available for the big enough debt positions
 - The fragmentation fee meant to subsidize `claim` operations by protocol-owned keeper bots during credit splits are not charged during loan origination
 - All issues acknowledged on previous audits and automated findings
