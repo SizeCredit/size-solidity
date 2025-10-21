@@ -42,7 +42,9 @@ abstract contract CollectionsManagerUserActions is ICollectionsManagerUserAction
     }
 
     function unsubscribeUserFromCollections(address user, uint256[] memory collectionIds) external onlySizeFactory {
+        // slither-disable-next-line uninitialized-local
         CopyLimitOrderConfig memory nullCopy;
+
         for (uint256 i = 0; i < collectionIds.length; i++) {
             if (!isValidCollectionId(collectionIds[i])) {
                 revert InvalidCollectionId(collectionIds[i]);
