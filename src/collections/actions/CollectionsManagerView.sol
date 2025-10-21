@@ -263,14 +263,4 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
             ? userToCollectionCopyLimitOrderConfigs[user][collectionId].copyLoanOfferConfig
             : userToCollectionCopyLimitOrderConfigs[user][collectionId].copyBorrowOfferConfig;
     }
-
-    function _getCollectionMarketCopyLimitOrderConfig(address user, uint256 collectionId, bool isLoanOffer)
-        private
-        view
-        returns (CopyLimitOrderConfig memory copyLimitOrder)
-    {
-        return isLoanOffer
-            ? userToCollectionCopyLimitOrderConfigs[user][collectionId].copyLoanOfferConfig
-            : userToCollectionCopyLimitOrderConfigs[user][collectionId].copyBorrowOfferConfig;
-    }
 }
