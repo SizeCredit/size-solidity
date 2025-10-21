@@ -626,4 +626,34 @@ contract NonTransferrableRebasingTokenVaultTest is BaseTest {
         vm.expectRevert();
         token.reinitialize("name", "symbol", AaveAdapter(address(0)), ERC4626Adapter(address(0)));
     }
+
+    function test_NonTransferrableRebasingTokenVault_requestAaveWithdraw_onlyAdapterId() public {
+        // Test that requestAaveWithdraw reverts when called by non-Aave adapter (not in adapter map)
+        vm.expectRevert(abi.encodeWithSelector(EnumerableMap.EnumerableMapNonexistentKey.selector, alice));
+        vm.prank(alice);
+        token.requestAaveWithdraw(100e6, alice);
+
+        // Create and set an ERC4626 adapter
+        ERC4626Adapter erc4626Adapter = new ERC4626Adapter(token);
+        vm.prank(owner);
+        token.setAdapter(ERC4626_ADAPTER_ID, erc4626Adapter);
+
+        // Test that ERC4626 adapter cannot call requestAaveWithdraw (wrong adapter ID)
+        vm.expectRevert(abi.encodeWithSelector(Errors.UNAUTHORIZED.selector, address(erc4626Adapter)));
+        vm.prank(address(erc4626Adapter));
+        token.requestAaveWithdraw(100e6, alice);
+
+        // Verify that the Aave adapter CAN call requestAaveWithdraw (positive test)
+        deal(address(underlying), address(size), 100e6);
+        vm.prank(address(size));
+        underlying.approve(address(token), 100e6);
+        vm.prank(address(size));
+        token.deposit(alice, 100e6);
+
+        IAdapter aaveAdapter = token.getWhitelistedVaultAdapter(DEFAULT_VAULT);
+
+        // This should succeed since it's the Aave adapter
+        vm.prank(address(aaveAdapter));
+        token.requestAaveWithdraw(50e6, alice);
+    }
 }
