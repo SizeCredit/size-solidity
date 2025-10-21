@@ -11,9 +11,14 @@ import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 
 struct MarketInformation {
     bool initialized;
+    CopyLimitOrderConfig ___deprecated_copyLoanOfferConfig;
+    CopyLimitOrderConfig ___deprecated_copyBorrowOfferConfig;
+    EnumerableSet.AddressSet rateProviders;
+}
+
+struct UserCollectionCopyLimitOrderConfigs {
     CopyLimitOrderConfig copyLoanOfferConfig;
     CopyLimitOrderConfig copyBorrowOfferConfig;
-    EnumerableSet.AddressSet rateProviders;
 }
 
 /// @title CollectionManagerStorage
@@ -33,6 +38,11 @@ abstract contract CollectionsManagerBase {
     mapping(uint256 collectionId => mapping(ISize market => MarketInformation marketInformation) collection) collections;
     // mapping of user to collection Ids set
     mapping(address user => EnumerableSet.UintSet collectionIds) userToCollectionIds;
+    // mapping of user to collection Ids to CopyLimitOrderConfig
+    mapping(
+        address user
+            => mapping(uint256 collectionId => UserCollectionCopyLimitOrderConfigs userCollectionCopyLimitOrderConfigs)
+    ) userToCollectionCopyLimitOrderConfigs;
 
     /*//////////////////////////////////////////////////////////////
                             ERRORS

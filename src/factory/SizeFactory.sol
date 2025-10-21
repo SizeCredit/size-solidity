@@ -69,7 +69,6 @@ contract SizeFactory is
     ISizeFactory,
     SizeFactoryOffchainGetters,
     SizeFactoryEvents,
-    ERC721Holder, // required for `reinitialize`
     MulticallUpgradeable,
     AccessControlUpgradeable,
     UUPSUpgradeable
@@ -91,84 +90,6 @@ contract SizeFactory is
         _grantRole(KEEPER_ROLE, _owner);
         _grantRole(BORROW_RATE_UPDATER_ROLE, _owner);
     }
-
-    /// @inheritdoc ISizeFactoryV1_8
-    // slither-disable-start calls-loop
-    // slither-disable-start reentrancy-benign
-    // slither-disable-start uninitialized-local
-    function reinitialize(
-        ICollectionsManager _collectionsManager,
-        address[] memory _users,
-        address _curator,
-        address _rateProvider,
-        ISize[] memory _collectionMarkets
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) reinitializer(1_08_01) {
-        if (address(_collectionsManager) == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-
-        collectionsManager = _collectionsManager;
-        emit CollectionsManagerSet(address(0), address(_collectionsManager));
-
-        if (_curator == address(0) || _rateProvider == address(0)) {
-            // no migration required
-            return;
-        }
-
-        uint256[] memory collectionIds = new uint256[](1);
-        collectionIds[0] = collectionsManager.createCollection();
-
-        CopyLimitOrderConfig[] memory noCopies = new CopyLimitOrderConfig[](_collectionMarkets.length);
-        CopyLimitOrderConfig[] memory fullCopies = new CopyLimitOrderConfig[](_collectionMarkets.length);
-        for (uint256 i = 0; i < _collectionMarkets.length; i++) {
-            noCopies[i] =
-                CopyLimitOrderConfig({minTenor: 0, maxTenor: 0, minAPR: 0, maxAPR: 0, offsetAPR: type(int256).min});
-
-            fullCopies[i] = CopyLimitOrderConfig({
-                minTenor: 0,
-                maxTenor: type(uint256).max,
-                minAPR: 0,
-                maxAPR: type(uint256).max,
-                offsetAPR: 0
-            });
-        }
-        collectionsManager.setCollectionMarketConfigs(collectionIds[0], _collectionMarkets, fullCopies, noCopies);
-        address[] memory rateProviders = new address[](1);
-        rateProviders[0] = _rateProvider;
-        for (uint256 i = 0; i < _collectionMarkets.length; i++) {
-            collectionsManager.addRateProvidersToCollectionMarket(
-                collectionIds[0], _collectionMarkets[i], rateProviders
-            );
-        }
-
-        Action[] memory actions = new Action[](2);
-        actions[0] = Action.BUY_CREDIT_LIMIT;
-        actions[1] = Action.SELL_CREDIT_LIMIT;
-
-        for (uint256 i = 0; i < _users.length; i++) {
-            collectionsManager.subscribeUserToCollections(_users[i], collectionIds);
-            _setAuthorization(address(this), _users[i], Authorization.getActionsBitmap(actions));
-            for (uint256 j = 0; j < _collectionMarkets.length; j++) {
-                BuyCreditLimitOnBehalfOfParams memory buyCreditLimitOnBehalfOfParams;
-                buyCreditLimitOnBehalfOfParams.onBehalfOf = _users[i];
-
-                _collectionMarkets[j].buyCreditLimitOnBehalfOf(buyCreditLimitOnBehalfOfParams);
-
-                SellCreditLimitOnBehalfOfParams memory sellCreditLimitOnBehalfOfParams;
-                sellCreditLimitOnBehalfOfParams.onBehalfOf = _users[i];
-
-                _collectionMarkets[j].sellCreditLimitOnBehalfOf(sellCreditLimitOnBehalfOfParams);
-            }
-            _setAuthorization(address(this), _users[i], Authorization.nullActionsBitmap());
-        }
-
-        ERC721EnumerableUpgradeable(address(_collectionsManager)).safeTransferFrom(
-            address(this), address(_curator), collectionIds[0]
-        );
-    }
-    // slither-disable-end uninitialized-local
-    // slither-disable-end reentrancy-benign
-    // slither-disable-end calls-loop
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 
@@ -315,6 +236,30 @@ contract SizeFactory is
             revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.MANAGE_COLLECTION_SUBSCRIPTIONS));
         }
         collectionsManager.unsubscribeUserFromCollections(onBehalfOf, collectionIds);
+    }
+
+    function setUserCollectionCopyLimitOrderConfigs(
+        uint256 collectionId,
+        CopyLimitOrderConfig memory copyLoanOfferConfig,
+        CopyLimitOrderConfig memory copyBorrowOfferConfig
+    ) external {
+        return setUserCollectionCopyLimitOrderConfigsOnBehalfOf(
+            collectionId, copyLoanOfferConfig, copyBorrowOfferConfig, msg.sender
+        );
+    }
+
+    function setUserCollectionCopyLimitOrderConfigsOnBehalfOf(
+        uint256 collectionId,
+        CopyLimitOrderConfig memory copyLoanOfferConfig,
+        CopyLimitOrderConfig memory copyBorrowOfferConfig,
+        address onBehalfOf
+    ) public {
+        if (!isAuthorized(msg.sender, onBehalfOf, Action.MANAGE_COLLECTION_SUBSCRIPTIONS)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.MANAGE_COLLECTION_SUBSCRIPTIONS));
+        }
+        collectionsManager.setUserCollectionCopyLimitOrderConfigs(
+            onBehalfOf, collectionId, copyLoanOfferConfig, copyBorrowOfferConfig
+        );
     }
 
     /// @inheritdoc ISizeFactoryV1_8

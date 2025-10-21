@@ -51,32 +51,9 @@ abstract contract CollectionsManagerCuratorActions is
 
     /// @inheritdoc ICollectionsManagerCuratorActions
     function addMarketsToCollection(uint256 collectionId, ISize[] memory markets)
-        external /* onlyCollectionCuratorAuthorized(collectionId) */
+        external
+        onlyCollectionCuratorAuthorized(collectionId)
     {
-        CopyLimitOrderConfig[] memory fullCopies = new CopyLimitOrderConfig[](markets.length);
-        for (uint256 i = 0; i < markets.length; i++) {
-            fullCopies[i] = CopyLimitOrderConfig({
-                minTenor: 0,
-                maxTenor: type(uint256).max,
-                minAPR: 0,
-                maxAPR: type(uint256).max,
-                offsetAPR: 0
-            });
-        }
-        setCollectionMarketConfigs(collectionId, markets, fullCopies, fullCopies);
-    }
-
-    /// @inheritdoc ICollectionsManagerCuratorActions
-    function setCollectionMarketConfigs(
-        uint256 collectionId,
-        ISize[] memory markets,
-        CopyLimitOrderConfig[] memory copyLoanOfferConfigs,
-        CopyLimitOrderConfig[] memory copyBorrowOfferConfigs
-    ) public onlyCollectionCuratorAuthorized(collectionId) {
-        if (markets.length != copyLoanOfferConfigs.length || markets.length != copyBorrowOfferConfigs.length) {
-            revert Errors.ARRAY_LENGTHS_MISMATCH();
-        }
-
         // slither-disable-start calls-loop
         for (uint256 i = 0; i < markets.length; i++) {
             if (!sizeFactory.isMarket(address(markets[i]))) {
@@ -85,15 +62,9 @@ abstract contract CollectionsManagerCuratorActions is
             if (PausableUpgradeable(address(markets[i])).paused()) {
                 revert Errors.PAUSED_MARKET(address(markets[i]));
             }
-            OfferLibrary.validateCopyLimitOrderConfigs(copyLoanOfferConfigs[i], copyBorrowOfferConfigs[i]);
-
             collections[collectionId][markets[i]].initialized = true;
-            collections[collectionId][markets[i]].copyLoanOfferConfig = copyLoanOfferConfigs[i];
-            collections[collectionId][markets[i]].copyBorrowOfferConfig = copyBorrowOfferConfigs[i];
 
-            emit MarketAddedToCollection(
-                collectionId, address(markets[i]), copyLoanOfferConfigs[i], copyBorrowOfferConfigs[i]
-            );
+            emit MarketAddedToCollection(collectionId, address(markets[i]));
         }
         // slither-disable-end calls-loop
     }

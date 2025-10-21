@@ -752,29 +752,6 @@ contract CollectionsTest is BaseTest {
         assertEq(collectionsManager.isCopyingCollectionMarketRateProvider(alice, collectionId + 1, size1, bob), false);
         assertEq(collectionsManager.isCopyingCollectionMarketRateProvider(alice, collectionId, size2, bob), false);
         assertEq(collectionsManager.isCopyingCollectionMarketRateProvider(alice, collectionId, size1, bob), true);
-
-        vm.expectRevert(abi.encodeWithSelector(CollectionsManagerBase.InvalidCollectionId.selector, collectionId + 1));
-        collectionsManager.getCollectionMarketCopyLoanOfferConfig(collectionId + 1, size1);
-
-        vm.expectRevert(
-            abi.encodeWithSelector(CollectionsManagerBase.MarketNotInCollection.selector, collectionId, size2)
-        );
-        collectionsManager.getCollectionMarketCopyLoanOfferConfig(collectionId, size2);
-
-        CopyLimitOrderConfig memory config =
-            collectionsManager.getCollectionMarketCopyLoanOfferConfig(collectionId, size1);
-        assertEq(config.minTenor, 0);
-        assertEq(config.maxTenor, type(uint256).max);
-        assertEq(config.minAPR, 0);
-        assertEq(config.maxAPR, type(uint256).max);
-        assertEq(config.offsetAPR, 0);
-
-        config = collectionsManager.getCollectionMarketCopyBorrowOfferConfig(collectionId, size1);
-        assertEq(config.minTenor, 0);
-        assertEq(config.maxTenor, type(uint256).max);
-        assertEq(config.minAPR, 0);
-        assertEq(config.maxAPR, type(uint256).max);
-        assertEq(config.offsetAPR, 0);
     }
 
     function test_Collections_subscribeToCollections_can_leave_inverted_curves_O_n_m_check() public {}

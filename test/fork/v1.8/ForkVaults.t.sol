@@ -16,8 +16,6 @@ import {IERC4626Morpho} from "@test/fork/v1.8/interfaces/IERC4626Morpho.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {ProposeSafeTxUpgradeToV1_8Script} from "@script/ProposeSafeTxUpgradeToV1_8.s.sol";
-
 import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {Size} from "@src/market/Size.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
@@ -31,8 +29,8 @@ contract ForkVaultsTest is ForkTest, Networks {
 
     function setUp() public override(ForkTest) {
         vm.createSelectFork("mainnet");
-        // 2025-04-28 14h30 UTC
-        vm.rollFork(22368140);
+        // 2025-10-21 13h00 UTC
+        vm.rollFork(23626090);
 
         sizeFactory = importSizeFactory("mainnet-size-factory");
         size = SizeMock(address(sizeFactory.getMarket(0)));
@@ -41,22 +39,7 @@ contract ForkVaultsTest is ForkTest, Networks {
         variablePool = size.data().variablePool;
         owner = Networks.contracts[block.chainid][Contract.SIZE_GOVERNANCE];
 
-        _upgradeToV1_8();
-
         _labels();
-    }
-
-    function _upgradeToV1_8() internal {
-        ProposeSafeTxUpgradeToV1_8Script script = new ProposeSafeTxUpgradeToV1_8Script();
-
-        (address[] memory targets, bytes[] memory datas) =
-            script.getTargetsAndDatas(sizeFactory, new address[](0), address(0), address(0), new ISize[](0));
-
-        for (uint256 i = 0; i < targets.length; i++) {
-            vm.prank(owner);
-            (bool success,) = targets[i].call(datas[i]);
-            assertTrue(success);
-        }
     }
 
     function testFork_ForkVaults_aave() public {
