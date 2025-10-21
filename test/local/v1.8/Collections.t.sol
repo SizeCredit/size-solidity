@@ -1128,4 +1128,43 @@ contract CollectionsTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(ICollectionsManagerView.InvalidTenor.selector, 30 days, 0, 0));
         size.getBorrowOfferAPR(alice, collectionId, bob, 30 days);
     }
+
+    // ============ addMarketsToCollection revert tests ============
+
+    function test_Collections_addMarketsToCollection_invalid_market() public {
+        uint256 collectionId = _createCollection(james);
+
+        // Create a fake market address that is not registered in the factory
+        ISize invalidMarket = ISize(address(0x999999));
+
+        ISize[] memory markets = new ISize[](1);
+        markets[0] = invalidMarket;
+
+        vm.prank(james);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_MARKET.selector, address(invalidMarket)));
+        collectionsManager.addMarketsToCollection(collectionId, markets);
+
+        // Verify the market was not added to the collection
+        assertEq(collectionsManager.collectionContainsMarket(collectionId, invalidMarket), false);
+    }
+
+    function test_Collections_addMarketsToCollection_paused_market() public {
+        uint256 collectionId = _createCollection(james);
+
+        // Pause the size market (owner is address(this) from BaseTest.setUp)
+        size.pause();
+
+        // Verify the market is paused
+        assertTrue(size.paused());
+
+        ISize[] memory markets = new ISize[](1);
+        markets[0] = size;
+
+        vm.prank(james);
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAUSED_MARKET.selector, address(size)));
+        collectionsManager.addMarketsToCollection(collectionId, markets);
+
+        // Verify the market was not added to the collection
+        assertEq(collectionsManager.collectionContainsMarket(collectionId, size), false);
+    }
 }
