@@ -1167,4 +1167,52 @@ contract CollectionsTest is BaseTest {
         // Verify the market was not added to the collection
         assertEq(collectionsManager.collectionContainsMarket(collectionId, size), false);
     }
+
+    // ============ onlySizeFactory revert tests ============
+
+    function test_Collections_subscribeUserToCollections_onlySizeFactory_revert() public {
+        uint256 collectionId = _createCollection(james);
+        uint256[] memory collectionIds = new uint256[](1);
+        collectionIds[0] = collectionId;
+
+        // Try to call subscribeUserToCollections directly on collectionsManager (not through sizeFactory)
+        vm.expectRevert(abi.encodeWithSelector(CollectionsManagerBase.OnlySizeFactory.selector, alice));
+        vm.prank(alice);
+        collectionsManager.subscribeUserToCollections(alice, collectionIds);
+    }
+
+    function test_Collections_unsubscribeUserFromCollections_onlySizeFactory_revert() public {
+        uint256 collectionId = _createCollection(james);
+
+        // First subscribe through the proper channel (sizeFactory)
+        _subscribeToCollection(alice, collectionId);
+
+        uint256[] memory collectionIds = new uint256[](1);
+        collectionIds[0] = collectionId;
+
+        // Try to call unsubscribeUserFromCollections directly on collectionsManager (not through sizeFactory)
+        vm.expectRevert(abi.encodeWithSelector(CollectionsManagerBase.OnlySizeFactory.selector, alice));
+        vm.prank(alice);
+        collectionsManager.unsubscribeUserFromCollections(alice, collectionIds);
+    }
+
+    function test_Collections_setUserCollectionCopyLimitOrderConfigs_onlySizeFactory_revert() public {
+        uint256 collectionId = _createCollection(james);
+
+        // First subscribe through the proper channel (sizeFactory)
+        _subscribeToCollection(alice, collectionId);
+
+        CopyLimitOrderConfig memory config = CopyLimitOrderConfig({
+            minTenor: 0,
+            maxTenor: type(uint256).max,
+            minAPR: 0,
+            maxAPR: type(uint256).max,
+            offsetAPR: 0
+        });
+
+        // Try to call setUserCollectionCopyLimitOrderConfigs directly on collectionsManager (not through sizeFactory)
+        vm.expectRevert(abi.encodeWithSelector(CollectionsManagerBase.OnlySizeFactory.selector, alice));
+        vm.prank(alice);
+        collectionsManager.setUserCollectionCopyLimitOrderConfigs(alice, collectionId, config, config);
+    }
 }
