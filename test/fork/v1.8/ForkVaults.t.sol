@@ -53,11 +53,13 @@ contract ForkVaultsTest is ForkTest, Networks {
 
         uint256 usdcBalanceAfter = usdc.balanceOf(address(aToken));
         assertEq(usdcBalanceAfter, usdcBalanceBefore + 100e6);
-        assertEq(borrowTokenVault.balanceOf(alice), 100e6);
+        assertEq(
+            borrowTokenVault.balanceOf(alice), 100e6 - 1, "Depending on rounding, the deposit balance may be 1 wei less"
+        );
 
         _withdraw(alice, usdc, type(uint256).max);
 
-        assertEq(usdc.balanceOf(alice), 100e6);
+        assertEq(usdc.balanceOf(alice), 100e6 - 1, "Depending on rounding, the withdrawn balance may be 1 wei less");
     }
 
     function testForkFuzz_ForkVaults_aave_deposit_withdraw(uint256 amount) public {

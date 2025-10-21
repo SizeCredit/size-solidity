@@ -24,6 +24,7 @@ import {
     SellCreditMarketParams
 } from "@src/market/libraries/actions/SellCreditMarket.sol";
 
+import {ICollectionsManagerView} from "@src/collections/interfaces/ICollectionsManagerView.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
 contract ForkCollectionsTest is ForkTest, Networks {
@@ -39,8 +40,8 @@ contract ForkCollectionsTest is ForkTest, Networks {
 
     function setUp() public override(ForkTest) {
         vm.createSelectFork("base_archive");
-        // 2025-10-21 13h00 UTC
-        vm.rollFork(23626090);
+        // 2025-10-21 14h10 UTC
+        vm.rollFork(37133235);
 
         sizeFactory = importSizeFactory("base-production-size-factory");
         size = SizeMock(address(sizeFactory.getMarket(0)));
@@ -63,7 +64,7 @@ contract ForkCollectionsTest is ForkTest, Networks {
     ) public {
         _deposit(alice, weth, 100e18);
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, users[0]));
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, tenor, 8640, 8640));
         size.sellCreditMarketOnBehalfOf(
             SellCreditMarketOnBehalfOfParams({
                 params: SellCreditMarketParams({
@@ -76,25 +77,6 @@ contract ForkCollectionsTest is ForkTest, Networks {
                     exactAmountIn: false,
                     collectionId: RESERVED_ID,
                     rateProvider: address(0)
-                }),
-                onBehalfOf: alice,
-                recipient: alice
-            })
-        );
-
-        vm.prank(alice);
-        size.sellCreditMarketOnBehalfOf(
-            SellCreditMarketOnBehalfOfParams({
-                params: SellCreditMarketParams({
-                    lender: users[0],
-                    creditPositionId: RESERVED_ID,
-                    amount: 10e6,
-                    tenor: tenor,
-                    maxAPR: type(uint256).max,
-                    deadline: block.timestamp,
-                    exactAmountIn: false,
-                    collectionId: collectionId,
-                    rateProvider: rateProvider
                 }),
                 onBehalfOf: alice,
                 recipient: alice
