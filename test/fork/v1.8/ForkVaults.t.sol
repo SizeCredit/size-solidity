@@ -15,6 +15,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {IERC4626Morpho} from "@test/fork/v1.8/interfaces/IERC4626Morpho.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
+import {ClaimParams} from "@src/market/libraries/actions/Claim.sol";
 
 import {ProposeSafeTxUpgradeToV1_8Script} from "@script/ProposeSafeTxUpgradeToV1_8.s.sol";
 
@@ -28,6 +29,7 @@ contract ForkVaultsTest is ForkTest, Networks {
     IERC4626 public eUSDC22 = IERC4626(0xe0a80d35bB6618CBA260120b279d357978c42BCE);
     IERC4626Morpho public morphoUSUALUSDCplus = IERC4626Morpho(0xd63070114470f685b75B74D60EEc7c1113d33a3D);
     IERC20Metadata public liquidUSD = IERC20Metadata(0x08c6F91e2B681FaF5e17227F2a44C307b3C1364C);
+    address Size_PT_wstUSR_29JAN2026 = 0xeD5F3300C21B37f16267981D80CD01Ec883a7822;
 
     function setUp() public override(ForkTest) {
         vm.createSelectFork("mainnet");
@@ -147,5 +149,15 @@ contract ForkVaultsTest is ForkTest, Networks {
         uint256 usdcBalanceAfter = usdc.balanceOf(address(liquidUSD));
 
         assertEq(usdcBalanceAfter, usdcBalanceBefore);
+    }
+
+    function testFork_ForkVaults_repay_then_claim() public {
+        vm.createSelectFork("mainnet");
+        vm.rollFork(23633327);
+
+        size = SizeMock(Size_PT_wstUSR_29JAN2026);
+        uint256 creditPositionId = 57896044618658097711785492504343953926634992332820282019728792003956564819969;
+
+        size.claim(ClaimParams({creditPositionId: creditPositionId}));
     }
 }
