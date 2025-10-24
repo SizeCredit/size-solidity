@@ -72,7 +72,7 @@ abstract contract CollectionsManagerUserActions is ICollectionsManagerUserAction
         uint256 collectionId,
         CopyLimitOrderConfig memory copyLoanOfferConfig,
         CopyLimitOrderConfig memory copyBorrowOfferConfig
-    ) internal {
+    ) private {
         if (!isValidCollectionId(collectionId)) {
             revert InvalidCollectionId(collectionId);
         }
