@@ -231,6 +231,24 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
                             COPY LIMIT ORDER VIEW
     //////////////////////////////////////////////////////////////*/
 
+    /// @inheritdoc ICollectionsManagerView
+    function getUserDefinedCollectionCopyLoanOfferConfig(address user, uint256 collectionId)
+        external
+        view
+        returns (CopyLimitOrderConfig memory)
+    {
+        return _getUserDefinedCollectionCopyLimitOrderConfig(user, collectionId, true);
+    }
+
+    /// @inheritdoc ICollectionsManagerView
+    function getUserDefinedCollectionCopyBorrowOfferConfig(address user, uint256 collectionId)
+        external
+        view
+        returns (CopyLimitOrderConfig memory)
+    {
+        return _getUserDefinedCollectionCopyLimitOrderConfig(user, collectionId, false);
+    }
+
     /// @dev Reverts if the collection id is invalid or the market is not in the collection
     /// @dev Changed in v1.8.1
     function _getCopyLimitOrderConfig(address user, uint256 collectionId, ISize market, bool isLoanOffer)

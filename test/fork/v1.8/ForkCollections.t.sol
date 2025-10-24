@@ -27,6 +27,10 @@ import {
 import {ICollectionsManagerView} from "@src/collections/interfaces/ICollectionsManagerView.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {ProposeSafeTxUpgradeToV1_8_1Script} from "@script/ProposeSafeTxUpgradeToV1_8_1.s.sol";
+import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
+
 contract ForkCollectionsTest is ForkTest, Networks {
     address[] users;
     ISize[] collectionMarkets;
@@ -82,5 +86,77 @@ contract ForkCollectionsTest is ForkTest, Networks {
                 recipient: alice
             })
         );
+    }
+
+    function testFork_ForkCollections_v1_8_1() public {
+        vm.createSelectFork("base_archive");
+
+        _upgradeToV1_8_1();
+
+        CopyLimitOrderConfig memory loanOfferConfig =
+            CopyLimitOrderConfig({minTenor: 20 days, maxTenor: 40 days, minAPR: 0.05e18, maxAPR: 0.1e18, offsetAPR: 0});
+
+        CopyLimitOrderConfig memory borrowOfferConfig = CopyLimitOrderConfig({
+            minTenor: 10 days,
+            maxTenor: 20 days,
+            minAPR: 0.02e18,
+            maxAPR: 0.05e18,
+            offsetAPR: -0.01e18
+        });
+
+        _setUserCollectionCopyLimitOrderConfigs(alice, collectionId, loanOfferConfig, borrowOfferConfig);
+
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyLoanOfferConfig(alice, collectionId).minTenor,
+            loanOfferConfig.minTenor
+        );
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyLoanOfferConfig(alice, collectionId).maxTenor,
+            loanOfferConfig.maxTenor
+        );
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyLoanOfferConfig(alice, collectionId).minAPR,
+            loanOfferConfig.minAPR
+        );
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyLoanOfferConfig(alice, collectionId).maxAPR,
+            loanOfferConfig.maxAPR
+        );
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyLoanOfferConfig(alice, collectionId).offsetAPR,
+            loanOfferConfig.offsetAPR
+        );
+
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyBorrowOfferConfig(alice, collectionId).minTenor,
+            borrowOfferConfig.minTenor
+        );
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyBorrowOfferConfig(alice, collectionId).maxTenor,
+            borrowOfferConfig.maxTenor
+        );
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyBorrowOfferConfig(alice, collectionId).minAPR,
+            borrowOfferConfig.minAPR
+        );
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyBorrowOfferConfig(alice, collectionId).maxAPR,
+            borrowOfferConfig.maxAPR
+        );
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyBorrowOfferConfig(alice, collectionId)
+                .offsetAPR,
+            borrowOfferConfig.offsetAPR
+        );
+    }
+
+    function _upgradeToV1_8_1() internal {
+        ProposeSafeTxUpgradeToV1_8_1Script proposeSafeTxUpgradeToV1_8_1Script = new ProposeSafeTxUpgradeToV1_8_1Script();
+
+        (address[] memory targets, bytes[] memory datas) = proposeSafeTxUpgradeToV1_8_1Script.getUpgradeToV1_8_1Data();
+        for (uint256 i = 0; i < targets.length; i++) {
+            vm.prank(owner);
+            Address.functionCall(targets[i], datas[i]);
+        }
     }
 }
