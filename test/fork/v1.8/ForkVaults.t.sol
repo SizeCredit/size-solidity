@@ -7,6 +7,7 @@ import {console} from "forge-std/console.sol";
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {SizeMock} from "@test/mocks/SizeMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
@@ -24,6 +25,8 @@ import {Size} from "@src/market/Size.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {ERC4626_ADAPTER_ID} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
+
+import {Math} from "@src/market/libraries/Math.sol";
 
 contract ForkVaultsTest is ForkTest, Networks {
     IERC4626 public eUSDC22 = IERC4626(0xe0a80d35bB6618CBA260120b279d357978c42BCE);
@@ -153,11 +156,64 @@ contract ForkVaultsTest is ForkTest, Networks {
 
     function testFork_ForkVaults_repay_then_claim() public {
         vm.createSelectFork("mainnet");
-        vm.rollFork(23633327);
-
         size = SizeMock(Size_PT_wstUSR_29JAN2026);
+        uint256 createDebtPositionBlock = 23512263;
+        uint256 liquidateBlock = 23540358;
+        uint256 claimAttemptBlock = 23633327;
+
+        uint256 debtPositionId = 2;
         uint256 creditPositionId = 57896044618658097711785492504343953926634992332820282019728792003956564819969;
 
-        size.claim(ClaimParams({creditPositionId: creditPositionId}));
+        vm.rollFork(createDebtPositionBlock);
+        console.log("create debt position block.timestamp", block.timestamp);
+        console.log("initial future value", size.getDebtPosition(debtPositionId).futureValue);
+        console.log("initial credit", size.getCreditPosition(creditPositionId).credit);
+        console.log("initial size borrow token balance", size.data().borrowTokenVault.balanceOf(address(size)));
+        console.log("");
+
+        vm.rollFork(liquidateBlock);
+        console.log("liquidated block.timestamp", block.timestamp);
+        console.log("liquidated future value", size.getDebtPosition(debtPositionId).futureValue);
+        console.log(
+            "liquidated liquidity index at repayment", size.getDebtPosition(debtPositionId).liquidityIndexAtRepayment
+        );
+        console.log("liquidated credit", size.getCreditPosition(creditPositionId).credit);
+        console.log("liquidated size borrow token balance", size.data().borrowTokenVault.balanceOf(address(size)));
+        console.log("");
+
+        vm.rollFork(claimAttemptBlock);
+        console.log("claim attempt block.timestamp", block.timestamp);
+        console.log("claim attempt future value", size.getDebtPosition(debtPositionId).futureValue);
+        console.log("claim attempt liquidity index", size.data().borrowTokenVault.liquidityIndex());
+        console.log("claim attempt credit", size.getCreditPosition(creditPositionId).credit);
+        console.log(
+            "claim attempt claim amount",
+            Math.mulDivDown(
+                size.getCreditPosition(creditPositionId).credit,
+                size.data().borrowTokenVault.liquidityIndex(),
+                size.getDebtPosition(debtPositionId).liquidityIndexAtRepayment
+            )
+        );
+        console.log("claim attempt size borrow token balance", size.data().borrowTokenVault.balanceOf(address(size)));
+
+        try size.claim(ClaimParams({creditPositionId: creditPositionId})) {
+            assertTrue(false);
+        } catch (bytes memory err) {
+            bytes memory expected = abi.encodePacked(
+                IERC20Errors.ERC20InsufficientBalance.selector, bytes32(uint256(uint160(address(size))))
+            );
+            bytes32 actual1;
+            bytes32 actual2;
+            bytes32 expected1;
+            bytes32 expected2;
+            assembly {
+                actual1 := mload(add(err, 0x20))
+                actual2 := mload(add(err, 0x40))
+                expected1 := mload(add(expected, 0x20))
+                expected2 := mload(add(expected, 0x40))
+            }
+            assertEq(actual1, expected1);
+            assertEq(actual2, expected2);
+        }
     }
 }

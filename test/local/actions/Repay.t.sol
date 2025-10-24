@@ -188,4 +188,29 @@ contract RepayTest is BaseTest {
         _setPrice(0.0001e18);
         _repay(bob, debtPositionId, bob);
     }
+
+    function testFuzz_Repay_repay_liquidity_index(uint256 liquidityIndex) public {
+        liquidityIndex = bound(liquidityIndex, 1e27, 1.3e27);
+
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.05e18));
+        uint256 amountLoanId1 = 10e6;
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amountLoanId1, 365 days, false);
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
+
+        Vars memory _before = _state();
+
+        _setLiquidityIndex(liquidityIndex);
+
+        _repay(bob, debtPositionId, bob);
+
+        Vars memory _after = _state();
+
+        assertEqApprox(_after.size.borrowTokenBalance, _before.size.borrowTokenBalance + futureValue, 2);
+    }
 }
