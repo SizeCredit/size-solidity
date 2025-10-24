@@ -1215,4 +1215,52 @@ contract CollectionsTest is BaseTest {
         vm.prank(alice);
         collectionsManager.setUserCollectionCopyLimitOrderConfigs(alice, collectionId, config, config);
     }
+
+    // ============ Validation Tests ============
+
+    function test_Collections_setUserCollectionCopyLimitOrderConfigs_validation_minTenor_greater_than_maxTenor()
+        public
+    {
+        _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
+
+        uint256 collectionId = _createCollection(james);
+        _addMarketToCollection(james, collectionId, size);
+        _addRateProviderToCollectionMarket(james, collectionId, size, bob);
+
+        _subscribeToCollection(alice, collectionId);
+
+        // Create invalid config where minTenor > maxTenor
+        CopyLimitOrderConfig memory invalidBorrowConfig = CopyLimitOrderConfig({
+            minTenor: 60 days, // minTenor > maxTenor
+            maxTenor: 30 days,
+            minAPR: 0,
+            maxAPR: type(uint256).max,
+            offsetAPR: 0
+        });
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_TENOR_RANGE.selector, 60 days, 30 days));
+        _setUserCollectionCopyLimitOrderConfigs(alice, collectionId, noCopy, invalidBorrowConfig);
+    }
+
+    function test_Collections_setUserCollectionCopyLimitOrderConfigs_validation_minAPR_greater_than_maxAPR() public {
+        _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.08e18));
+
+        uint256 collectionId = _createCollection(james);
+        _addMarketToCollection(james, collectionId, size);
+        _addRateProviderToCollectionMarket(james, collectionId, size, bob);
+
+        _subscribeToCollection(alice, collectionId);
+
+        // Create invalid config where minAPR > maxAPR
+        CopyLimitOrderConfig memory invalidLoanConfig = CopyLimitOrderConfig({
+            minTenor: 0,
+            maxTenor: type(uint256).max,
+            minAPR: 0.2e18, // minAPR > maxAPR
+            maxAPR: 0.1e18,
+            offsetAPR: 0
+        });
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_APR_RANGE.selector, 0.2e18, 0.1e18));
+        _setUserCollectionCopyLimitOrderConfigs(alice, collectionId, invalidLoanConfig, noCopy);
+    }
 }

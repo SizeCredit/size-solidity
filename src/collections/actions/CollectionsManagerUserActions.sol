@@ -6,7 +6,7 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
 import {UserCollectionCopyLimitOrderConfigs} from "@src/collections/CollectionsManagerBase.sol";
 import {CollectionsManagerView} from "@src/collections/actions/CollectionsManagerView.sol";
 import {ICollectionsManagerUserActions} from "@src/collections/interfaces/ICollectionsManagerUserActions.sol";
-import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
+import {CopyLimitOrderConfig, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
 
 /// @title CollectionsManagerUserActions
 /// @custom:security-contact security@size.credit
@@ -76,6 +76,7 @@ abstract contract CollectionsManagerUserActions is ICollectionsManagerUserAction
         if (!isValidCollectionId(collectionId)) {
             revert InvalidCollectionId(collectionId);
         }
+        OfferLibrary.validateCopyLimitOrderConfigs(copyLoanOfferConfig, copyBorrowOfferConfig);
 
         userToCollectionCopyLimitOrderConfigs[user][collectionId] = UserCollectionCopyLimitOrderConfigs({
             copyLoanOfferConfig: copyLoanOfferConfig,
