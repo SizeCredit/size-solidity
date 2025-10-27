@@ -160,6 +160,7 @@ contract ForkVaultsTest is ForkTest, Networks {
         uint256 createDebtPositionBlock = 23512263;
         uint256 liquidateBlock = 23540358;
         uint256 claimAttemptBlock = 23633327;
+        uint256 postDepositBlock = 23634696;
 
         uint256 debtPositionId = 2;
         uint256 creditPositionId = 57896044618658097711785492504343953926634992332820282019728792003956564819969;
@@ -215,5 +216,14 @@ contract ForkVaultsTest is ForkTest, Networks {
             assertEq(actual1, expected1);
             assertEq(actual2, expected2);
         }
+
+        vm.rollFork(postDepositBlock);
+        console.log("post deposit block.timestamp", block.timestamp);
+        console.log("post deposit future value", size.getDebtPosition(debtPositionId).futureValue);
+        console.log("post deposit liquidity index", size.data().borrowTokenVault.liquidityIndex());
+        console.log("post deposit credit", size.getCreditPosition(creditPositionId).credit);
+        console.log("post deposit size borrow token balance", size.data().borrowTokenVault.balanceOf(address(size)));
+        console.log("");
+        size.claim(ClaimParams({creditPositionId: creditPositionId}));
     }
 }

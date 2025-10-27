@@ -301,7 +301,7 @@ contract ClaimTest is BaseTest {
         amount1 = bound(amount1, 100e6, 200e6);
         liquidityIndex1 = bound(liquidityIndex1, 1e27, 1.3e27);
         amount2 = bound(amount2, 100e6, 200e6);
-        liquidityIndex2 = bound(liquidityIndex2, liquidityIndex1, 1.7e27);
+        liquidityIndex2 = bound(liquidityIndex2, liquidityIndex1 + 1, 1.7e27);
 
         _setPrice(1e18);
 
