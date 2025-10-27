@@ -2,22 +2,20 @@
 pragma solidity 0.8.23;
 
 import {ISize} from "@src/market/interfaces/ISize.sol";
-import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
+
 /// @title ICollectionsManagerCuratorActions
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
-
 interface ICollectionsManagerCuratorActions {
     /*//////////////////////////////////////////////////////////////
                             EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event MarketAddedToCollection(
-        uint256 indexed collectionId,
-        address indexed market,
-        CopyLimitOrderConfig copyLoanOfferConfig,
-        CopyLimitOrderConfig copyBorrowOfferConfig
-    );
+    event MarketAddedToCollection(uint256 indexed collectionId, address indexed market);
+    // deprecated in v1.8.1
+    // CopyLimitOrderConfig copyLoanOfferConfig,
+    // CopyLimitOrderConfig copyBorrowOfferConfig
+
     event MarketRemovedFromCollection(uint256 indexed collectionId, address indexed market);
     event RateProviderAddedToMarket(uint256 indexed collectionId, address indexed market, address indexed rateProvider);
     event RateProviderRemovedFromMarket(
@@ -45,12 +43,13 @@ interface ICollectionsManagerCuratorActions {
     /// @param copyLoanOfferConfigs The copy limit order parameters for loan offers
     /// @param copyBorrowOfferConfigs The copy limit order parameters for borrow offers
     /// @dev This function has the same effect as calling `addMarketsToCollection` but with a custom config for each market
-    function setCollectionMarketConfigs(
-        uint256 collectionId,
-        ISize[] memory markets,
-        CopyLimitOrderConfig[] memory copyLoanOfferConfigs,
-        CopyLimitOrderConfig[] memory copyBorrowOfferConfigs
-    ) external;
+    /// @dev Removed in v1.8.1
+    // function setCollectionMarketConfigs(
+    //     uint256 collectionId,
+    //     ISize[] memory markets,
+    //     CopyLimitOrderConfig[] memory copyLoanOfferConfigs,
+    //     CopyLimitOrderConfig[] memory copyBorrowOfferConfigs
+    // ) external;
 
     /// @notice Removes markets from a collection
     /// @param collectionId The collection ID

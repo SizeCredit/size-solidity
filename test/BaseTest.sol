@@ -490,6 +490,16 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         );
     }
 
+    function _setUserCollectionCopyLimitOrderConfigs(
+        address user,
+        uint256 collectionId,
+        CopyLimitOrderConfig memory copyLoanOfferConfig,
+        CopyLimitOrderConfig memory copyBorrowOfferConfig
+    ) internal {
+        vm.prank(user);
+        sizeFactory.setUserCollectionCopyLimitOrderConfigs(collectionId, copyLoanOfferConfig, copyBorrowOfferConfig);
+    }
+
     function _setAuthorization(address user, address operator, ActionsBitmap actionsBitmap) internal {
         vm.prank(user);
         sizeFactory.setAuthorization(operator, actionsBitmap);

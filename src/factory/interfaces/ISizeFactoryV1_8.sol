@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {ICollectionsManager} from "@src/collections/interfaces/ICollectionsManager.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
+import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 
 /// @title ISizeFactoryV1_8
 /// @custom:security-contact security@size.credit
@@ -21,13 +22,14 @@ interface ISizeFactoryV1_8 {
     ///      On mainnet, there are no off-chain collections. On Base, there is only one off-chain collection.
     ///      Although users could theoretically DoS/grief the reinitialization process by sybil copying the rate provider with multiple accounts,
     ///        these addresses are filtered on the backend by liquidity, so this is not a concern.
-    function reinitialize(
-        ICollectionsManager _collectionsManager,
-        address[] memory _users,
-        address _curator,
-        address _rateProvider,
-        ISize[] memory _collectionMarkets
-    ) external;
+    /// @dev Deprecated in v1.8.1
+    // function reinitialize(
+    //     ICollectionsManager _collectionsManager,
+    //     address[] memory _users,
+    //     address _curator,
+    //     address _rateProvider,
+    //     ISize[] memory _collectionMarkets
+    // ) external;
 
     /// @notice Call a market with data. This can be used to batch operations on multiple markets.
     /// @param market The market to call
@@ -49,6 +51,23 @@ interface ISizeFactoryV1_8 {
 
     /// @notice Same as `unsubscribeFromCollections` but `onBehalfOf`
     function unsubscribeFromCollectionsOnBehalfOf(uint256[] memory collectionIds, address onBehalfOf) external;
+
+    /// @notice Set the copy limit order configs for a user and collection
+    /// @dev Added in v1.8.1
+    function setUserCollectionCopyLimitOrderConfigs(
+        uint256 collectionId,
+        CopyLimitOrderConfig memory copyLoanOfferConfig,
+        CopyLimitOrderConfig memory copyBorrowOfferConfig
+    ) external;
+
+    /// @notice Same as `setUserCollectionCopyLimitOrderConfigs` but `onBehalfOf`
+    /// @dev Added in v1.8.1
+    function setUserCollectionCopyLimitOrderConfigsOnBehalfOf(
+        uint256 collectionId,
+        CopyLimitOrderConfig memory copyLoanOfferConfig,
+        CopyLimitOrderConfig memory copyBorrowOfferConfig,
+        address onBehalfOf
+    ) external;
 
     /// @notice Get the loan offer APR
     /// @param user The user

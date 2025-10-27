@@ -174,6 +174,7 @@ Since Size v1.8, collections of markets, curators and rate providers are core en
 - Curators can transfer ownership of their collections.
 - Since users can subscribe to multiple collections, each with potentially many rate providers, the "borrow offer should be lower than loan offer" check now has O(C × R) complexity, where C is the number of collections and R is the number of rate providers. Users should avoid subscribing to too many collections or collections with excessive rate providers, as this may cause market orders to revert due to high gas usage.
 - A rate provider in any market belonging to any collection can prevent all subscribed users from market orders if they set the borrow offer APR greater than or equal to the lend offer APR.
+- After v1.8.1, users can configure a per-collection `CopyLimitOrderConfig`, which is applied as a fallback to per-market configs, and curator-defined configs are deprecated.
 
 ##### Breaking changes
 
@@ -181,8 +182,7 @@ Since Size v1.8, collections of markets, curators and rate providers are core en
 - During reinitialization:
   - All users who previously used the `copyLimitOrder` feature are now subscribed to a new collection that mirrors the rate provider they had copied.
   - Their existing limit orders are cleared, since these may now be used by the taker side of a market order.
-  - By default, market orders now select the user-defined yield curve. Since migrated users will have no personal curve set, market orders will revert unless integrators pass an explicit collection parameter.
-- To indicate "no copy," users should pass a `CopyLimitOrderConfig` with all fields set to null except `offsetAPR`. Passing zero min/max bounds will cause reverts—even if the curator has configured valid bounds.
+- To indicate "no copy," users should pass a `CopyLimitOrderConfig` with all fields set to null except `offsetAPR`.
 - For the sake of clarity, `getLoanOfferAPR` and `getBorrowOfferAPR` on the `SizeView` contract were renamed to `getUserDefinedLoanOfferAPR` and `getUserDefinedBorrowOfferAPR` to be explicit about whether the yield curve is from a rate provider or from the user themselves.
 - Some infrequently utilized `SizeView` functions were removed to make room for the additional `WithCollection` functions and not break the max contract size limit.
 

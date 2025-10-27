@@ -124,16 +124,36 @@ interface ICollectionsManagerView {
     /// @param collectionId The collection ID to get the copy loan offer config for
     /// @param market The market to get the copy loan offer config for
     /// @return config The copy loan offer config
-    function getCollectionMarketCopyLoanOfferConfig(uint256 collectionId, ISize market)
-        external
-        view
-        returns (CopyLimitOrderConfig memory);
+    /// @dev deprecated in v1.8.1
+    // function getCollectionMarketCopyLoanOfferConfig(uint256 collectionId, ISize market)
+    //     external
+    //     view
+    //     returns (CopyLimitOrderConfig memory);
 
     /// @notice Get the copy borrow offer config for a collection market
     /// @param collectionId The collection ID to get the copy borrow offer config for
     /// @param market The market to get the copy borrow offer config for
     /// @return config The copy borrow offer config
-    function getCollectionMarketCopyBorrowOfferConfig(uint256 collectionId, ISize market)
+    // @dev deprecated in v1.8.1
+    // function getCollectionMarketCopyBorrowOfferConfig(uint256 collectionId, ISize market)
+    //     external
+    //     view
+    //     returns (CopyLimitOrderConfig memory);
+
+    /// @notice Get the user defined copy loan offer config for a user and collection
+    /// @param user The user to get the user defined copy loan offer config for
+    /// @param collectionId The collection ID to get the user defined copy loan offer config for
+    /// @return config The user defined copy loan offer config for the collection
+    function getUserDefinedCollectionCopyLoanOfferConfig(address user, uint256 collectionId)
+        external
+        view
+        returns (CopyLimitOrderConfig memory);
+
+    /// @notice Get the user defined copy borrow offer config for a user and collection
+    /// @param user The user to get the user defined copy borrow offer config for
+    /// @param collectionId The collection ID to get the user defined copy borrow offer config for
+    /// @return config The user defined copy borrow offer config for the collection
+    function getUserDefinedCollectionCopyBorrowOfferConfig(address user, uint256 collectionId)
         external
         view
         returns (CopyLimitOrderConfig memory);

@@ -14,8 +14,6 @@ import {IERC4626Morpho} from "@test/fork/v1.8/interfaces/IERC4626Morpho.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {ProposeSafeTxUpgradeToV1_8Script} from "@script/ProposeSafeTxUpgradeToV1_8.s.sol";
-
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {Size} from "@src/market/Size.sol";
@@ -26,11 +24,14 @@ import {
     SellCreditMarketParams
 } from "@src/market/libraries/actions/SellCreditMarket.sol";
 
+import {ICollectionsManagerView} from "@src/collections/interfaces/ICollectionsManagerView.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
-contract ForkCollectionsTest is ForkTest, Networks {
-    ProposeSafeTxUpgradeToV1_8Script script;
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {ProposeSafeTxUpgradeToV1_8_1Script} from "@script/ProposeSafeTxUpgradeToV1_8_1.s.sol";
+import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
 
+contract ForkCollectionsTest is ForkTest, Networks {
     address[] users;
     ISize[] collectionMarkets;
     address curator;
@@ -43,8 +44,8 @@ contract ForkCollectionsTest is ForkTest, Networks {
 
     function setUp() public override(ForkTest) {
         vm.createSelectFork("base_archive");
-        // 2025-05-12 16h50 UTC
-        vm.rollFork(30139655);
+        // 2025-10-21 14h10 UTC
+        vm.rollFork(37133235);
 
         sizeFactory = importSizeFactory("base-production-size-factory");
         size = SizeMock(address(sizeFactory.getMarket(0)));
@@ -53,64 +54,21 @@ contract ForkCollectionsTest is ForkTest, Networks {
         variablePool = size.data().variablePool;
         owner = Networks.contracts[block.chainid][Contract.SIZE_GOVERNANCE];
 
-        script = new ProposeSafeTxUpgradeToV1_8Script();
-
         users = new address[](2);
         users[0] = 0x87CDad83a779D785A729a91dBb9FE0DB8be14b3b;
         users[1] = 0x000000f840D8A851718d7DC470bFf1ed09F69107;
 
-        collectionMarkets = script.getCollectionMarkets(sizeFactory);
         curator = makeAddr("curator");
         rateProvider = 0x39EB0e1039732d8d2380B682Bc00Ad07b864F176;
 
-        _getPreviousState();
-
-        _upgradeToV1_8();
-
         _labels();
-    }
-
-    function _getPreviousState() internal {
-        usersPreviousLoanAPRsPerCollectionMarket = new uint256[][](users.length);
-        for (uint256 i = 0; i < users.length; i++) {
-            usersPreviousLoanAPRsPerCollectionMarket[i] = new uint256[](collectionMarkets.length);
-            for (uint256 j = 0; j < collectionMarkets.length; j++) {
-                ISize collectionMarket = collectionMarkets[j];
-                (bool success, bytes memory data) = address(collectionMarket).call(
-                    abi.encodeWithSignature("getLoanOfferAPR(address,uint256)", users[i], tenor)
-                );
-                assertEq(success, true);
-                usersPreviousLoanAPRsPerCollectionMarket[i][j] = abi.decode(data, (uint256));
-            }
-        }
-    }
-
-    function _upgradeToV1_8() internal {
-        (address[] memory targets, bytes[] memory datas) =
-            script.getTargetsAndDatas(sizeFactory, users, curator, rateProvider, collectionMarkets);
-
-        for (uint256 i = 0; i < targets.length; i++) {
-            vm.prank(owner);
-            (bool success,) = targets[i].call(datas[i]);
-            assertTrue(success);
-        }
-    }
-
-    function testFork_ForkCollections_users_subscribing_to_existing_RP_now_have_1_collection() public view {
-        for (uint256 i = 0; i < users.length; i++) {
-            for (uint256 j = 0; j < collectionMarkets.length; j++) {
-                ISize collectionMarket = collectionMarkets[j];
-                uint256 loanAPR = collectionMarket.getLoanOfferAPR(users[i], collectionId, rateProvider, tenor);
-                assertEq(loanAPR, usersPreviousLoanAPRsPerCollectionMarket[i][j]);
-            }
-        }
     }
 
     function testFork_ForkCollections_market_orders_on_users_subscribing_to_existing_RP_now_fail_if_no_collection_is_passed(
     ) public {
         _deposit(alice, weth, 100e18);
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, users[0]));
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, tenor, 8640, 8640));
         size.sellCreditMarketOnBehalfOf(
             SellCreditMarketOnBehalfOfParams({
                 params: SellCreditMarketParams({
@@ -128,24 +86,77 @@ contract ForkCollectionsTest is ForkTest, Networks {
                 recipient: alice
             })
         );
+    }
 
-        vm.prank(alice);
-        size.sellCreditMarketOnBehalfOf(
-            SellCreditMarketOnBehalfOfParams({
-                params: SellCreditMarketParams({
-                    lender: users[0],
-                    creditPositionId: RESERVED_ID,
-                    amount: 10e6,
-                    tenor: tenor,
-                    maxAPR: type(uint256).max,
-                    deadline: block.timestamp,
-                    exactAmountIn: false,
-                    collectionId: collectionId,
-                    rateProvider: rateProvider
-                }),
-                onBehalfOf: alice,
-                recipient: alice
-            })
+    function testFork_ForkCollections_v1_8_1() public {
+        vm.createSelectFork("base_archive");
+
+        _upgradeToV1_8_1();
+
+        CopyLimitOrderConfig memory loanOfferConfig =
+            CopyLimitOrderConfig({minTenor: 20 days, maxTenor: 40 days, minAPR: 0.05e18, maxAPR: 0.1e18, offsetAPR: 0});
+
+        CopyLimitOrderConfig memory borrowOfferConfig = CopyLimitOrderConfig({
+            minTenor: 10 days,
+            maxTenor: 20 days,
+            minAPR: 0.02e18,
+            maxAPR: 0.05e18,
+            offsetAPR: -0.01e18
+        });
+
+        _setUserCollectionCopyLimitOrderConfigs(alice, collectionId, loanOfferConfig, borrowOfferConfig);
+
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyLoanOfferConfig(alice, collectionId).minTenor,
+            loanOfferConfig.minTenor
         );
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyLoanOfferConfig(alice, collectionId).maxTenor,
+            loanOfferConfig.maxTenor
+        );
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyLoanOfferConfig(alice, collectionId).minAPR,
+            loanOfferConfig.minAPR
+        );
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyLoanOfferConfig(alice, collectionId).maxAPR,
+            loanOfferConfig.maxAPR
+        );
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyLoanOfferConfig(alice, collectionId).offsetAPR,
+            loanOfferConfig.offsetAPR
+        );
+
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyBorrowOfferConfig(alice, collectionId).minTenor,
+            borrowOfferConfig.minTenor
+        );
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyBorrowOfferConfig(alice, collectionId).maxTenor,
+            borrowOfferConfig.maxTenor
+        );
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyBorrowOfferConfig(alice, collectionId).minAPR,
+            borrowOfferConfig.minAPR
+        );
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyBorrowOfferConfig(alice, collectionId).maxAPR,
+            borrowOfferConfig.maxAPR
+        );
+        assertEq(
+            sizeFactory.collectionsManager().getUserDefinedCollectionCopyBorrowOfferConfig(alice, collectionId)
+                .offsetAPR,
+            borrowOfferConfig.offsetAPR
+        );
+    }
+
+    function _upgradeToV1_8_1() internal {
+        ProposeSafeTxUpgradeToV1_8_1Script proposeSafeTxUpgradeToV1_8_1Script = new ProposeSafeTxUpgradeToV1_8_1Script();
+
+        (address[] memory targets, bytes[] memory datas) = proposeSafeTxUpgradeToV1_8_1Script.getUpgradeToV1_8_1Data();
+        for (uint256 i = 0; i < targets.length; i++) {
+            vm.prank(owner);
+            Address.functionCall(targets[i], datas[i]);
+        }
     }
 }

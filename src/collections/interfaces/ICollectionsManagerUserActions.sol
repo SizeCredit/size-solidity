@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {CopyLimitOrderConfig} from "@src/market/libraries/OfferLibrary.sol";
+
 /// @title ICollectionsManagerUserActions
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
@@ -11,6 +13,12 @@ interface ICollectionsManagerUserActions {
 
     event SubscribedToCollection(address indexed user, uint256 indexed collectionId);
     event UnsubscribedFromCollection(address indexed user, uint256 indexed collectionId);
+    event SetUserCollectionCopyLimitOrderConfigs(
+        address indexed user,
+        uint256 indexed collectionId,
+        CopyLimitOrderConfig copyLoanOfferConfig,
+        CopyLimitOrderConfig copyBorrowOfferConfig
+    );
 
     /*//////////////////////////////////////////////////////////////
                             ACTIONS
@@ -27,4 +35,18 @@ interface ICollectionsManagerUserActions {
     /// @param collectionIds The collection IDs to unsubscribe the user from
     /// @dev Only callable by the SizeFactory
     function unsubscribeUserFromCollections(address user, uint256[] memory collectionIds) external;
+
+    /// @notice Set the copy limit order configs for a user and collection
+    /// @param user The user to set the copy limit order configs for
+    /// @param collectionId The collection ID to set the copy limit order configs for
+    /// @param copyLoanOfferConfig The copy limit order config for the loan offer
+    /// @param copyBorrowOfferConfig The copy limit order config for the borrow offer
+    /// @dev Only callable by the SizeFactory
+    /// @dev Added in v1.8.1
+    function setUserCollectionCopyLimitOrderConfigs(
+        address user,
+        uint256 collectionId,
+        CopyLimitOrderConfig memory copyLoanOfferConfig,
+        CopyLimitOrderConfig memory copyBorrowOfferConfig
+    ) external;
 }

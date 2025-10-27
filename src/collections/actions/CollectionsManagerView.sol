@@ -231,19 +231,38 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
                             COPY LIMIT ORDER VIEW
     //////////////////////////////////////////////////////////////*/
 
+    /// @inheritdoc ICollectionsManagerView
+    function getUserDefinedCollectionCopyLoanOfferConfig(address user, uint256 collectionId)
+        external
+        view
+        returns (CopyLimitOrderConfig memory)
+    {
+        return _getUserDefinedCollectionCopyLimitOrderConfig(user, collectionId, true);
+    }
+
+    /// @inheritdoc ICollectionsManagerView
+    function getUserDefinedCollectionCopyBorrowOfferConfig(address user, uint256 collectionId)
+        external
+        view
+        returns (CopyLimitOrderConfig memory)
+    {
+        return _getUserDefinedCollectionCopyLimitOrderConfig(user, collectionId, false);
+    }
+
     /// @dev Reverts if the collection id is invalid or the market is not in the collection
+    /// @dev Changed in v1.8.1
     function _getCopyLimitOrderConfig(address user, uint256 collectionId, ISize market, bool isLoanOffer)
         private
         view
         returns (CopyLimitOrderConfig memory copyLimitOrder)
     {
-        copyLimitOrder = _getUserDefinedCopyLimitOrderConfig(user, market, isLoanOffer);
+        copyLimitOrder = _getUserDefinedMarketCopyLimitOrderConfig(user, market, isLoanOffer);
         if (copyLimitOrder.isNull()) {
-            copyLimitOrder = _getCollectionMarketCopyLimitOrderConfig(collectionId, market, isLoanOffer);
+            copyLimitOrder = _getUserDefinedCollectionCopyLimitOrderConfig(user, collectionId, isLoanOffer);
         }
     }
 
-    function _getUserDefinedCopyLimitOrderConfig(address user, ISize market, bool isLoanOffer)
+    function _getUserDefinedMarketCopyLimitOrderConfig(address user, ISize market, bool isLoanOffer)
         private
         view
         returns (CopyLimitOrderConfig memory copyLimitOrder)
@@ -253,37 +272,13 @@ abstract contract CollectionsManagerView is ICollectionsManagerView, Collections
             : market.getUserDefinedCopyBorrowOfferConfig(user);
     }
 
-    function _getCollectionMarketCopyLimitOrderConfig(uint256 collectionId, ISize market, bool isLoanOffer)
+    function _getUserDefinedCollectionCopyLimitOrderConfig(address user, uint256 collectionId, bool isLoanOffer)
         private
         view
         returns (CopyLimitOrderConfig memory copyLimitOrder)
     {
-        if (!isValidCollectionId(collectionId)) {
-            revert InvalidCollectionId(collectionId);
-        }
-        if (!collections[collectionId][market].initialized) {
-            revert MarketNotInCollection(collectionId, address(market));
-        }
         return isLoanOffer
-            ? collections[collectionId][market].copyLoanOfferConfig
-            : collections[collectionId][market].copyBorrowOfferConfig;
-    }
-
-    /// @inheritdoc ICollectionsManagerView
-    function getCollectionMarketCopyLoanOfferConfig(uint256 collectionId, ISize market)
-        public
-        view
-        returns (CopyLimitOrderConfig memory copyLimitOrder)
-    {
-        return _getCollectionMarketCopyLimitOrderConfig(collectionId, market, true);
-    }
-
-    /// @inheritdoc ICollectionsManagerView
-    function getCollectionMarketCopyBorrowOfferConfig(uint256 collectionId, ISize market)
-        public
-        view
-        returns (CopyLimitOrderConfig memory copyLimitOrder)
-    {
-        return _getCollectionMarketCopyLimitOrderConfig(collectionId, market, false);
+            ? userToCollectionCopyLimitOrderConfigs[user][collectionId].copyLoanOfferConfig
+            : userToCollectionCopyLimitOrderConfigs[user][collectionId].copyBorrowOfferConfig;
     }
 }
