@@ -7,6 +7,7 @@ import {console} from "forge-std/console.sol";
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {SizeMock} from "@test/mocks/SizeMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
@@ -15,6 +16,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {IERC4626Morpho} from "@test/fork/v1.8/interfaces/IERC4626Morpho.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
+import {ClaimParams} from "@src/market/libraries/actions/Claim.sol";
 
 import {ProposeSafeTxUpgradeToV1_8Script} from "@script/ProposeSafeTxUpgradeToV1_8.s.sol";
 
@@ -24,10 +26,13 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 import {NonTransferrableRebasingTokenVault} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 import {ERC4626_ADAPTER_ID} from "@src/market/token/NonTransferrableRebasingTokenVault.sol";
 
+import {Math} from "@src/market/libraries/Math.sol";
+
 contract ForkVaultsTest is ForkTest, Networks {
     IERC4626 public eUSDC22 = IERC4626(0xe0a80d35bB6618CBA260120b279d357978c42BCE);
     IERC4626Morpho public morphoUSUALUSDCplus = IERC4626Morpho(0xd63070114470f685b75B74D60EEc7c1113d33a3D);
     IERC20Metadata public liquidUSD = IERC20Metadata(0x08c6F91e2B681FaF5e17227F2a44C307b3C1364C);
+    address Size_PT_wstUSR_29JAN2026 = 0xeD5F3300C21B37f16267981D80CD01Ec883a7822;
 
     function setUp() public override(ForkTest) {
         vm.createSelectFork("mainnet");
@@ -147,5 +152,78 @@ contract ForkVaultsTest is ForkTest, Networks {
         uint256 usdcBalanceAfter = usdc.balanceOf(address(liquidUSD));
 
         assertEq(usdcBalanceAfter, usdcBalanceBefore);
+    }
+
+    function testFork_ForkVaults_repay_then_claim() public {
+        vm.createSelectFork("mainnet");
+        size = SizeMock(Size_PT_wstUSR_29JAN2026);
+        uint256 createDebtPositionBlock = 23512263;
+        uint256 liquidateBlock = 23540358;
+        uint256 claimAttemptBlock = 23633327;
+        uint256 postDepositBlock = 23634696;
+
+        uint256 debtPositionId = 2;
+        uint256 creditPositionId = 57896044618658097711785492504343953926634992332820282019728792003956564819969;
+
+        vm.rollFork(createDebtPositionBlock);
+        console.log("create debt position block.timestamp", block.timestamp);
+        console.log("initial future value", size.getDebtPosition(debtPositionId).futureValue);
+        console.log("initial credit", size.getCreditPosition(creditPositionId).credit);
+        console.log("initial size borrow token balance", size.data().borrowTokenVault.balanceOf(address(size)));
+        console.log("");
+
+        vm.rollFork(liquidateBlock);
+        console.log("liquidated block.timestamp", block.timestamp);
+        console.log("liquidated future value", size.getDebtPosition(debtPositionId).futureValue);
+        console.log(
+            "liquidated liquidity index at repayment", size.getDebtPosition(debtPositionId).liquidityIndexAtRepayment
+        );
+        console.log("liquidated credit", size.getCreditPosition(creditPositionId).credit);
+        console.log("liquidated size borrow token balance", size.data().borrowTokenVault.balanceOf(address(size)));
+        console.log("");
+
+        vm.rollFork(claimAttemptBlock);
+        console.log("claim attempt block.timestamp", block.timestamp);
+        console.log("claim attempt future value", size.getDebtPosition(debtPositionId).futureValue);
+        console.log("claim attempt liquidity index", size.data().borrowTokenVault.liquidityIndex());
+        console.log("claim attempt credit", size.getCreditPosition(creditPositionId).credit);
+        console.log(
+            "claim attempt claim amount",
+            Math.mulDivDown(
+                size.getCreditPosition(creditPositionId).credit,
+                size.data().borrowTokenVault.liquidityIndex(),
+                size.getDebtPosition(debtPositionId).liquidityIndexAtRepayment
+            )
+        );
+        console.log("claim attempt size borrow token balance", size.data().borrowTokenVault.balanceOf(address(size)));
+
+        try size.claim(ClaimParams({creditPositionId: creditPositionId})) {
+            assertTrue(false);
+        } catch (bytes memory err) {
+            bytes memory expected = abi.encodePacked(
+                IERC20Errors.ERC20InsufficientBalance.selector, bytes32(uint256(uint160(address(size))))
+            );
+            bytes32 actual1;
+            bytes32 actual2;
+            bytes32 expected1;
+            bytes32 expected2;
+            assembly {
+                actual1 := mload(add(err, 0x20))
+                actual2 := mload(add(err, 0x40))
+                expected1 := mload(add(expected, 0x20))
+                expected2 := mload(add(expected, 0x40))
+            }
+            assertEq(actual1, expected1);
+            assertEq(actual2, expected2);
+        }
+
+        vm.rollFork(postDepositBlock);
+        console.log("post deposit block.timestamp", block.timestamp);
+        console.log("post deposit future value", size.getDebtPosition(debtPositionId).futureValue);
+        console.log("post deposit liquidity index", size.data().borrowTokenVault.liquidityIndex());
+        console.log("post deposit credit", size.getCreditPosition(creditPositionId).credit);
+        console.log("post deposit size borrow token balance", size.data().borrowTokenVault.balanceOf(address(size)));
+        console.log("");
+        size.claim(ClaimParams({creditPositionId: creditPositionId}));
     }
 }

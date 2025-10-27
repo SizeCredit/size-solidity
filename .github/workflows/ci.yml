@@ -26,7 +26,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
+          version: v1.3.5
 
       - name: Contract sizes
         run: |
@@ -48,7 +48,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
+          version: v1.3.5
 
       - name: Format
         run: |
@@ -69,7 +69,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
+          version: v1.3.5
 
       - name: Test
         run: |
@@ -90,7 +90,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
+          version: v1.3.5
 
       - name: Fork Test
         run: |
@@ -116,7 +116,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
+          version: v1.3.5
 
       - name: Run Slither
         uses: crytic/slither-action@v0.4.0
@@ -159,7 +159,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
+          version: v1.3.5
 
       - name: Install Crytic-compile
         run: |
@@ -220,7 +220,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
+          version: v1.3.5
 
       - name: Install Halmos
         run: |
@@ -245,7 +245,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
+          version: v1.3.5
 
       - name: Install dependencies
         run: npm install
@@ -281,7 +281,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
+          version: v1.3.5
 
       - name: Install dependencies
         run: npm install
@@ -308,7 +308,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
+          version: v1.3.5
 
       - name: Upload Selectors
         run: |

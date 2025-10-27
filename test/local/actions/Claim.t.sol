@@ -291,4 +291,51 @@ contract ClaimTest is BaseTest {
         vm.expectRevert();
         _claim(alice, creditPositionId);
     }
+
+    function testFuzz_Claim_test_borrow_repay_claim(
+        uint256 amount1,
+        uint256 liquidityIndex1,
+        uint256 amount2,
+        uint256 liquidityIndex2
+    ) public {
+        amount1 = bound(amount1, 100e6, 200e6);
+        liquidityIndex1 = bound(liquidityIndex1, 1e27, 1.3e27);
+        amount2 = bound(amount2, 100e6, 200e6);
+        liquidityIndex2 = bound(liquidityIndex2, liquidityIndex1 + 1, 1.7e27);
+
+        _setPrice(1e18);
+
+        _deposit(alice, usdc, (amount1 + amount2) * 2);
+        _buyCreditLimit(
+            alice,
+            block.timestamp + 3 * 365 days,
+            YieldCurveHelper.customCurve(365 days, int256(0.03e18), 2 * 365 days, int256(0.04e18))
+        );
+        _deposit(bob, weth, 5000e18);
+        _deposit(candy, weth, 5000e18);
+
+        uint256 debtPositionId1 = _sellCreditMarket(bob, alice, RESERVED_ID, amount1, 365 days, false);
+        DebtPosition memory debtPosition1 = size.getDebtPosition(debtPositionId1);
+
+        vm.warp(block.timestamp + 30 days);
+
+        uint256 debtPositionId2 = _sellCreditMarket(candy, alice, RESERVED_ID, amount2, 2 * 365 days, false);
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
+        DebtPosition memory debtPosition2 = size.getDebtPosition(debtPositionId2);
+
+        vm.warp(block.timestamp + 335 days);
+
+        _setLiquidityIndex(liquidityIndex1);
+        _deposit(bob, usdc, debtPosition1.futureValue);
+        _repay(bob, debtPositionId1, bob);
+
+        vm.warp(block.timestamp + 365 days);
+
+        _deposit(candy, usdc, debtPosition2.futureValue);
+        _repay(candy, debtPositionId2, candy);
+
+        _setLiquidityIndex(liquidityIndex2);
+
+        _claim(candy, creditPositionId2);
+    }
 }

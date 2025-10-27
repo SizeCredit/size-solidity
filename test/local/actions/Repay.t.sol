@@ -188,4 +188,48 @@ contract RepayTest is BaseTest {
         _setPrice(0.0001e18);
         _repay(bob, debtPositionId, bob);
     }
+
+    function testFuzz_Repay_repay_liquidity_index(
+        uint256 liquidityIndex1,
+        uint256 liquidityIndex2,
+        uint256 liquidityIndex3
+    ) public {
+        liquidityIndex1 = bound(liquidityIndex1, 1e27 + 1, 1.1e27);
+        liquidityIndex2 = bound(liquidityIndex2, liquidityIndex1 + 1, 1.2e27);
+        liquidityIndex3 = bound(liquidityIndex3, liquidityIndex2 + 1, 1.3e27);
+
+        _setLiquidityIndex(liquidityIndex1);
+
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.05e18));
+        uint256 amountLoanId1 = 10e6;
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amountLoanId1, 365 days, false);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
+
+        Vars memory _before = _state();
+
+        _setLiquidityIndex(liquidityIndex2);
+
+        _repay(bob, debtPositionId, bob);
+
+        Vars memory _after = _state();
+
+        assertEqApprox(_after.size.borrowTokenBalance, _before.size.borrowTokenBalance + futureValue, 2);
+
+        _setLiquidityIndex(liquidityIndex3);
+
+        _claim(alice, creditPositionId);
+    }
+
+    function test_Repay_repay_liquidity_index_concrete() public {
+        testFuzz_Repay_repay_liquidity_index(
+            1068222523454441896054598504, 1185997288910022935691330793, 1266992387922252286018956915
+        );
+    }
 }
