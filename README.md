@@ -1,4 +1,6 @@
-# size-solidity [![Coverage Status](https://coveralls.io/repos/github/SizeCredit/size-solidity/badge.svg?branch=main)](https://coveralls.io/github/SizeCredit/size-solidity?branch=main) [![CI](https://github.com/SizeCredit/size-solidity/actions/workflows/ci.yml/badge.svg)](https://github.com/SizeCredit/size-solidity/actions/workflows/ci.yml) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/SizeCredit/size-solidity)
+# THIS REPOSITORY WAS MOVED TO https://github.com/rheo-xyz/rheo-solidity
+
+## size-solidity [![Coverage Status](https://coveralls.io/repos/github/SizeCredit/size-solidity/badge.svg?branch=main)](https://coveralls.io/github/SizeCredit/size-solidity?branch=main) [![CI](https://github.com/SizeCredit/size-solidity/actions/workflows/ci.yml/badge.svg)](https://github.com/SizeCredit/size-solidity/actions/workflows/ci.yml) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/SizeCredit/size-solidity)
 
 <a href="https://github.com/SizeCredit/size-solidity/raw/main/size.png"><img src="https://github.com/SizeCredit/size-solidity/raw/main/size.png" width="300" alt="Size"/></a>
 
